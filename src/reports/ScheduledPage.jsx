@@ -1,8 +1,20 @@
 import { useReducer, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Table, TableRow, TableCell, TableHead, TableBody, IconButton } from '@mui/material';
+import {
+  Table,
+  TableRow,
+  TableCell,
+  TableHead,
+  TableBody,
+  IconButton,
+  TableContainer,
+  Paper,
+  Box,
+  Typography,
+} from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import { useAsyncTask } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
@@ -13,7 +25,7 @@ import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const useStyles = makeStyles()((theme) => ({
   columnAction: {
-    width: '1%',
+    width: 48,
     paddingRight: theme.spacing(1),
   },
 }));
@@ -62,34 +74,113 @@ const ScheduledPage = () => {
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportScheduled']}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('sharedType')}</TableCell>
-            <TableCell>{t('sharedDescription')}</TableCell>
-            <TableCell>{t('sharedCalendar')}</TableCell>
-            <TableCell className={classes.columnAction} />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {!loading ? (
-            items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{formatType(item.type)}</TableCell>
-                <TableCell>{item.description}</TableCell>
-                <TableCell>{calendars[item.calendarId].name}</TableCell>
-                <TableCell className={classes.columnAction} padding="none">
-                  <IconButton size="small" onClick={() => setRemovingId(item.id)}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, width: '100%' }}>
+        <TableContainer
+          component={Paper}
+          elevation={0}
+          sx={{
+            borderRadius: '12px',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+          }}
+        >
+          <Table size="small">
+            <TableHead>
+              <TableRow
+                sx={{
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                }}
+              >
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    py: 1.5,
+                  }}
+                >
+                  {t('sharedType')}
                 </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    py: 1.5,
+                  }}
+                >
+                  {t('sharedDescription')}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    py: 1.5,
+                  }}
+                >
+                  {t('sharedCalendar')}
+                </TableCell>
+                <TableCell className={classes.columnAction} />
               </TableRow>
-            ))
-          ) : (
-            <TableShimmer columns={4} endAction />
-          )}
-        </TableBody>
-      </Table>
+            </TableHead>
+            <TableBody>
+              {!loading ? (
+                items.length > 0 ? (
+                  items.map((item) => (
+                    <TableRow
+                      key={item.id}
+                      hover
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        transition: 'background-color 0.15s ease',
+                      }}
+                    >
+                      <TableCell sx={{ fontWeight: 600, fontSize: '0.85rem', color: 'primary.main' }}>
+                        {formatType(item.type)}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.85rem', color: 'text.primary' }}>
+                        {item.description || '-'}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+                        {calendars[item.calendarId]?.name || item.calendarId}
+                      </TableCell>
+                      <TableCell className={classes.columnAction} padding="none">
+                        <IconButton
+                          size="small"
+                          onClick={() => setRemovingId(item.id)}
+                          sx={{
+                            color: 'text.secondary',
+                            '&:hover': { color: 'error.main' },
+                          }}
+                        >
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+                      <EventRepeatIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sharedNoData')}
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled">
+                        Belum ada jadwal laporan otomatis yang dikonfigurasi.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )
+              ) : (
+                <TableShimmer columns={4} endAction />
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+
       <RemoveDialog
         style={{ transform: 'none' }}
         open={!!removingId}

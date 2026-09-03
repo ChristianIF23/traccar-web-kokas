@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Autocomplete, Checkbox, FormControlLabel, TextField } from '@mui/material';
+import {
+  Autocomplete,
+  Checkbox,
+  FormControlLabel,
+  TextField,
+  Box,
+  Typography,
+} from '@mui/material';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 import { useRestriction } from '../../common/util/permissions';
 import { useAsyncTask } from '../../reactHelper';
@@ -87,14 +94,14 @@ const BaseCommandView = ({
   };
 
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
       <Autocomplete
         size="small"
         options={options}
         groupBy={
           includeSaved
             ? (option) =>
-                option.optionType === 'saved' ? t('sharedSavedCommands') : t('sharedType')
+              option.optionType === 'saved' ? t('sharedSavedCommands') : t('sharedType')
             : null
         }
         getOptionLabel={(option) =>
@@ -104,9 +111,11 @@ const BaseCommandView = ({
         }
         renderOption={(props, option) => (
           <li key={option.key} {...props}>
-            {option.optionType === 'saved'
-              ? option.description
-              : t(prefixString('command', option.type))}
+            <Typography variant="body2">
+              {option.optionType === 'saved'
+                ? option.description
+                : t(prefixString('command', option.type))}
+            </Typography>
           </li>
         )}
         isOptionEqualToValue={(option, value) => option.key === value.key}
@@ -116,33 +125,56 @@ const BaseCommandView = ({
             : options.find((it) => it.optionType === 'type' && it.type === item.type) || null
         }
         onChange={handleSelect}
-        renderInput={(params) => <TextField {...params} label={t('sharedType')} />}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={t('sharedType')}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+        )}
       />
+
       {(!includeSaved || !savedId) &&
         attributes.map(({ key, name, type }) => {
           if (type === 'boolean') {
             return (
-              <FormControlLabel
+              <Box
                 key={key}
-                control={
-                  <Checkbox
-                    checked={item.attributes[key]}
-                    onChange={(e) => {
-                      const updateItem = { ...item, attributes: { ...item.attributes } };
-                      updateItem.attributes[key] = e.target.checked;
-                      setItem(updateItem);
-                    }}
-                  />
-                }
-                label={name}
-              />
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  p: 1,
+                  px: 1.5,
+                  borderRadius: '10px',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={Boolean(item.attributes?.[key])}
+                      onChange={(e) => {
+                        const updateItem = { ...item, attributes: { ...item.attributes } };
+                        updateItem.attributes[key] = e.target.checked;
+                        setItem(updateItem);
+                      }}
+                    />
+                  }
+                  label={<Typography variant="body2">{name}</Typography>}
+                  sx={{ m: 0 }}
+                />
+              </Box>
             );
           }
           return (
             <TextField
               key={key}
+              size="small"
               type={type === 'number' ? 'number' : 'text'}
-              value={item.attributes[key]}
+              value={item.attributes?.[key] ?? ''}
               onChange={(e) => {
                 const updateItem = { ...item, attributes: { ...item.attributes } };
                 updateItem.attributes[key] =
@@ -150,25 +182,32 @@ const BaseCommandView = ({
                 setItem(updateItem);
               }}
               label={name}
+              fullWidth
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
             />
           );
         })}
+
       {textEnabled && (
         <FormControlLabel
           control={
             <Checkbox
-              checked={item.textChannel}
+              size="small"
+              checked={Boolean(item.textChannel)}
               onChange={(e) => setItem({ ...item, textChannel: e.target.checked })}
             />
           }
-          label={t('commandSendSms')}
+          label={<Typography variant="body2">{t('commandSendSms')}</Typography>}
+          sx={{ mt: -0.5 }}
         />
       )}
+
       {!item.textChannel && (
         <FormControlLabel
           control={
             <Checkbox
-              checked={item.attributes?.noQueue}
+              size="small"
+              checked={Boolean(item.attributes?.noQueue)}
               onChange={(e) =>
                 setItem({
                   ...item,
@@ -177,10 +216,11 @@ const BaseCommandView = ({
               }
             />
           }
-          label={t('commandNoQueue')}
+          label={<Typography variant="body2">{t('commandNoQueue')}</Typography>}
+          sx={{ mt: -1 }}
         />
       )}
-    </>
+    </Box>
   );
 };
 

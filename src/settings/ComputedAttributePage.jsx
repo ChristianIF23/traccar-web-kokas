@@ -71,6 +71,15 @@ const ComputedAttributePage = () => {
 
   const validate = () => item && item.description && item.expression;
 
+  const accordionStyle = {
+    borderRadius: '14px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2,
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    '&:before': { display: 'none' },
+  };
+
   return (
     <EditItemView
       endpoint="attributes/computed"
@@ -82,9 +91,11 @@ const ComputedAttributePage = () => {
     >
       {item && (
         <>
-          <Accordion defaultExpanded>
+          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedRequired')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -146,9 +157,12 @@ const ComputedAttributePage = () => {
               </FormControl>
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedExtra')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedExtra')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -159,9 +173,12 @@ const ComputedAttributePage = () => {
               />
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedTest')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedTest')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <SelectField
@@ -175,6 +192,12 @@ const ComputedAttributePage = () => {
                 color="primary"
                 onClick={testAttribute}
                 disabled={!deviceId}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 0.9,
+                }}
               >
                 {t('sharedTestExpression')}
               </Button>

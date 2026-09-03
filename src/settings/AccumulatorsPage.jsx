@@ -55,12 +55,23 @@ const AccumulatorsPage = () => {
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['sharedDeviceAccumulators']}>
       {item && (
         <Container maxWidth="xs" className={classes.container}>
-          <Accordion defaultExpanded>
+          <Accordion
+            defaultExpanded
+            disableGutters
+            elevation={0}
+            sx={{
+              borderRadius: '12px !important',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              overflow: 'hidden',
+              '&:before': { display: 'none' },
+            }}
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
+                fullWidth
                 type="number"
                 value={item.hours / 3600000}
                 onChange={(event) =>
@@ -69,6 +80,7 @@ const AccumulatorsPage = () => {
                 label={t('positionHours')}
               />
               <TextField
+                fullWidth
                 type="number"
                 value={distanceFromMeters(item.totalDistance, distanceUnit)}
                 onChange={(event) =>

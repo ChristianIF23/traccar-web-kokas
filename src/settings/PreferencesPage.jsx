@@ -22,6 +22,7 @@ import {
   TextField,
   createFilterOptions,
   Button,
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CachedIcon from '@mui/icons-material/Cached';
@@ -108,14 +109,23 @@ const PreferencesPage = () => {
     throw Error(response.statusText);
   });
 
+  const accordionStyle = {
+    borderRadius: '14px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2,
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    '&:before': { display: 'none' },
+  };
+
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'sharedPreferences']}>
-      <Container maxWidth="xs" className={classes.container}>
+      <Container maxWidth="sm" className={classes.container} sx={{ py: 2 }}>
         {!readonly && (
           <>
-            <Accordion defaultExpanded>
+            <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('mapTitle')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>{t('mapTitle')}</Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <FormControl>
@@ -297,9 +307,10 @@ const PreferencesPage = () => {
                 </FormGroup>
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+
+            <Accordion elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('deviceTitle')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>{t('deviceTitle')}</Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <SelectField
@@ -320,9 +331,10 @@ const PreferencesPage = () => {
                 />
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+
+            <Accordion elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('sharedSound')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>{t('sharedSound')}</Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <SelectField
@@ -350,9 +362,10 @@ const PreferencesPage = () => {
             </Accordion>
           </>
         )}
-        <Accordion>
+
+        <Accordion elevation={0} disableGutters sx={accordionStyle}>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">{t('userToken')}</Typography>
+            <Typography variant="subtitle1" fontWeight={600}>{t('userToken')}</Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.details}>
             <TextField
@@ -367,7 +380,7 @@ const PreferencesPage = () => {
             <FormControl>
               <OutlinedInput
                 multiline
-                rows={6}
+                rows={4}
                 readOnly
                 type="text"
                 value={token || ''}
@@ -397,11 +410,12 @@ const PreferencesPage = () => {
             </FormControl>
           </AccordionDetails>
         </Accordion>
+
         {!readonly && (
           <>
-            <Accordion>
+            <Accordion elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('sharedInfoTitle')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>{t('sharedInfoTitle')}</Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <TextField value={versionApp} label={t('settingsAppVersion')} disabled />
@@ -415,24 +429,78 @@ const PreferencesPage = () => {
                   label={t('settingsConnection')}
                   disabled
                 />
-                <Button variant="outlined" color="primary" onClick={() => navigate('/emulator')}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => navigate('/emulator')}
+                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                >
                   {t('sharedEmulator')}
                 </Button>
                 {admin && (
-                  <Button variant="outlined" color="error" onClick={handleReboot}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleReboot}
+                    sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                  >
                     {t('serverReboot')}
                   </Button>
                 )}
               </AccordionDetails>
             </Accordion>
-            <div className={classes.buttons}>
-              <Button type="button" color="primary" variant="outlined" onClick={() => navigate(-1)}>
+
+            <Box
+              className={classes.buttons}
+              sx={{
+                display: 'flex',
+                gap: 1.5,
+                justifyContent: 'flex-end',
+                mt: 3,
+                pt: 2,
+                borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() => navigate(-1)}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1,
+                  borderColor: 'divider',
+                  color: 'text.secondary',
+                  '&:hover': {
+                    borderColor: 'text.secondary',
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
                 {t('sharedCancel')}
               </Button>
-              <Button type="button" color="primary" variant="contained" onClick={handleSave}>
+              <Button
+                type="button"
+                color="primary"
+                variant="contained"
+                onClick={handleSave}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  px: 3.5,
+                  py: 1,
+                  boxShadow: 'none',
+                  '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  },
+                }}
+              >
                 {t('sharedSave')}
               </Button>
-            </div>
+            </Box>
           </>
         )}
       </Container>

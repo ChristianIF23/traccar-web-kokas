@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { IconButton, Paper, Slider, Toolbar, Typography } from '@mui/material';
+import { IconButton, Paper, Slider, Toolbar, Typography, Box } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import TuneIcon from '@mui/icons-material/Tune';
 import DownloadIcon from '@mui/icons-material/Download';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import FastForwardIcon from '@mui/icons-material/FastForward';
-import FastRewindIcon from '@mui/icons-material/FastRewind';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
+import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
+import FastForwardRoundedIcon from '@mui/icons-material/FastForwardRounded';
+import FastRewindRoundedIcon from '@mui/icons-material/FastRewindRounded';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import MapView from '../map/core/MapView';
@@ -36,40 +36,40 @@ const useStyles = makeStyles()((theme) => ({
     zIndex: 3,
     left: 0,
     top: 0,
-    margin: theme.spacing(1.5),
+    margin: theme.spacing(2),
     width: theme.dimensions.drawerWidthDesktop,
+    gap: theme.spacing(1.5),
     [theme.breakpoints.down('md')]: {
       width: '100%',
       margin: 0,
+      gap: 0,
     },
   },
   title: {
     flexGrow: 1,
+    fontWeight: 600,
   },
   slider: {
     width: '100%',
+    padding: '13px 0',
   },
   controls: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  formControlLabel: {
-    height: '100%',
-    width: '100%',
-    paddingRight: theme.spacing(1),
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: theme.spacing(1),
   },
   content: {
     display: 'flex',
     flexDirection: 'column',
-    padding: theme.spacing(2),
+    padding: theme.spacing(2.5),
+    borderRadius: '16px',
+    border: `1px solid ${theme.palette.divider}`,
     [theme.breakpoints.down('md')]: {
-      margin: theme.spacing(1),
-    },
-    [theme.breakpoints.up('md')]: {
-      marginTop: theme.spacing(1),
+      borderRadius: 0,
+      borderLeft: 0,
+      borderRight: 0,
+      padding: theme.spacing(2),
     },
   },
 }));
@@ -115,7 +115,7 @@ const ReplayPage = () => {
   useEffect(() => {
     if (playing && positions.length > 0) {
       timerRef.current = setInterval(() => {
-        setIndex((index) => index + 1);
+        setIndex((prevIndex) => prevIndex + 1);
       }, 500);
     } else {
       clearInterval(timerRef.current);
@@ -132,8 +132,8 @@ const ReplayPage = () => {
   }, [index, positions]);
 
   const onPointClick = useCallback(
-    (_, index) => {
-      setIndex(index);
+    (_, clickedIndex) => {
+      setIndex(clickedIndex);
     },
     [setIndex],
   );
@@ -146,17 +146,17 @@ const ReplayPage = () => {
   );
 
   const onShow = useCatchCallback(
-    async ({ deviceIds, from, to }) => {
+    async ({ deviceIds, from: f, to: tRange }) => {
       const deviceId = deviceIds.find(() => true);
       setLoading(true);
       setSelectedDeviceId(deviceId);
-      const query = new URLSearchParams({ deviceId, from, to });
+      const query = new URLSearchParams({ deviceId, from: f, to: tRange });
       try {
         const response = await fetchOrThrow(`/api/positions?${query.toString()}`);
         setIndex(0);
-        const positions = await response.json();
-        setPositions(positions);
-        if (!positions.length) {
+        const fetchedPositions = await response.json();
+        setPositions(fetchedPositions);
+        if (!fetchedPositions.length) {
           throw Error(t('sharedNoData'));
         }
         setFilterOpen(false);
@@ -190,61 +190,107 @@ const ReplayPage = () => {
       <MapScale />
       <MapCamera positions={positions} />
       <div className={classes.sidebar}>
-        <Paper elevation={3} square>
-          <Toolbar>
-            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: { xs: 0, md: '16px' },
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+            overflow: 'hidden',
+          }}
+        >
+          <Toolbar sx={{ px: { xs: 1.5, sm: 2 } }}>
+            <IconButton edge="start" sx={{ mr: 1.5 }} onClick={() => navigate(-1)}>
               <BackIcon />
             </IconButton>
             <Typography variant="h6" className={classes.title}>
               {t('reportReplay')}
             </Typography>
             {loaded && (
-              <>
-                <IconButton onClick={handleDownload}>
-                  <DownloadIcon />
+              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <IconButton onClick={handleDownload} size="small">
+                  <DownloadIcon fontSize="small" />
                 </IconButton>
-                <IconButton edge="end" onClick={() => setFilterOpen((open) => !open)}>
-                  <TuneIcon />
+                <IconButton edge="end" onClick={() => setFilterOpen((open) => !open)} size="small">
+                  <TuneIcon fontSize="small" />
                 </IconButton>
-              </>
+              </Box>
             )}
           </Toolbar>
         </Paper>
-        <Paper className={classes.content} square>
+
+        <Paper
+          elevation={0}
+          className={classes.content}
+          sx={{
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+          }}
+        >
           {loaded && !filterOpen && (
             <>
-              <Typography variant="subtitle1" align="center">
+              <Typography variant="subtitle1" align="center" fontWeight={600} color="text.primary">
                 {deviceName}
               </Typography>
-              <Slider
-                className={classes.slider}
-                max={positions.length - 1}
-                step={null}
-                marks={positions.map((_, index) => ({ value: index }))}
-                value={index}
-                onChange={(_, index) => setIndex(index)}
-              />
+              <Box sx={{ px: 1, my: 1 }}>
+                <Slider
+                  className={classes.slider}
+                  max={positions.length - 1}
+                  step={null}
+                  marks={positions.map((_, i) => ({ value: i }))}
+                  value={index}
+                  onChange={(_, val) => setIndex(val)}
+                />
+              </Box>
               <div className={classes.controls}>
-                <Typography variant="caption">{`${index + 1}/${positions.length}`}</Typography>
-                <IconButton
-                  onClick={() => setIndex((index) => index - 1)}
-                  disabled={playing || index <= 0}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, minWidth: 48 }}
                 >
-                  <FastRewindIcon />
-                </IconButton>
-                <IconButton
-                  onClick={() => setPlaying(!playing)}
-                  disabled={index >= positions.length - 1}
+                  {`${index + 1}/${positions.length}`}
+                </Typography>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <IconButton
+                    onClick={() => setIndex((prev) => prev - 1)}
+                    disabled={playing || index <= 0}
+                    size="small"
+                  >
+                    <FastRewindRoundedIcon fontSize="small" />
+                  </IconButton>
+
+                  <IconButton
+                    onClick={() => setPlaying(!playing)}
+                    disabled={index >= positions.length - 1}
+                    sx={{
+                      backgroundColor: 'primary.main',
+                      color: 'primary.contrastText',
+                      '&:hover': { backgroundColor: 'primary.dark' },
+                      '&.Mui-disabled': { opacity: 0.4, backgroundColor: 'action.disabledBackground' },
+                      p: 1.25,
+                    }}
+                  >
+                    {playing ? (
+                      <PauseRoundedIcon sx={{ fontSize: 24 }} />
+                    ) : (
+                      <PlayArrowRoundedIcon sx={{ fontSize: 24 }} />
+                    )}
+                  </IconButton>
+
+                  <IconButton
+                    onClick={() => setIndex((prev) => prev + 1)}
+                    disabled={playing || index >= positions.length - 1}
+                    size="small"
+                  >
+                    <FastForwardRoundedIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontVariantNumeric: 'tabular-nums', minWidth: 64, textAlign: 'right' }}
                 >
-                  {playing ? <PauseIcon /> : <PlayArrowIcon />}
-                </IconButton>
-                <IconButton
-                  onClick={() => setIndex((index) => index + 1)}
-                  disabled={playing || index >= positions.length - 1}
-                >
-                  <FastForwardIcon />
-                </IconButton>
-                <Typography variant="caption">
                   {formatTime(positions[index].fixTime, 'seconds')}
                 </Typography>
               </div>
@@ -255,6 +301,7 @@ const ReplayPage = () => {
           </div>
         </Paper>
       </div>
+
       {showCard && index < positions.length && (
         <StatusCard
           deviceId={selectedDeviceId}

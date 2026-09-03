@@ -18,6 +18,8 @@ import {
   TableFooter,
   Link,
   Tooltip,
+  Box,
+  Divider,
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import CloseIcon from '@mui/icons-material/Close';
@@ -41,13 +43,19 @@ const useStyles = makeStyles()((theme, { desktopPadding }) => ({
   card: {
     pointerEvents: 'auto',
     width: theme.dimensions.popupMaxWidth,
+    borderRadius: '16px',
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: '0 12px 30px -8px rgba(0, 0, 0, 0.15)',
+    overflow: 'hidden',
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing(1, 1, 0, 2),
-    color: theme.palette.text.secondary,
+    padding: theme.spacing(1.2, 1.5, 1.2, 2),
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    cursor: 'move',
   },
   media: {
     height: theme.dimensions.popupImageHeight,
@@ -57,30 +65,38 @@ const useStyles = makeStyles()((theme, { desktopPadding }) => ({
     },
   },
   content: {
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(1),
+    padding: theme.spacing(1.5, 2),
     maxHeight: theme.dimensions.cardContentMaxHeight,
-    overflow: 'auto',
-  },
-  icon: {
-    width: '25px',
-    height: '25px',
-    filter: 'brightness(0) invert(1)',
+    overflowY: 'auto',
   },
   table: {
     '& .MuiTableCell-sizeSmall': {
       paddingLeft: 0,
       paddingRight: 0,
+      paddingTop: 6,
+      paddingBottom: 6,
     },
     '& .MuiTableCell-sizeSmall:first-of-type': {
-      paddingRight: theme.spacing(1),
+      paddingRight: theme.spacing(1.5),
+      width: '45%',
     },
   },
   cell: {
-    borderBottom: 'none',
+    borderBottom: `1px dashed ${theme.palette.divider}`,
   },
   actions: {
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
+    padding: theme.spacing(0.75, 1),
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#fcfcfd',
+    borderTop: `1px solid ${theme.palette.divider}`,
+  },
+  actionButton: {
+    borderRadius: '8px',
+    padding: 6,
+    transition: 'all 0.15s ease',
+    '&:hover': {
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+    },
   },
   root: {
     pointerEvents: 'none',
@@ -105,10 +121,12 @@ const StatusRow = ({ name, content }) => {
   return (
     <TableRow>
       <TableCell className={classes.cell}>
-        <Typography variant="body2">{name}</Typography>
+        <Typography variant="body2" color="textSecondary" fontWeight={500}>
+          {name}
+        </Typography>
       </TableCell>
-      <TableCell className={classes.cell}>
-        <Typography variant="body2" color="textSecondary">
+      <TableCell className={classes.cell} align="right">
+        <Typography variant="body2" fontWeight={600} color="textPrimary">
           {content}
         </Typography>
       </TableCell>
@@ -141,7 +159,6 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
   const navigationAppTitle = useAttributePreference('navigationAppTitle');
 
   const [anchorEl, setAnchorEl] = useState(null);
-
   const [removing, setRemoving] = useState(false);
 
   const handleRemove = useCatch(async (removed) => {
@@ -181,20 +198,31 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
             dragHandleClassName="draggable-header"
             style={{ position: 'relative' }}
           >
-            <Card elevation={3} className={classes.card}>
+            <Card elevation={0} className={classes.card}>
               <CardMedia
                 className={`draggable-header ${deviceImage ? classes.media : ''}`}
                 image={deviceImage && `/api/media/${device.uniqueId}/${deviceImage}`}
               >
                 <div className={classes.header}>
-                  <Typography variant="body2" color="inherit">
-                    {device.name}
-                  </Typography>
-                  <IconButton size="small" color="inherit" onClick={onClose} onTouchStart={onClose}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: device.status === 'online' ? '#22c55e' : '#94a3b8',
+                      }}
+                    />
+                    <Typography variant="subtitle2" fontWeight={700} color="textPrimary">
+                      {device.name}
+                    </Typography>
+                  </Box>
+                  <IconButton size="small" onClick={onClose} onTouchStart={onClose}>
                     <CloseIcon fontSize="small" />
                   </IconButton>
                 </div>
               </CardMedia>
+
               {position && (
                 <CardContent className={classes.content}>
                   <Table size="small" className={classes.table}>
@@ -221,59 +249,76 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
                     </TableBody>
                     <TableFooter>
                       <TableRow>
-                        <TableCell colSpan={2} className={classes.cell}>
-                          <Typography variant="body2">
-                            <Link component={RouterLink} to={`/position/${position.id}`}>
-                              {t('sharedShowDetails')}
-                            </Link>
-                          </Typography>
+                        <TableCell colSpan={2} sx={{ borderBottom: 'none', pt: 1.5, textAlign: 'center' }}>
+                          <Link
+                            component={RouterLink}
+                            to={`/position/${position.id}`}
+                            sx={{
+                              fontSize: '0.8125rem',
+                              fontWeight: 600,
+                              textDecoration: 'none',
+                              '&:hover': { textDecoration: 'underline' },
+                            }}
+                          >
+                            {t('sharedShowDetails')}
+                          </Link>
                         </TableCell>
                       </TableRow>
                     </TableFooter>
                   </Table>
                 </CardContent>
               )}
+
               <CardActions className={classes.actions} disableSpacing>
                 <Tooltip title={t('sharedExtra')}>
                   <IconButton
+                    className={classes.actionButton}
                     color="secondary"
                     onClick={(e) => setAnchorEl(e.currentTarget)}
                     disabled={!position}
                   >
-                    <PendingIcon />
+                    <PendingIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
+
                 <Tooltip title={t('reportReplay')}>
                   <IconButton
+                    className={classes.actionButton}
                     onClick={() => navigate(`/replay?deviceId=${deviceId}`)}
                     disabled={disableActions || !position}
                   >
-                    <RouteIcon />
+                    <RouteIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
+
                 <Tooltip title={t('commandTitle')}>
                   <IconButton
+                    className={classes.actionButton}
                     onClick={() => navigate(`/settings/device/${deviceId}/command`)}
                     disabled={disableActions}
                   >
-                    <SendIcon />
+                    <SendIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
+
                 <Tooltip title={t('sharedEdit')}>
                   <IconButton
+                    className={classes.actionButton}
                     onClick={() => navigate(`/settings/device/${deviceId}`)}
                     disabled={disableActions || deviceReadonly}
                   >
-                    <EditIcon />
+                    <EditIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
+
                 <Tooltip title={t('sharedRemove')}>
                   <IconButton
+                    className={classes.actionButton}
                     color="error"
                     onClick={() => setRemoving(true)}
                     disabled={disableActions || deviceReadonly}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </CardActions>
@@ -281,19 +326,42 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
           </Rnd>
         )}
       </div>
+
       {position && (
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+          PaperProps={{
+            sx: {
+              borderRadius: '12px',
+              minWidth: 170,
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.12)',
+              p: 0.5,
+            },
+          }}
+        >
           <MenuItem
             onClick={() => navigate(`/stream?deviceId=${deviceId}`)}
             disabled={position.protocol !== 'jt808'}
+            sx={{ borderRadius: '8px', fontSize: '0.85rem' }}
           >
             {t('linkLiveVideo')}
           </MenuItem>
-          {!readonly && <MenuItem onClick={handleGeofence}>{t('sharedCreateGeofence')}</MenuItem>}
+
+          {!readonly && (
+            <MenuItem onClick={handleGeofence} sx={{ borderRadius: '8px', fontSize: '0.85rem' }}>
+              {t('sharedCreateGeofence')}
+            </MenuItem>
+          )}
+
+          <Divider sx={{ my: 0.5 }} />
+
           <MenuItem
             component="a"
             target="_blank"
-            href={`https://www.google.com/maps/search/?api=1&query=${position.latitude}%2C${position.longitude}`}
+            href={`https://maps.google.com/?q=${position.latitude},${position.longitude}`}
+            sx={{ borderRadius: '8px', fontSize: '0.85rem' }}
           >
             {t('linkGoogleMaps')}
           </MenuItem>
@@ -301,16 +369,19 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
             component="a"
             target="_blank"
             href={`https://maps.apple.com/?ll=${position.latitude},${position.longitude}`}
+            sx={{ borderRadius: '8px', fontSize: '0.85rem' }}
           >
             {t('linkAppleMaps')}
           </MenuItem>
           <MenuItem
             component="a"
             target="_blank"
-            href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${position.latitude}%2C${position.longitude}&heading=${position.course}`}
+            href={`https://maps.google.com/maps?q=&layer=c&cbll=${position.latitude},${position.longitude}&cbp=11,${position.course},0,0,0`}
+            sx={{ borderRadius: '8px', fontSize: '0.85rem' }}
           >
             {t('linkStreetView')}
           </MenuItem>
+
           {navigationAppTitle && navigationAppLink && (
             <MenuItem
               component="a"
@@ -318,17 +389,26 @@ const StatusCard = ({ deviceId, position, onClose, disableActions, desktopPaddin
               href={navigationAppLink
                 .replace('{latitude}', position.latitude)
                 .replace('{longitude}', position.longitude)}
+              sx={{ borderRadius: '8px', fontSize: '0.85rem' }}
             >
               {navigationAppTitle}
             </MenuItem>
           )}
+
           {!shareDisabled && !user.temporary && (
-            <MenuItem onClick={() => navigate(`/settings/device/${deviceId}/share`)}>
-              <Typography color="secondary">{t('sharedShare')}</Typography>
-            </MenuItem>
+            <>
+              <Divider sx={{ my: 0.5 }} />
+              <MenuItem
+                onClick={() => navigate(`/settings/device/${deviceId}/share`)}
+                sx={{ borderRadius: '8px', fontSize: '0.85rem', color: 'primary.main', fontWeight: 600 }}
+              >
+                {t('sharedShare')}
+              </MenuItem>
+            </>
           )}
         </Menu>
       )}
+
       <RemoveDialog
         open={removing}
         endpoint="devices"

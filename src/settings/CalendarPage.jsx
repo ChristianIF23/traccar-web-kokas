@@ -121,17 +121,31 @@ const CalendarPage = () => {
     >
       {item && (
         <>
-          <Accordion defaultExpanded>
+          <Accordion
+            defaultExpanded
+            disableGutters
+            elevation={0}
+            sx={{
+              borderRadius: '12px !important',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              overflow: 'hidden',
+              marginBottom: 2,
+              '&:before': { display: 'none' },
+            }}
+          >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedRequired')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
+                fullWidth
                 value={item.name || ''}
                 onChange={(event) => setItem({ ...item, name: event.target.value })}
                 label={t('sharedName')}
               />
-              <FormControl>
+              <FormControl fullWidth>
                 <InputLabel>{t('sharedType')}</InputLabel>
                 <Select
                   label={t('sharedType')}
@@ -150,6 +164,7 @@ const CalendarPage = () => {
               {simple ? (
                 <>
                   <TextField
+                    fullWidth
                     label={t('reportFrom')}
                     type="datetime-local"
                     value={dayjs(lines[5].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
@@ -159,6 +174,7 @@ const CalendarPage = () => {
                     }}
                   />
                   <TextField
+                    fullWidth
                     label={t('reportTo')}
                     type="datetime-local"
                     value={dayjs(lines[6].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
@@ -167,7 +183,7 @@ const CalendarPage = () => {
                       setItem({ ...item, data: updateCalendar(lines, 6, `DTEND;${time}`) });
                     }}
                   />
-                  <FormControl>
+                  <FormControl fullWidth>
                     <InputLabel>{t('calendarRecurrence')}</InputLabel>
                     <Select
                       label={t('calendarRecurrence')}
@@ -187,10 +203,11 @@ const CalendarPage = () => {
                     </Select>
                   </FormControl>
                   {['WEEKLY', 'MONTHLY'].includes(rule.frequency) && (
-                    <FormControl>
+                    <FormControl fullWidth>
                       <InputLabel>{t('calendarDays')}</InputLabel>
                       <Select
                         multiple
+                        fullWidth
                         label={t('calendarDays')}
                         value={rule.by}
                         onChange={(e) =>
@@ -206,23 +223,23 @@ const CalendarPage = () => {
                       >
                         {rule.frequency === 'WEEKLY'
                           ? [
-                              'sunday',
-                              'monday',
-                              'tuesday',
-                              'wednesday',
-                              'thursday',
-                              'friday',
-                              'saturday',
-                            ].map((it) => (
-                              <MenuItem key={it} value={it.substring(0, 2).toUpperCase()}>
-                                {t(prefixString('calendar', it))}
-                              </MenuItem>
-                            ))
+                            'sunday',
+                            'monday',
+                            'tuesday',
+                            'wednesday',
+                            'thursday',
+                            'friday',
+                            'saturday',
+                          ].map((it) => (
+                            <MenuItem key={it} value={it.substring(0, 2).toUpperCase()}>
+                              {t(prefixString('calendar', it))}
+                            </MenuItem>
+                          ))
                           : Array.from({ length: 31 }, (_, i) => i + 1).map((it) => (
-                              <MenuItem key={it} value={String(it)}>
-                                {it}
-                              </MenuItem>
-                            ))}
+                            <MenuItem key={it} value={String(it)}>
+                              {it}
+                            </MenuItem>
+                          ))}
                       </Select>
                     </FormControl>
                   )}

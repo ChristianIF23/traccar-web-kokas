@@ -1,6 +1,16 @@
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { FormControl, InputLabel, Select, MenuItem, useTheme } from '@mui/material';
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  useTheme,
+  Paper,
+  Box,
+  Typography,
+} from '@mui/material';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import {
   Brush,
   CartesianGrid,
@@ -49,8 +59,8 @@ const ChartReportPage = () => {
   const values = items.map((it) =>
     selectedTypes.map((type) => it[type]).filter((value) => value != null),
   );
-  const minValue = values.length ? Math.min(...values) : 0;
-  const maxValue = values.length ? Math.max(...values) : 100;
+  const minValue = values.length ? Math.min(...values.flat()) : 0;
+  const maxValue = values.length ? Math.max(...values.flat()) : 100;
   const valueRange = maxValue - minValue;
 
   const onShow = useCatchCallback(
@@ -78,10 +88,8 @@ const ChartReportPage = () => {
               const definition = positionAttributes[key] || {};
               switch (definition.dataType) {
                 case 'speed':
-                  if (key == 'obdSpeed') {
-                    formatted[key] = speedFromKnots(speedToKnots(value, 'kmh'), speedUnit).toFixed(
-                      2,
-                    );
+                  if (key === 'obdSpeed') {
+                    formatted[key] = speedFromKnots(speedToKnots(value, 'kmh'), speedUnit).toFixed(2);
                   } else {
                     formatted[key] = speedFromKnots(value, speedUnit).toFixed(2);
                   }
@@ -130,97 +138,148 @@ const ChartReportPage = () => {
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportChart']}>
-      <ReportFilter onShow={onShow} onExport={() => {}} deviceType="single" formats={[]}>
-        <div className={classes.filterItem}>
-          <FormControl fullWidth>
-            <InputLabel>{t('reportChartType')}</InputLabel>
-            <Select
-              label={t('reportChartType')}
-              value={selectedTypes}
-              onChange={(e) => setSelectedTypes(e.target.value)}
-              multiple
-              disabled={!items.length}
-            >
-              {types.map((key) => (
-                <MenuItem key={key} value={key}>
-                  {positionAttributes[key]?.name || key}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </div>
-        <div className={classes.filterItem}>
-          <FormControl fullWidth>
-            <InputLabel>{t('reportTimeType')}</InputLabel>
-            <Select
-              label={t('reportTimeType')}
-              value={timeType}
-              onChange={(e) => setTimeType(e.target.value)}
-              disabled={!items.length}
-            >
-              <MenuItem value="fixTime">{t('positionFixTime')}</MenuItem>
-              <MenuItem value="deviceTime">{t('positionDeviceTime')}</MenuItem>
-              <MenuItem value="serverTime">{t('positionServerTime')}</MenuItem>
-            </Select>
-          </FormControl>
-        </div>
-      </ReportFilter>
-      {items.length > 0 && (
-        <div className={classes.chart}>
-          <ResponsiveContainer>
-            <LineChart
-              data={items}
-              margin={{
-                top: 10,
-                right: 40,
-                left: 10,
-                bottom: 10,
-              }}
-            >
-              <XAxis
-                stroke={theme.palette.text.primary}
-                dataKey={timeType}
-                type="number"
-                tickFormatter={(value) => formatTime(value, 'time')}
-                domain={['dataMin', 'dataMax']}
-                scale="time"
-              />
-              <YAxis
-                stroke={theme.palette.text.primary}
-                type="number"
-                tickFormatter={(value) => parseFloat(value.toFixed(2))}
-                domain={[minValue - valueRange / 5, maxValue + valueRange / 5]}
-              />
-              <CartesianGrid stroke={theme.palette.divider} strokeDasharray="3 3" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: theme.palette.background.default,
-                  color: theme.palette.text.primary,
+      <div className={classes.header}>
+        <ReportFilter onShow={onShow} onExport={() => { }} deviceType="single" formats={[]}>
+          <div className={classes.filterItem}>
+            <FormControl fullWidth size="small">
+              <InputLabel>{t('reportChartType')}</InputLabel>
+              <Select
+                label={t('reportChartType')}
+                value={selectedTypes}
+                onChange={(e) => setSelectedTypes(e.target.value)}
+                multiple
+                disabled={!items.length}
+                sx={{ borderRadius: '10px' }}
+              >
+                {types.map((key) => (
+                  <MenuItem key={key} value={key}>
+                    {positionAttributes[key]?.name || key}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+          <div className={classes.filterItem}>
+            <FormControl fullWidth size="small">
+              <InputLabel>{t('reportTimeType')}</InputLabel>
+              <Select
+                label={t('reportTimeType')}
+                value={timeType}
+                onChange={(e) => setTimeType(e.target.value)}
+                disabled={!items.length}
+                sx={{ borderRadius: '10px' }}
+              >
+                <MenuItem value="fixTime">{t('positionFixTime')}</MenuItem>
+                <MenuItem value="deviceTime">{t('positionDeviceTime')}</MenuItem>
+                <MenuItem value="serverTime">{t('positionServerTime')}</MenuItem>
+              </Select>
+            </FormControl>
+          </div>
+        </ReportFilter>
+      </div>
+
+      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%', flexGrow: 1, minHeight: 0 }}>
+        {items.length > 0 ? (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: '16px',
+              border: `1px solid ${theme.palette.divider}`,
+              height: 'calc(100vh - 210px)',
+              minHeight: 450,
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: theme.palette.background.paper,
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={items}
+                margin={{
+                  top: 15,
+                  right: 35,
+                  left: 10,
+                  bottom: 10,
                 }}
-                formatter={(value, key) => [value, positionAttributes[key]?.name || key]}
-                labelFormatter={(value) => formatTime(value, 'seconds')}
-              />
-              <Brush
-                dataKey={timeType}
-                height={30}
-                stroke={theme.palette.primary.main}
-                tickFormatter={() => ''}
-              />
-              {selectedTypes.map((type, index) => (
-                <Line
-                  key={type}
-                  type="monotone"
-                  dataKey={type}
-                  stroke={colorPalette[index % colorPalette.length]}
-                  dot={false}
-                  activeDot={{ r: 6 }}
-                  connectNulls
+              >
+                <XAxis
+                  stroke={theme.palette.text.secondary}
+                  dataKey={timeType}
+                  type="number"
+                  tickFormatter={(value) => formatTime(value, 'time')}
+                  domain={['dataMin', 'dataMax']}
+                  scale="time"
+                  tick={{ fontSize: 12 }}
                 />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+                <YAxis
+                  stroke={theme.palette.text.secondary}
+                  type="number"
+                  tickFormatter={(value) => parseFloat(value.toFixed(2))}
+                  domain={[minValue - valueRange / 5, maxValue + valueRange / 5]}
+                  tick={{ fontSize: 12 }}
+                />
+                <CartesianGrid stroke={theme.palette.divider} strokeDasharray="3 3" opacity={0.6} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
+                    borderRadius: '10px',
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    fontSize: '0.85rem',
+                  }}
+                  formatter={(value, key) => [value, positionAttributes[key]?.name || key]}
+                  labelFormatter={(value) => formatTime(value, 'seconds')}
+                />
+                <Brush
+                  dataKey={timeType}
+                  height={32}
+                  stroke={theme.palette.primary.main}
+                  fill={theme.palette.mode === 'dark' ? '#1e293b' : '#f1f5f9'}
+                  tickFormatter={() => ''}
+                />
+                {selectedTypes.map((type, index) => (
+                  <Line
+                    key={type}
+                    type="monotone"
+                    dataKey={type}
+                    stroke={colorPalette[index % colorPalette.length]}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    connectNulls
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </Paper>
+        ) : (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 6,
+              borderRadius: '16px',
+              border: `1px solid ${theme.palette.divider}`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 380,
+              backgroundColor: theme.palette.background.paper,
+              textAlign: 'center',
+            }}
+          >
+            <ShowChartIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 1.5 }} />
+            <Typography variant="subtitle1" fontWeight={600} color="text.secondary">
+              {t('sharedNoData')}
+            </Typography>
+            <Typography variant="body2" color="text.disabled" sx={{ maxWidth: 360, mt: 0.5 }}>
+              Pilih perangkat dan rentang waktu pada filter di atas, lalu klik tampilkan untuk melihat grafik data.
+            </Typography>
+          </Paper>
+        )}
+      </Box>
     </PageLayout>
   );
 };

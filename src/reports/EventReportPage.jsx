@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Table, TableHead, TableRow, TableCell, TableBody, IconButton } from '@mui/material';
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  IconButton,
+  TableContainer,
+  Paper,
+  Box,
+  Typography,
+} from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import { useSelector } from 'react-redux';
@@ -156,8 +167,8 @@ const EventReportPage = () => {
         if (key === 'attributes' && item.type === 'media') {
           row[header] = item.attributes.file;
         } else if (key === 'address') {
-          const position = positions[item.positionId];
-          row[header] = position ? formatAddress(position, coordinateFormat) : '';
+          const pos = positions[item.positionId];
+          row[header] = pos ? formatAddress(pos, coordinateFormat) : '';
         } else {
           row[header] = formatValue(item, key);
         }
@@ -180,7 +191,7 @@ const EventReportPage = () => {
     const value = item[key];
     switch (key) {
       case 'deviceId':
-        return devices[value].name;
+        return devices[value]?.name;
       case 'eventTime':
         return formatTime(value, 'seconds');
       case 'type':
@@ -198,13 +209,13 @@ const EventReportPage = () => {
         }
         return null;
       case 'address': {
-        const position = positions[item.positionId];
-        if (position) {
+        const pos = positions[item.positionId];
+        if (pos) {
           return (
             <AddressValue
-              latitude={position.latitude}
-              longitude={position.longitude}
-              originalAddress={position.address}
+              latitude={pos.latitude}
+              longitude={pos.longitude}
+              originalAddress={pos.address}
             />
           );
         }
@@ -226,7 +237,17 @@ const EventReportPage = () => {
       <div className={classes.container}>
         {selectedItem && (
           <>
-            <div className={classes.containerMap}>
+            <Box
+              className={classes.containerMap}
+              sx={{
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                m: { xs: 1, sm: 1.5 },
+                mb: 0,
+              }}
+            >
               <MapView>
                 <MapGeofence />
                 {position && selectedItem && (
@@ -247,10 +268,11 @@ const EventReportPage = () => {
               {position && (
                 <MapCamera latitude={position.latitude} longitude={position.longitude} />
               )}
-            </div>
+            </Box>
             <ResizeHandle />
           </>
         )}
+
         <div className={classes.containerMain}>
           <div className={classes.header}>
             <ReportFilter
@@ -295,44 +317,128 @@ const EventReportPage = () => {
               <ColumnSelect columns={columns} setColumns={setColumns} columnsArray={columnsArray} />
             </ReportFilter>
           </div>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.columnAction} />
-                <TableCell>{t('sharedDevice')}</TableCell>
-                {columns.map((key) => (
-                  <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {!loading ? (
-                items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className={classes.columnAction} padding="none">
-                      {(item.positionId &&
-                        (selectedItem === item ? (
-                          <IconButton size="small" onClick={() => setSelectedItem(null)}>
-                            <GpsFixedIcon fontSize="small" />
-                          </IconButton>
-                        ) : (
-                          <IconButton size="small" onClick={() => setSelectedItem(item)}>
-                            <LocationSearchingIcon fontSize="small" />
-                          </IconButton>
-                        ))) ||
-                        ''}
+
+          <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+            <TableContainer
+              component={Paper}
+              elevation={0}
+              sx={{
+                borderRadius: '12px',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                overflow: 'hidden',
+              }}
+            >
+              <Table size="small">
+                <TableHead>
+                  <TableRow
+                    sx={{
+                      backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                    }}
+                  >
+                    <TableCell className={classes.columnAction} sx={{ width: 44 }} />
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.8125rem',
+                        color: 'text.secondary',
+                        py: 1.5,
+                      }}
+                    >
+                      {t('sharedDevice')}
                     </TableCell>
-                    <TableCell>{devices[item.deviceId].name}</TableCell>
                     {columns.map((key) => (
-                      <TableCell key={key}>{formatValue(item, key)}</TableCell>
+                      <TableCell
+                        key={key}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.8125rem',
+                          color: 'text.secondary',
+                          py: 1.5,
+                        }}
+                      >
+                        {t(columnsMap.get(key))}
+                      </TableCell>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                <TableShimmer columns={columns.length + 2} />
-              )}
-            </TableBody>
-          </Table>
+                </TableHead>
+                <TableBody>
+                  {!loading ? (
+                    items.length > 0 ? (
+                      items.map((item) => {
+                        const isSelected = selectedItem === item;
+                        return (
+                          <TableRow
+                            key={item.id}
+                            hover
+                            selected={isSelected}
+                            sx={{
+                              transition: 'background-color 0.15s ease',
+                              ...(isSelected && {
+                                backgroundColor: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(25, 118, 210, 0.16) !important'
+                                    : 'rgba(25, 118, 210, 0.08) !important',
+                              }),
+                            }}
+                          >
+                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1 }}>
+                              {item.positionId ? (
+                                isSelected ? (
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => setSelectedItem(null)}
+                                  >
+                                    <GpsFixedIcon fontSize="small" />
+                                  </IconButton>
+                                ) : (
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => setSelectedItem(item)}
+                                    sx={{ color: 'text.secondary' }}
+                                  >
+                                    <LocationSearchingIcon fontSize="small" />
+                                  </IconButton>
+                                )
+                              ) : (
+                                ''
+                              )}
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                              {devices[item.deviceId]?.name}
+                            </TableCell>
+                            {columns.map((key) => (
+                              <TableCell
+                                key={key}
+                                sx={{
+                                  fontSize: '0.85rem',
+                                  color: 'text.primary',
+                                  py: 1.25,
+                                }}
+                              >
+                                {formatValue(item, key)}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('sharedNoData')}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  ) : (
+                    <TableShimmer columns={columns.length + 2} />
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </div>
       </div>
     </PageLayout>

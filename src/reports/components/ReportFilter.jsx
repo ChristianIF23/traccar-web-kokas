@@ -229,12 +229,13 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
       {selectedOption !== 'schedule' ? (
         <>
           <div className={classes.filterItem}>
-            <FormControl fullWidth>
+            <FormControl fullWidth size="small">
               <InputLabel>{t('reportPeriod')}</InputLabel>
               <Select
                 label={t('reportPeriod')}
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
+                sx={{ borderRadius: '10px' }}
               >
                 <MenuItem value="today">{t('reportToday')}</MenuItem>
                 <MenuItem value="yesterday">{t('reportYesterday')}</MenuItem>
@@ -251,9 +252,11 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
               <TextField
                 label={t('reportFrom')}
                 type="datetime-local"
+                size="small"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
               />
             </div>
           )}
@@ -262,9 +265,11 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
               <TextField
                 label={t('reportTo')}
                 type="datetime-local"
+                size="small"
                 value={customTo}
                 onChange={(e) => setCustomTo(e.target.value)}
                 fullWidth
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
               />
             </div>
           )}
@@ -276,7 +281,9 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
               value={description || ''}
               onChange={(event) => setDescription(event.target.value)}
               label={t('sharedDescription')}
+              size="small"
               fullWidth
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
             />
           </div>
           <div className={classes.filterItem}>
@@ -295,10 +302,17 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
         {Object.keys(options).length === 1 ? (
           <Button
             fullWidth
-            variant="outlined"
-            color="secondary"
+            variant="contained"
+            color="primary"
             disabled={disabled}
             onClick={onClick}
+            sx={{
+              borderRadius: '10px',
+              height: 40,
+              boxShadow: 'none',
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
           >
             <Typography variant="button" noWrap>
               {t(loading ? 'sharedLoading' : 'reportShow')}
@@ -307,13 +321,14 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
         ) : (
           <SplitButton
             fullWidth
-            variant="outlined"
-            color="secondary"
+            variant="contained"
+            color="primary"
             disabled={disabled}
             onClick={onClick}
             selected={selectedOption}
             setSelected={onSelected}
             options={options}
+            sx={{ borderRadius: '10px', height: 40 }}
           />
         )}
       </div>

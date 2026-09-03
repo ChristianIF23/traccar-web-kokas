@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-
 import {
   Typography,
   Container,
@@ -13,6 +12,9 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
+  Box,
+  Skeleton,
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -28,11 +30,12 @@ const useStyles = makeStyles()((theme) => ({
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : '#f8fafc',
   },
   content: {
     overflow: 'auto',
-    paddingTop: theme.spacing(2),
-    paddingBottom: theme.spacing(2),
+    paddingTop: theme.spacing(3),
+    paddingBottom: theme.spacing(4),
   },
 }));
 
@@ -42,18 +45,23 @@ const PositionPage = () => {
   const t = useTranslation();
 
   const positionAttributes = usePositionAttributes(t);
-
   const { id } = useParams();
 
   const [item, setItem] = useState();
+  const [loading, setLoading] = useState(true);
 
   useAsyncTask(
     async ({ signal }) => {
       if (id) {
-        const response = await fetchOrThrow(`/api/positions?id=${id}`, { signal });
-        const positions = await response.json();
-        if (positions.length > 0) {
-          setItem(positions[0]);
+        setLoading(true);
+        try {
+          const response = await fetchOrThrow(`/api/positions?id=${id}`, { signal });
+          const positions = await response.json();
+          if (positions.length > 0) {
+            setItem(positions[0]);
+          }
+        } finally {
+          setLoading(false);
         }
       }
     },
@@ -72,55 +80,187 @@ const PositionPage = () => {
 
   return (
     <div className={classes.root}>
-      <AppBar position="sticky" color="inherit">
+      <AppBar
+        position="sticky"
+        color="inherit"
+        elevation={0}
+        sx={{
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          backgroundColor: (theme) => theme.palette.background.paper,
+        }}
+      >
         <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+          <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
             <BackIcon />
           </IconButton>
-          <Typography variant="h6">{deviceName}</Typography>
+          <Box>
+            <Typography variant="h6" fontWeight={600} color="text.primary">
+              {deviceName || (loading ? <Skeleton width={120} /> : t('reportPositions'))}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              ID Posisi: #{id}
+            </Typography>
+          </Box>
         </Toolbar>
       </AppBar>
+
       <div className={classes.content}>
-        <Container maxWidth="sm">
-          <Paper>
-            <Table>
+        <Container maxWidth="md">
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
+            }}
+          >
+            <Table size="small">
               <TableHead>
-                <TableRow>
-                  <TableCell>{t('stateName')}</TableCell>
-                  <TableCell>{t('sharedName')}</TableCell>
-                  <TableCell>{t('stateValue')}</TableCell>
+                <TableRow
+                  sx={{
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                      width: '30%',
+                    }}
+                  >
+                    {t('stateName')}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                      width: '35%',
+                    }}
+                  >
+                    {t('sharedName')}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                      width: '35%',
+                    }}
+                  >
+                    {t('stateValue')}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {item &&
-                  Object.getOwnPropertyNames(item)
-                    .filter((it) => it !== 'attributes')
-                    .map((property) => (
-                      <TableRow key={property}>
-                        <TableCell>{property}</TableCell>
-                        <TableCell>
-                          <strong>{positionAttributes[property]?.name}</strong>
-                        </TableCell>
-                        <TableCell>
-                          <PositionValue position={item} property={property} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                {item &&
-                  Object.getOwnPropertyNames(item.attributes).map((attribute) => (
-                    <TableRow key={attribute}>
-                      <TableCell>{attribute}</TableCell>
-                      <TableCell>
-                        <strong>{positionAttributes[attribute]?.name}</strong>
-                      </TableCell>
-                      <TableCell>
-                        <PositionValue position={item} attribute={attribute} />
-                      </TableCell>
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton /></TableCell>
+                      <TableCell><Skeleton /></TableCell>
+                      <TableCell><Skeleton /></TableCell>
                     </TableRow>
-                  ))}
+                  ))
+                ) : (
+                  <>
+                    {item &&
+                      Object.getOwnPropertyNames(item)
+                        .filter((it) => it !== 'attributes')
+                        .map((property) => (
+                          <TableRow
+                            key={property}
+                            hover
+                            sx={{
+                              '&:last-child td, &:last-child th': { border: 0 },
+                              transition: 'background-color 0.15s ease',
+                            }}
+                          >
+                            <TableCell
+                              sx={{
+                                fontFamily: 'monospace',
+                                fontSize: '0.8rem',
+                                color: 'text.secondary',
+                                py: 1.25,
+                              }}
+                            >
+                              {property}
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
+                                color: 'text.primary',
+                                py: 1.25,
+                              }}
+                            >
+                              {positionAttributes[property]?.name || '-'}
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontSize: '0.85rem',
+                                color: 'text.primary',
+                                py: 1.25,
+                              }}
+                            >
+                              <PositionValue position={item} property={property} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+
+                    {item &&
+                      item.attributes &&
+                      Object.getOwnPropertyNames(item.attributes).map((attribute) => (
+                        <TableRow
+                          key={attribute}
+                          hover
+                          sx={{
+                            '&:last-child td, &:last-child th': { border: 0 },
+                            transition: 'background-color 0.15s ease',
+                          }}
+                        >
+                          <TableCell
+                            sx={{
+                              fontFamily: 'monospace',
+                              fontSize: '0.8rem',
+                              color: 'text.secondary',
+                              py: 1.25,
+                            }}
+                          >
+                            {attribute}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
+                              color: 'text.primary',
+                              py: 1.25,
+                            }}
+                          >
+                            {positionAttributes[attribute]?.name || '-'}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: '0.85rem',
+                              color: 'text.primary',
+                              py: 1.25,
+                            }}
+                          >
+                            <PositionValue position={item} attribute={attribute} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </>
+                )}
               </TableBody>
             </Table>
-          </Paper>
+          </TableContainer>
         </Container>
       </div>
     </div>

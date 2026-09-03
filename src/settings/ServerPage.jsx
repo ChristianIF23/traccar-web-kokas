@@ -14,6 +14,7 @@ import {
   Select,
   MenuItem,
   FormGroup,
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate } from 'react-router-dom';
@@ -67,14 +68,25 @@ const ServerPage = () => {
     navigate(-1);
   });
 
+  const accordionStyle = {
+    borderRadius: '14px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2,
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    '&:before': { display: 'none' },
+  };
+
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'settingsServer']}>
-      <Container maxWidth="xs" className={classes.container}>
+      <Container maxWidth="sm" className={classes.container} sx={{ py: 2 }}>
         {item && (
           <>
-            <Accordion defaultExpanded>
+            <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('sharedPreferences')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {t('sharedPreferences')}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <TextField
@@ -220,9 +232,12 @@ const ServerPage = () => {
                 </FormGroup>
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+
+            <Accordion elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('sharedLocation')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {t('sharedLocation')}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <TextField
@@ -246,6 +261,7 @@ const ServerPage = () => {
                 <Button
                   variant="outlined"
                   color="primary"
+                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
                   onClick={() => {
                     const { lng, lat } = map.getCenter();
                     setItem({
@@ -260,9 +276,12 @@ const ServerPage = () => {
                 </Button>
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+
+            <Accordion elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('sharedPermissions')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {t('sharedPermissions')}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <FormGroup>
@@ -331,9 +350,12 @@ const ServerPage = () => {
                 </FormGroup>
               </AccordionDetails>
             </Accordion>
-            <Accordion>
+
+            <Accordion elevation={0} disableGutters sx={accordionStyle}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('sharedFile')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {t('sharedFile')}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <FileInput
@@ -343,6 +365,7 @@ const ServerPage = () => {
                 />
               </AccordionDetails>
             </Accordion>
+
             <EditAttributesAccordion
               attributes={item.attributes}
               setAttributes={(attributes) => setItem({ ...item, attributes })}
@@ -354,14 +377,58 @@ const ServerPage = () => {
             />
           </>
         )}
-        <div className={classes.buttons}>
-          <Button type="button" color="primary" variant="outlined" onClick={() => navigate(-1)}>
+
+        <Box
+          className={classes.buttons}
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            justifyContent: 'flex-end',
+            mt: 3,
+            pt: 2,
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'text.secondary',
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             {t('sharedCancel')}
           </Button>
-          <Button type="button" color="primary" variant="contained" onClick={handleSave}>
+          <Button
+            type="button"
+            color="primary"
+            variant="contained"
+            onClick={handleSave}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3.5,
+              py: 1,
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              },
+            }}
+          >
             {t('sharedSave')}
           </Button>
-        </div>
+        </Box>
       </Container>
     </PageLayout>
   );

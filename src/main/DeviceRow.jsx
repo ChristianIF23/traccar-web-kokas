@@ -38,15 +38,55 @@ import MotionBar from './components/MotionBar';
 dayjs.extend(relativeTime);
 
 const useStyles = makeStyles()((theme) => ({
-  icon: {
-    width: '25px',
-    height: '25px',
-    filter: 'brightness(0) invert(1)',
+  rowContainer: {
+    padding: theme.spacing(0.5, 1),
+    boxSizing: 'border-box',
   },
-  batteryText: {
-    fontSize: '0.75rem',
-    fontWeight: 'normal',
-    lineHeight: '0.875rem',
+  listItemButton: {
+    borderRadius: theme.spacing(1.2),
+    transition: 'all 0.2s ease-in-out',
+    border: '1px solid transparent',
+    padding: theme.spacing(1, 1.5),
+    '&:hover': {
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
+      borderColor: theme.palette.divider,
+    },
+  },
+  selected: {
+    backgroundColor: theme.palette.mode === 'dark'
+      ? 'rgba(96, 165, 250, 0.15) !important'
+      : 'rgba(27, 42, 74, 0.08) !important',
+    borderColor: `${theme.palette.primary.main} !important`,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+  },
+  avatar: {
+    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#f1f5f9',
+    color: theme.palette.primary.main,
+    border: `1px solid ${theme.palette.divider}`,
+    width: 42,
+    height: 42,
+  },
+  icon: {
+    width: '24px',
+    height: '24px',
+    filter: theme.palette.mode === 'dark' ? 'brightness(0) invert(1)' : 'none',
+  },
+  primaryText: {
+    fontWeight: 600,
+    fontSize: '0.9rem',
+    color: theme.palette.text.primary,
+  },
+  secondaryWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
+    fontSize: '0.78rem',
+    color: theme.palette.text.secondary,
+    marginTop: '2px',
+  },
+  statusBadge: {
+    fontWeight: 600,
+    textTransform: 'capitalize',
   },
   success: {
     color: theme.palette.success.main,
@@ -60,13 +100,16 @@ const useStyles = makeStyles()((theme) => ({
   neutral: {
     color: theme.palette.neutral.main,
   },
-  selected: {
-    backgroundColor: theme.palette.action.selected,
+  indicatorGroup: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
+    marginLeft: theme.spacing(1),
   },
 }));
 
 const DeviceRow = ({ devices, index, style }) => {
-  const { classes } = useStyles();
+  const { classes, cx } = useStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
 
@@ -105,46 +148,40 @@ const DeviceRow = ({ devices, index, style }) => {
       status = dayjs(item.lastUpdate).fromNow();
     }
     return (
-      <>
+      <span className={classes.secondaryWrapper}>
         {secondaryValue && (
           <>
-            {secondaryValue}
-            {' • '}
+            <span>{secondaryValue}</span>
+            <span>•</span>
           </>
         )}
-        <span className={classes[getStatusColor(item.status)]}>{status}</span>
-      </>
+        <span className={cx(classes.statusBadge, classes[getStatusColor(item.status)])}>
+          {status}
+        </span>
+      </span>
     );
   };
 
   return (
-    <div style={style}>
+    <div style={style} className={classes.rowContainer}>
       <ListItemButton
         key={item.id}
         onClick={() => dispatch(devicesActions.selectId(item.id))}
         disabled={!admin && item.disabled}
         selected={selectedDeviceId === item.id}
-        className={selectedDeviceId === item.id ? classes.selected : null}
+        className={cx(classes.listItemButton, selectedDeviceId === item.id && classes.selected)}
       >
         <ListItemAvatar>
-          <Avatar>
+          <Avatar className={classes.avatar}>
             <img className={classes.icon} src={mapIcons[mapIconKey(item.category)]} alt="" />
           </Avatar>
         </ListItemAvatar>
         <ListItemText
-          primary={primaryValue}
+          primary={<Typography className={classes.primaryText} noWrap>{primaryValue}</Typography>}
           secondary={secondaryText()}
-          slots={{
-            primary: Typography,
-            secondary: Typography,
-          }}
-          slotProps={{
-            primary: { noWrap: true },
-            secondary: { noWrap: true },
-          }}
         />
         {position && (
-          <>
+          <div className={classes.indicatorGroup}>
             {position.attributes.hasOwnProperty('alarm') && (
               <Tooltip title={`${t('eventAlarm')}: ${formatAlarm(position.attributes.alarm, t)}`}>
                 <IconButton size="small">
@@ -158,9 +195,9 @@ const DeviceRow = ({ devices, index, style }) => {
               >
                 <IconButton size="small">
                   {position.attributes.ignition ? (
-                    <EngineIcon width={20} height={20} className={classes.success} />
+                    <EngineIcon width={18} height={18} className={classes.success} />
                   ) : (
-                    <EngineIcon width={20} height={20} className={classes.neutral} />
+                    <EngineIcon width={18} height={18} className={classes.neutral} />
                   )}
                 </IconButton>
               </Tooltip>
@@ -190,7 +227,7 @@ const DeviceRow = ({ devices, index, style }) => {
                 </IconButton>
               </Tooltip>
             )}
-          </>
+          </div>
         )}
       </ListItemButton>
     </div>

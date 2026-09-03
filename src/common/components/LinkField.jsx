@@ -94,6 +94,11 @@ const LinkField = ({
             label={label}
             placeholder={!active ? t('reportShow') : null}
             onFocus={() => setActive(true)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '10px',
+              },
+            }}
             slotProps={{
               ...params.slotProps,
               inputLabel: {

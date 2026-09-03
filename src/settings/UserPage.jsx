@@ -128,6 +128,14 @@ const UserPage = () => {
     (item.id || item.password || openIdForced) &&
     (admin || !totpForce || item.totpKey);
 
+  const accordionStyle = {
+    borderRadius: '14px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2,
+    '&:before': { display: 'none' },
+  };
+
   return (
     <EditItemView
       endpoint="users"
@@ -141,9 +149,9 @@ const UserPage = () => {
     >
       {item && (
         <>
-          <Accordion defaultExpanded={!attribute}>
+          <Accordion defaultExpanded={!attribute} elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -189,9 +197,10 @@ const UserPage = () => {
               )}
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedPreferences')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedPreferences')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -311,9 +320,10 @@ const UserPage = () => {
               />
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedLocation')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedLocation')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -337,6 +347,7 @@ const UserPage = () => {
               <Button
                 variant="outlined"
                 color="primary"
+                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
                 onClick={() => {
                   const { lng, lat } = map.getCenter();
                   setItem({
@@ -351,9 +362,10 @@ const UserPage = () => {
               </Button>
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedPermissions')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedPermissions')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -381,7 +393,12 @@ const UserPage = () => {
                 label={t('userUserLimit')}
                 disabled={!admin}
               />
-              <Button variant="outlined" color="primary" onClick={() => setRevokeDialogOpen(true)}>
+              <Button
+                variant="outlined"
+                color="primary"
+                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                onClick={() => setRevokeDialogOpen(true)}
+              >
                 {t('userRevokeToken')}
               </Button>
               <FormGroup>
@@ -458,6 +475,7 @@ const UserPage = () => {
               </FormGroup>
             </AccordionDetails>
           </Accordion>
+
           <EditAttributesAccordion
             attribute={attribute}
             attributes={item.attributes}
@@ -465,10 +483,11 @@ const UserPage = () => {
             definitions={{ ...commonUserAttributes, ...userAttributes }}
             focusAttribute={attribute}
           />
+
           {registrationEnabled && item.id === currentUser.id && !manager && (
-            <Accordion>
+            <Accordion elevation={0} disableGutters sx={{ ...accordionStyle, borderColor: 'error.light' }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" color="error">
+                <Typography variant="subtitle1" fontWeight={600} color="error">
                   {t('userDeleteAccount')}
                 </Typography>
               </AccordionSummary>
@@ -484,6 +503,7 @@ const UserPage = () => {
                   color="error"
                   onClick={handleDelete}
                   startIcon={<DeleteForeverIcon />}
+                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
                 >
                   {t('userDeleteAccount')}
                 </Button>
@@ -492,7 +512,14 @@ const UserPage = () => {
           )}
         </>
       )}
-      <Dialog open={revokeDialogOpen} onClose={closeRevokeDialog} fullWidth maxWidth="xs">
+
+      <Dialog
+        open={revokeDialogOpen}
+        onClose={closeRevokeDialog}
+        fullWidth
+        maxWidth="xs"
+        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
+      >
         <DialogContent className={classes.details}>
           <TextField
             value={revokeToken}
@@ -502,9 +529,19 @@ const UserPage = () => {
             fullWidth
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeRevokeDialog}>{t('sharedCancel')}</Button>
-          <Button onClick={handleRevokeToken} disabled={!revokeToken} variant="contained">
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={closeRevokeDialog}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
+          >
+            {t('sharedCancel')}
+          </Button>
+          <Button
+            onClick={handleRevokeToken}
+            disabled={!revokeToken}
+            variant="contained"
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+          >
             {t('userRevokeToken')}
           </Button>
         </DialogActions>

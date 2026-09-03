@@ -1,4 +1,4 @@
-import { Divider, List } from '@mui/material';
+import { Divider, List, Box } from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import PauseCircleFilledIcon from '@mui/icons-material/PauseCircleFilled';
@@ -46,71 +46,77 @@ const ReportsMenu = () => {
   };
 
   return (
-    <>
-      <List>
+    <Box sx={{ py: 1 }}>
+      <List sx={{ px: 1, py: 0 }}>
         <MenuItem
           title={t('reportCombined')}
           link={buildLink('/reports/combined')}
-          icon={<StarIcon />}
+          icon={<StarIcon fontSize="small" />}
           selected={location.pathname === '/reports/combined'}
         />
         <MenuItem
           title={t('reportEvents')}
           link={buildLink('/reports/events')}
-          icon={<NotificationsActiveIcon />}
+          icon={<NotificationsActiveIcon fontSize="small" />}
           selected={location.pathname === '/reports/events'}
         />
         <MenuItem
           title={t('sharedGeofences')}
           link={buildLink('/reports/geofences')}
-          icon={<PlaceIcon />}
+          icon={<PlaceIcon fontSize="small" />}
           selected={location.pathname === '/reports/geofences'}
         />
         <MenuItem
           title={t('reportTrips')}
           link={buildLink('/reports/trips')}
-          icon={<PlayCircleFilledIcon />}
+          icon={<PlayCircleFilledIcon fontSize="small" />}
           selected={location.pathname === '/reports/trips'}
         />
         <MenuItem
           title={t('reportStops')}
           link={buildLink('/reports/stops')}
-          icon={<PauseCircleFilledIcon />}
+          icon={<PauseCircleFilledIcon fontSize="small" />}
           selected={location.pathname === '/reports/stops'}
         />
         <MenuItem
           title={t('reportSummary')}
           link={buildLink('/reports/summary')}
-          icon={<FormatListBulletedIcon />}
+          icon={<FormatListBulletedIcon fontSize="small" />}
           selected={location.pathname === '/reports/summary'}
         />
         <MenuItem
           title={t('reportChart')}
           link={buildLink('/reports/chart')}
-          icon={<TrendingUpIcon />}
+          icon={<TrendingUpIcon fontSize="small" />}
           selected={location.pathname === '/reports/chart'}
         />
-        <MenuItem title={t('reportReplay')} link={buildLink('/replay')} icon={<RouteIcon />} />
+        <MenuItem
+          title={t('reportReplay')}
+          link={buildLink('/replay')}
+          icon={<RouteIcon fontSize="small" />}
+        />
         <MenuItem
           title={t('reportPositions')}
           link={buildLink('/reports/route')}
-          icon={<TimelineIcon />}
+          icon={<TimelineIcon fontSize="small" />}
           selected={location.pathname === '/reports/route'}
         />
       </List>
-      <Divider />
-      <List>
+
+      <Divider sx={{ my: 1.5, mx: 1.5, opacity: 0.6 }} />
+
+      <List sx={{ px: 1, py: 0 }}>
         <MenuItem
           title={t('sharedLogs')}
           link="/reports/logs"
-          icon={<NotesIcon />}
+          icon={<NotesIcon fontSize="small" />}
           selected={location.pathname === '/reports/logs'}
         />
         {!readonly && (
           <MenuItem
             title={t('reportScheduled')}
             link="/reports/scheduled"
-            icon={<EventRepeatIcon />}
+            icon={<EventRepeatIcon fontSize="small" />}
             selected={location.pathname === '/reports/scheduled'}
           />
         )}
@@ -118,7 +124,7 @@ const ReportsMenu = () => {
           <MenuItem
             title={t('statisticsTitle')}
             link="/reports/statistics"
-            icon={<BarChartIcon />}
+            icon={<BarChartIcon fontSize="small" />}
             selected={location.pathname === '/reports/statistics'}
           />
         )}
@@ -126,12 +132,12 @@ const ReportsMenu = () => {
           <MenuItem
             title={t('reportAudit')}
             link="/reports/audit"
-            icon={<VerifiedUserIcon />}
+            icon={<VerifiedUserIcon fontSize="small" />}
             selected={location.pathname === '/reports/audit'}
           />
         )}
       </List>
-    </>
+    </Box>
   );
 };
 

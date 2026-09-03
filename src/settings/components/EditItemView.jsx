@@ -8,6 +8,7 @@ import {
   Skeleton,
   Typography,
   TextField,
+  Box,
 } from '@mui/material';
 import { useCatch, useAsyncTask } from '../../reactHelper';
 import { useTranslation } from '../../common/components/LocalizationProvider';
@@ -66,38 +67,88 @@ const EditItemView = ({
 
   return (
     <PageLayout menu={menu} breadcrumbs={breadcrumbs}>
-      <Container maxWidth="xs" className={classes.container}>
+      <Container maxWidth={false} className={classes.container} sx={{ py: 2 }}>
         {item ? (
           children
         ) : (
-          <Accordion defaultExpanded>
+          <Accordion
+            defaultExpanded
+            disableGutters
+            elevation={0}
+            sx={{
+              borderRadius: '14px !important',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              overflow: 'hidden',
+              '&:before': { display: 'none' },
+            }}
+          >
             <AccordionSummary>
-              <Typography variant="subtitle1">
-                <Skeleton width="10em" />
+              <Typography variant="subtitle1" fontWeight={600}>
+                <Skeleton width="10em" height={28} />
               </Typography>
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails className={classes.details}>
               {[...Array(3)].map((_, i) => (
-                <Skeleton key={-i} width="100%">
-                  <TextField />
+                <Skeleton key={-i} width="100%" height={56} sx={{ borderRadius: '10px' }}>
+                  <TextField fullWidth />
                 </Skeleton>
               ))}
             </AccordionDetails>
           </Accordion>
         )}
-        <div className={classes.buttons}>
-          <Button color="primary" variant="outlined" onClick={() => navigate(-1)} disabled={!item}>
+
+        <Box
+          className={classes.buttons}
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            justifyContent: 'flex-end',
+            mt: 3,
+            pt: 2,
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            disabled={!item}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'text.secondary',
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             {t('sharedCancel')}
           </Button>
+
           <Button
-            color="primary"
             variant="contained"
+            color="primary"
             onClick={handleSave}
             disabled={!item || !validate()}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3.5,
+              py: 1,
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              },
+            }}
           >
             {t('sharedSave')}
           </Button>
-        </div>
+        </Box>
       </Container>
     </PageLayout>
   );

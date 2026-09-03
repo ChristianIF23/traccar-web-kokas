@@ -9,6 +9,7 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  alpha,
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -22,13 +23,16 @@ const useStyles = makeStyles()((theme, { miniVariant }) => ({
   root: {
     height: '100%',
     display: 'flex',
+    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : '#f8fafc',
     [theme.breakpoints.down('md')]: {
       flexDirection: 'column',
     },
   },
   desktopDrawer: {
-    width: miniVariant ? theme.spacing(7) : theme.dimensions.drawerWidthDesktop,
+    width: miniVariant ? theme.spacing(8) : theme.dimensions.drawerWidthDesktop,
     overflowX: 'hidden',
+    borderRight: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.paper,
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
@@ -36,6 +40,13 @@ const useStyles = makeStyles()((theme, { miniVariant }) => ({
     ...(miniVariant && {
       '& .MuiListItemButton-root': {
         minHeight: 48,
+        justifyContent: 'center',
+        paddingLeft: 0,
+        paddingRight: 0,
+      },
+      '& .MuiListItemIcon-root': {
+        minWidth: 0,
+        margin: '0 auto',
       },
       '& .MuiListItemText-root': {
         display: 'none',
@@ -47,12 +58,32 @@ const useStyles = makeStyles()((theme, { miniVariant }) => ({
   },
   mobileDrawer: {
     width: theme.dimensions.drawerWidthTablet,
+    borderRight: `1px solid ${theme.palette.divider}`,
     '@media print': {
       display: 'none',
     },
   },
+  toolbar: {
+    padding: theme.spacing(1, 2),
+    minHeight: '64px !important',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: miniVariant ? 'center' : 'space-between',
+  },
+  iconButton: {
+    borderRadius: '10px',
+    padding: theme.spacing(1),
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.primary.main, 0.08),
+      color: theme.palette.primary.main,
+    },
+  },
   mobileToolbar: {
     zIndex: 1,
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    boxShadow: 'none',
+    backgroundColor: theme.palette.background.paper,
     '@media print': {
       display: 'none',
     },
@@ -74,7 +105,7 @@ const PageTitle = ({ breadcrumbs }) => {
 
   if (desktop) {
     return (
-      <Typography variant="h6" noWrap>
+      <Typography variant="h6" fontWeight={700} noWrap sx={{ letterSpacing: '-0.01em', fontSize: '1.15rem' }}>
         {t(breadcrumbs[0])}
       </Typography>
     );
@@ -82,11 +113,11 @@ const PageTitle = ({ breadcrumbs }) => {
   return (
     <Breadcrumbs>
       {breadcrumbs.slice(0, -1).map((breadcrumb) => (
-        <Typography variant="h6" color="inherit" key={breadcrumb}>
+        <Typography variant="h6" color="inherit" key={breadcrumb} fontWeight={600}>
           {t(breadcrumb)}
         </Typography>
       ))}
-      <Typography variant="h6" color="textPrimary">
+      <Typography variant="h6" color="primary" fontWeight={700}>
         {t(breadcrumbs[breadcrumbs.length - 1])}
       </Typography>
     </Breadcrumbs>
@@ -100,9 +131,7 @@ const PageLayout = ({ menu, breadcrumbs, children }) => {
   const navigate = useNavigate();
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
-
   const [searchParams] = useSearchParams();
-
   const [openDrawer, setOpenDrawer] = useState(!desktop && searchParams.has('menu'));
 
   const toggleDrawer = () => setMiniVariant(!miniVariant);
@@ -115,13 +144,14 @@ const PageLayout = ({ menu, breadcrumbs, children }) => {
           className={classes.desktopDrawer}
           slotProps={{ paper: { className: classes.desktopDrawer } }}
         >
-          <Toolbar>
+          <Toolbar className={classes.toolbar}>
             {!miniVariant && (
               <>
                 <IconButton
                   color="inherit"
                   edge="start"
-                  sx={{ mr: 2 }}
+                  className={classes.iconButton}
+                  sx={{ mr: 1 }}
                   onClick={() => navigate('/')}
                 >
                   <BackIcon />
@@ -132,7 +162,8 @@ const PageLayout = ({ menu, breadcrumbs, children }) => {
             <IconButton
               color="inherit"
               edge="start"
-              sx={{ ml: miniVariant ? -2 : 'auto' }}
+              className={classes.iconButton}
+              sx={{ ml: miniVariant ? 0 : 'auto' }}
               onClick={toggleDrawer}
             >
               {miniVariant !== (theme.direction === 'rtl') ? (
@@ -142,7 +173,7 @@ const PageLayout = ({ menu, breadcrumbs, children }) => {
               )}
             </IconButton>
           </Toolbar>
-          <Divider />
+          <Divider sx={{ opacity: 0.7 }} />
           {menu}
         </Drawer>
       ) : (
@@ -157,10 +188,11 @@ const PageLayout = ({ menu, breadcrumbs, children }) => {
       )}
       {!desktop && (
         <AppBar className={classes.mobileToolbar} position="static" color="inherit">
-          <Toolbar>
+          <Toolbar className={classes.toolbar}>
             <IconButton
               color="inherit"
               edge="start"
+              className={classes.iconButton}
               sx={{ mr: 2 }}
               onClick={() => setOpenDrawer(true)}
             >

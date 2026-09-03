@@ -42,19 +42,33 @@ const AnnouncementPage = () => {
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['serverAnnouncement']}>
       <Container maxWidth="xs" className={classes.container}>
-        <Accordion defaultExpanded>
+        <Accordion
+          defaultExpanded
+          disableGutters
+          elevation={0}
+          sx={{
+            borderRadius: '12px !important',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+            '&:before': { display: 'none' },
+          }}
+        >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+            <Typography variant="subtitle1" fontWeight={600}>
+              {t('sharedRequired')}
+            </Typography>
           </AccordionSummary>
           <AccordionDetails className={classes.details}>
             <SelectField
               multiple
+              fullWidth
               value={users}
               onChange={(e) => setUsers(e.target.value)}
               endpoint="/api/users"
               label={t('settingsUsers')}
             />
             <SelectField
+              fullWidth
               value={notificator}
               onChange={(e) => setNotificator(e.target.value)}
               endpoint="/api/notifications/notificators?announcement=true"
@@ -63,12 +77,16 @@ const AnnouncementPage = () => {
               label={t('notificationNotificators')}
             />
             <TextField
-              value={message.subject}
+              fullWidth
+              value={message.subject || ''}
               onChange={(e) => setMessage({ ...message, subject: e.target.value })}
               label={t('sharedSubject')}
             />
             <TextField
-              value={message.body}
+              fullWidth
+              multiline
+              rows={4}
+              value={message.body || ''}
               onChange={(e) => setMessage({ ...message, body: e.target.value })}
               label={t('commandMessage')}
             />

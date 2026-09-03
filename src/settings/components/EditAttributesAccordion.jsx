@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import {
   Button,
   Checkbox,
@@ -14,6 +13,7 @@ import {
   AccordionSummary,
   Typography,
   AccordionDetails,
+  Box,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -124,7 +124,7 @@ const EditAttributesAccordion = ({
     return '';
   };
 
-  const convertToList = (attributes) => {
+  const convertToList = (attributesList) => {
     const booleanList = [];
     const otherList = [];
     const excludeAttributes = [
@@ -134,10 +134,10 @@ const EditAttributesAccordion = ({
       'volumeUnit',
       'timezone',
     ];
-    Object.keys(attributes || [])
+    Object.keys(attributesList || [])
       .filter((key) => !excludeAttributes.includes(key))
       .forEach((key) => {
-        const value = attributes[key];
+        const value = attributesList[key];
         const type = getAttributeType(value);
         const dataType = getAttributeDataType(key);
         if (type === 'boolean') {
@@ -176,39 +176,93 @@ const EditAttributesAccordion = ({
     }
   };
 
-  return features.disableAttributes ? (
-    ''
-  ) : (
-    <Accordion defaultExpanded={!!attribute}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant="subtitle1">{t('sharedAttributes')}</Typography>
+  if (features.disableAttributes) {
+    return null;
+  }
+
+  return (
+    <Accordion
+      defaultExpanded={!!attribute}
+      disableGutters
+      elevation={0}
+      sx={{
+        borderRadius: '12px !important',
+        border: (theme) => `1px solid ${theme.palette.divider}`,
+        '&::before': { display: 'none' },
+        overflow: 'hidden',
+        mt: 1.5,
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        sx={{
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+          minHeight: 48,
+          '&.Mui-expanded': { minHeight: 48 },
+        }}
+      >
+        <Typography variant="subtitle2" fontWeight={600} color="text.primary">
+          {t('sharedAttributes')}
+        </Typography>
       </AccordionSummary>
-      <AccordionDetails className={classes.details}>
+
+      <AccordionDetails
+        sx={{
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
         {convertToList(attributes).map(({ key, value, type, dataType }) => {
           if (type === 'boolean') {
             return (
-              <Grid container direction="row" justifyContent="space-between" key={key}>
+              <Box
+                key={key}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 1,
+                  px: 1.5,
+                  borderRadius: '10px',
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
+                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                }}
+              >
                 <FormControlLabel
                   control={
                     <Checkbox
                       checked={value}
                       onChange={(e) => updateAttribute(key, e.target.checked)}
+                      size="small"
                     />
                   }
-                  label={getAttributeName(key, dataType)}
+                  label={
+                    <Typography variant="body2" fontWeight={500}>
+                      {getAttributeName(key, dataType)}
+                    </Typography>
+                  }
+                  sx={{ m: 0 }}
                 />
                 <IconButton
                   size="small"
-                  className={classes.removeButton}
                   onClick={() => deleteAttribute(key)}
+                  sx={{
+                    color: 'text.secondary',
+                    '&:hover': { color: 'error.main' },
+                  }}
                 >
                   <CloseIcon fontSize="small" />
                 </IconButton>
-              </Grid>
+              </Box>
             );
           }
+
           return (
-            <FormControl key={key}>
+            <FormControl key={key} fullWidth size="small">
               <InputLabel>{getAttributeName(key, dataType)}</InputLabel>
               <OutlinedInput
                 label={getAttributeName(key, dataType)}
@@ -216,9 +270,18 @@ const EditAttributesAccordion = ({
                 value={getDisplayValue(value, dataType)}
                 onChange={(e) => updateAttribute(key, e.target.value, type, dataType)}
                 autoFocus={focusAttribute === key}
+                sx={{ borderRadius: '10px' }}
                 endAdornment={
                   <InputAdornment position="end">
-                    <IconButton size="small" edge="end" onClick={() => deleteAttribute(key)}>
+                    <IconButton
+                      size="small"
+                      edge="end"
+                      onClick={() => deleteAttribute(key)}
+                      sx={{
+                        color: 'text.secondary',
+                        '&:hover': { color: 'error.main' },
+                      }}
+                    >
                       <CloseIcon fontSize="small" />
                     </IconButton>
                   </InputAdornment>
@@ -227,14 +290,23 @@ const EditAttributesAccordion = ({
             </FormControl>
           );
         })}
+
         <Button
           variant="outlined"
           color="primary"
           onClick={() => setAddDialogShown(true)}
           startIcon={<AddIcon />}
+          sx={{
+            borderRadius: '10px',
+            textTransform: 'none',
+            fontWeight: 600,
+            alignSelf: 'flex-start',
+            px: 2,
+          }}
         >
           {t('sharedAdd')}
         </Button>
+
         <AddAttributeDialog
           open={addDialogShown}
           onResult={handleAddResult}

@@ -9,8 +9,10 @@ import {
   Checkbox,
   TextField,
   Button,
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import FileInput from '../common/components/FileInput';
 import EditItemView from './components/EditItemView';
 import EditAttributesAccordion from './components/EditAttributesAccordion';
@@ -25,6 +27,16 @@ import { useCatch } from '../reactHelper';
 import useSettingsStyles from './common/useSettingsStyles';
 import QrCodeDialog from '../common/components/QrCodeDialog';
 import fetchOrThrow from '../common/util/fetchOrThrow';
+
+const accordionSx = {
+  borderRadius: '14px !important',
+  border: '1px solid',
+  borderColor: 'divider',
+  mb: 1.5,
+  boxShadow: 'none',
+  '&:before': { display: 'none' }, // Menghilangkan garis divider bawaan accordion MUI
+  overflow: 'hidden',
+};
 
 const DevicePage = () => {
   const { classes } = useSettingsStyles();
@@ -69,10 +81,12 @@ const DevicePage = () => {
       breadcrumbs={['settingsTitle', 'sharedDevice']}
     >
       {item && (
-        <>
-          <Accordion defaultExpanded>
+        <Box sx={{ p: 0.5 }}>
+          <Accordion defaultExpanded sx={accordionSx}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedRequired')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -89,9 +103,12 @@ const DevicePage = () => {
               />
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion sx={accordionSx}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedExtra')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedExtra')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <SelectField
@@ -153,15 +170,24 @@ const DevicePage = () => {
                 label={t('sharedDisabled')}
                 disabled={!manager}
               />
-              <Button variant="outlined" color="primary" onClick={() => setShowQr(true)}>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<QrCode2Icon />}
+                onClick={() => setShowQr(true)}
+                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, py: 1 }}
+              >
                 {t('sharedQrCode')}
               </Button>
             </AccordionDetails>
           </Accordion>
+
           {item.id && (
-            <Accordion>
+            <Accordion sx={accordionSx}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1">{t('attributeDeviceImage')}</Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  {t('attributeDeviceImage')}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails className={classes.details}>
                 <FileInput
@@ -173,12 +199,13 @@ const DevicePage = () => {
               </AccordionDetails>
             </Accordion>
           )}
+
           <EditAttributesAccordion
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
             definitions={{ ...commonDeviceAttributes, ...deviceAttributes }}
           />
-        </>
+        </Box>
       )}
       <QrCodeDialog open={showQr} onClose={() => setShowQr(false)} />
     </EditItemView>
