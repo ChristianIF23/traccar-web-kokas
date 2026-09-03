@@ -15,7 +15,21 @@ const formatEventData = (event, { deviceUniqueId, speedUnit, t }) => {
       return formatNumber(Math.abs(event.attributes.after - event.attributes.before));
     case 'media':
       return (
-        <Link href={`/api/media/${deviceUniqueId}/${event.attributes.file}`} target="_blank">
+        <Link
+          href={`/api/media/${deviceUniqueId}/${event.attributes.file}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          underline="hover"
+          sx={{
+            color: 'primary.main',
+            fontWeight: 500,
+            fontSize: '0.85rem',
+            transition: 'color 0.15s ease',
+            '&:hover': {
+              color: 'primary.dark',
+            },
+          }}
+        >
           {event.attributes.file}
         </Link>
       );

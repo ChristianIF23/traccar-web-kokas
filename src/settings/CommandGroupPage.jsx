@@ -15,6 +15,7 @@ import {
   FormControlLabel,
   Checkbox,
   TextField,
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -47,12 +48,37 @@ const CommandDevicePage = () => {
 
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'deviceCommand']}>
-      <Container maxWidth="xs" className={classes.container}>
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+      <Container maxWidth="sm" className={classes.container} sx={{ py: 2 }}>
+        <Accordion
+          defaultExpanded
+          disableGutters
+          elevation={0}
+          sx={{
+            borderRadius: '16px !important',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            '&:before': { display: 'none' },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              px: 3,
+              py: 0.5,
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Typography variant="subtitle1" fontWeight={600}>
+              {t('sharedRequired')}
+            </Typography>
           </AccordionSummary>
-          <AccordionDetails className={classes.details}>
+          <AccordionDetails
+            className={classes.details}
+            sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
             <FormControl fullWidth>
               <InputLabel>{t('sharedType')}</InputLabel>
               <Select label={t('sharedType')} value="custom" disabled>
@@ -60,17 +86,18 @@ const CommandDevicePage = () => {
               </Select>
             </FormControl>
             <TextField
-              value={item.attributes.data}
+              value={item.attributes.data || ''}
               onChange={(e) =>
                 setItem({ ...item, attributes: { ...item.attributes, data: e.target.value } })
               }
               label={t('commandData')}
+              fullWidth
             />
             {textEnabled && (
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={item.textChannel}
+                    checked={!!item.textChannel}
                     onChange={(event) => setItem({ ...item, textChannel: event.target.checked })}
                   />
                 }
@@ -79,8 +106,36 @@ const CommandDevicePage = () => {
             )}
           </AccordionDetails>
         </Accordion>
-        <div className={classes.buttons}>
-          <Button type="button" color="primary" variant="outlined" onClick={() => navigate(-1)}>
+
+        <Box
+          className={classes.buttons}
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            justifyContent: 'flex-end',
+            mt: 3,
+            pt: 2,
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'text.secondary',
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             {t('sharedCancel')}
           </Button>
           <Button
@@ -89,10 +144,21 @@ const CommandDevicePage = () => {
             variant="contained"
             onClick={handleSend}
             disabled={!item.attributes.data}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3.5,
+              py: 1,
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              },
+            }}
           >
             {t('commandSend')}
           </Button>
-        </div>
+        </Box>
       </Container>
     </PageLayout>
   );

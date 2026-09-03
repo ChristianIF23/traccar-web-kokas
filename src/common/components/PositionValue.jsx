@@ -1,6 +1,9 @@
 import { useSelector } from 'react-redux';
-import { Link } from '@mui/material';
+import { Link, Chip, Box, Tooltip, IconButton } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import LaunchIcon from '@mui/icons-material/Launch';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import {
   formatAlarm,
   formatAltitude,
@@ -65,7 +68,20 @@ const PositionValue = ({ position, property, attribute }) => {
       case 'coolantTemp':
         return formatTemperature(value);
       case 'alarm':
-        return formatAlarm(value, t);
+        return (
+          <Chip
+            size="small"
+            color="error"
+            icon={<ErrorOutlineIcon sx={{ '&&': { fontSize: 14 } }} />}
+            label={formatAlarm(value, t)}
+            sx={{
+              height: 22,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              borderRadius: '6px',
+            }}
+          />
+        );
       default:
         switch (positionAttributes[key]?.dataType) {
           case 'speed':
@@ -85,7 +101,21 @@ const PositionValue = ({ position, property, attribute }) => {
               return formatNumber(value);
             }
             if (typeof value === 'boolean') {
-              return formatBoolean(value, t);
+              return (
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  color={value ? 'success' : 'default'}
+                  label={formatBoolean(value, t)}
+                  sx={{
+                    height: 20,
+                    fontSize: '0.725rem',
+                    fontWeight: 500,
+                    borderRadius: '6px',
+                    borderColor: value ? undefined : (theme) => theme.palette.divider,
+                  }}
+                />
+              );
             }
             return value || '';
         }
@@ -111,30 +141,59 @@ const PositionValue = ({ position, property, attribute }) => {
     case 'video':
     case 'audio':
       return (
-        <Link href={`/api/media/${device.uniqueId}/${value}`} target="_blank">
+        <Link
+          href={`/api/media/${device?.uniqueId}/${value}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          underline="hover"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            color: 'primary.main',
+            fontWeight: 500,
+            fontSize: '0.8125rem',
+          }}
+        >
           {value}
+          <LaunchIcon sx={{ fontSize: 13 }} />
         </Link>
       );
     case 'totalDistance':
     case 'hours':
       return (
-        <>
-          {formatValue(value)}
-          &nbsp;&nbsp;
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+          <span>{formatValue()}</span>
           {!deviceReadonly && (
-            <Link
-              component={RouterLink}
-              underline="none"
-              to={`/settings/accumulators/${position.deviceId}`}
-            >
-              &#9881;
-            </Link>
+            <Tooltip title={t('sharedAccumulators') || 'Accumulators'} arrow>
+              <IconButton
+                component={RouterLink}
+                to={`/settings/accumulators/${position.deviceId}`}
+                size="small"
+                sx={{
+                  p: 0.25,
+                  color: 'text.secondary',
+                  '&:hover': { color: 'primary.main' },
+                }}
+              >
+                <SettingsOutlinedIcon sx={{ fontSize: 15 }} />
+              </IconButton>
+            </Tooltip>
           )}
-        </>
+        </Box>
       );
     case 'network':
       return (
-        <Link component={RouterLink} underline="none" to={`/network/${position.id}`}>
+        <Link
+          component={RouterLink}
+          to={`/network/${position.id}`}
+          underline="hover"
+          sx={{
+            color: 'primary.main',
+            fontWeight: 500,
+            fontSize: '0.8125rem',
+          }}
+        >
           {t('sharedInfoTitle')}
         </Link>
       );
@@ -143,7 +202,7 @@ const PositionValue = ({ position, property, attribute }) => {
     case 'driverUniqueId':
       return <DriverValue driverUniqueId={value} />;
     default:
-      return formatValue(value);
+      return formatValue();
   }
 };
 

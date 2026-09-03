@@ -1,7 +1,6 @@
-import { Fragment } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles } from 'tss-react/mui';
-import { Divider, List, ListItemButton, ListItemText } from '@mui/material';
+import { List, ListItemButton, ListItemText, Typography } from '@mui/material';
 
 import { geofencesActions } from '../store';
 import CollectionActions from '../settings/components/CollectionActions';
@@ -12,11 +11,7 @@ const useStyles = makeStyles()(() => ({
   list: {
     flexGrow: 1,
     overflow: 'auto',
-  },
-  icon: {
-    width: '25px',
-    height: '25px',
-    filter: 'brightness(0) invert(1)',
+    padding: '8px 4px',
   },
 }));
 
@@ -31,21 +26,64 @@ const GeofencesList = ({ onGeofenceSelected }) => {
     dispatch(geofencesActions.refresh(await response.json()));
   }, [dispatch]);
 
+  const itemsList = Object.values(items);
+
+  if (!itemsList.length) {
+    return (
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ textAlign: 'center', py: 4 }}
+      >
+        —
+      </Typography>
+    );
+  }
+
   return (
-    <List className={classes.list}>
-      {Object.values(items).map((item, index, list) => (
-        <Fragment key={item.id}>
-          <ListItemButton key={item.id} onClick={() => onGeofenceSelected(item.id)}>
-            <ListItemText primary={item.name} />
-            <CollectionActions
-              itemId={item.id}
-              editPath="/settings/geofence"
-              endpoint="geofences"
-              onReload={refreshGeofences}
-            />
-          </ListItemButton>
-          {index < list.length - 1 ? <Divider /> : null}
-        </Fragment>
+    <List className={classes.list} disablePadding>
+      {itemsList.map((item) => (
+        <ListItemButton
+          key={item.id}
+          onClick={() => onGeofenceSelected(item.id)}
+          sx={{
+            mx: 1.5,
+            my: 0.5,
+            px: 2,
+            py: 1,
+            borderRadius: '10px',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            backgroundColor: 'background.paper',
+            transition: 'all 0.15s ease-in-out',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            '&:hover': {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.04)'
+                  : '#f8fafc',
+              borderColor: 'text.secondary',
+            },
+          }}
+        >
+          <ListItemText
+            primary={item.name}
+            primaryTypographyProps={{
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              color: 'text.primary',
+              noWrap: true,
+            }}
+          />
+          <CollectionActions
+            itemId={item.id}
+            editPath="/settings/geofence"
+            endpoint="geofences"
+            onReload={refreshGeofences}
+          />
+        </ListItemButton>
       ))}
     </List>
   );

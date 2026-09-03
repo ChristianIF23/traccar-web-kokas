@@ -25,6 +25,7 @@ import MapIcon from '@mui/icons-material/Map';
 import DnsIcon from '@mui/icons-material/Dns';
 import AddIcon from '@mui/icons-material/Add';
 import TuneIcon from '@mui/icons-material/Tune';
+import SearchIcon from '@mui/icons-material/Search';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { useDeviceReadonly } from '../common/util/permissions';
 import DeviceRow from './DeviceRow';
@@ -32,14 +33,59 @@ import DeviceRow from './DeviceRow';
 const useStyles = makeStyles()((theme) => ({
   toolbar: {
     display: 'flex',
+    alignItems: 'center',
     gap: theme.spacing(1),
+    padding: theme.spacing(1, 1.5),
+    minHeight: '64px !important',
+    backgroundColor: theme.palette.background.paper,
+  },
+  searchInput: {
+    borderRadius: theme.spacing(1.2),
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9',
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.divider,
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: theme.palette.primary.main,
+    },
+  },
+  actionButton: {
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(0.8),
+    color: theme.palette.text.secondary,
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      color: theme.palette.primary.main,
+      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f1f5f9',
+    },
+  },
+  addButton: {
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText,
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(0.8),
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      backgroundColor: theme.palette.primary.dark || '#0f172a',
+    },
   },
   filterPanel: {
     display: 'flex',
     flexDirection: 'column',
-    padding: theme.spacing(2),
-    gap: theme.spacing(2),
+    padding: theme.spacing(2.5),
+    gap: theme.spacing(2.5),
     width: theme.dimensions.drawerWidthTablet,
+  },
+  popoverPaper: {
+    borderRadius: theme.spacing(2),
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 12px 32px rgba(0,0,0,0.5)'
+      : '0 12px 32px rgba(15,23,42,0.12)',
   },
 }));
 
@@ -78,9 +124,15 @@ const MainToolbar = ({
 
   return (
     <Toolbar ref={toolbarRef} className={classes.toolbar}>
-      <IconButton edge="start" onClick={() => setDevicesOpen(!devicesOpen)}>
-        {devicesOpen ? <MapIcon /> : <DnsIcon />}
+      <IconButton
+        edge="start"
+        className={classes.actionButton}
+        onClick={() => setDevicesOpen(!devicesOpen)}
+        title={devicesOpen ? 'Show Map' : 'Show Devices'}
+      >
+        {devicesOpen ? <MapIcon fontSize="small" /> : <DnsIcon fontSize="small" />}
       </IconButton>
+
       <OutlinedInput
         ref={inputRef}
         placeholder={t('sharedSearchDevices')}
@@ -88,11 +140,16 @@ const MainToolbar = ({
         onChange={(e) => setKeyword(e.target.value)}
         onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
         onBlur={() => setDevicesAnchorEl(null)}
+        startAdornment={
+          <InputAdornment position="start">
+            <SearchIcon fontSize="small" sx={{ color: 'text.secondary', ml: 0.5 }} />
+          </InputAdornment>
+        }
         endAdornment={
           <InputAdornment position="end">
             <IconButton size="small" edge="end" onClick={() => setFilterAnchorEl(inputRef.current)}>
               <Badge
-                color="info"
+                color="secondary"
                 variant="dot"
                 invisible={
                   !filter.statuses.length && !filter.groups.length && !filter.geofences.length
@@ -105,7 +162,9 @@ const MainToolbar = ({
         }
         size="small"
         fullWidth
+        className={classes.searchInput}
       />
+
       <Popover
         open={!!devicesAnchorEl && !devicesOpen}
         anchorEl={devicesAnchorEl}
@@ -117,10 +176,11 @@ const MainToolbar = ({
         marginThreshold={0}
         slotProps={{
           paper: {
+            className: classes.popoverPaper,
             style: { width: `calc(${toolbarRef.current?.clientWidth}px - ${theme.spacing(4)})` },
           },
         }}
-        elevation={1}
+        elevation={0}
         disableAutoFocus
         disableEnforceFocus
       >
@@ -133,6 +193,7 @@ const MainToolbar = ({
           </ListItemButton>
         )}
       </Popover>
+
       <Popover
         open={!!filterAnchorEl}
         anchorEl={filterAnchorEl}
@@ -141,9 +202,15 @@ const MainToolbar = ({
           vertical: 'bottom',
           horizontal: 'left',
         }}
+        slotProps={{
+          paper: {
+            className: classes.popoverPaper,
+          },
+        }}
+        elevation={0}
       >
         <div className={classes.filterPanel}>
-          <FormControl>
+          <FormControl fullWidth>
             <InputLabel>{t('deviceStatus')}</InputLabel>
             <Select
               label={t('deviceStatus')}
@@ -156,7 +223,8 @@ const MainToolbar = ({
               <MenuItem value="unknown">{`${t('deviceStatusUnknown')} (${deviceStatusCount('unknown')})`}</MenuItem>
             </Select>
           </FormControl>
-          <FormControl>
+
+          <FormControl fullWidth>
             <InputLabel>{t('settingsGroups')}</InputLabel>
             <Select
               label={t('settingsGroups')}
@@ -173,7 +241,8 @@ const MainToolbar = ({
                 ))}
             </Select>
           </FormControl>
-          <FormControl>
+
+          <FormControl fullWidth>
             <InputLabel>{t('sharedGeofences')}</InputLabel>
             <Select
               label={t('sharedGeofences')}
@@ -190,7 +259,8 @@ const MainToolbar = ({
                 ))}
             </Select>
           </FormControl>
-          <FormControl>
+
+          <FormControl fullWidth>
             <InputLabel>{t('sharedSortBy')}</InputLabel>
             <Select
               label={t('sharedSortBy')}
@@ -202,6 +272,7 @@ const MainToolbar = ({
               <MenuItem value="lastUpdate">{t('deviceLastUpdate')}</MenuItem>
             </Select>
           </FormControl>
+
           <FormGroup>
             <FormControlLabel
               control={
@@ -212,13 +283,19 @@ const MainToolbar = ({
           </FormGroup>
         </div>
       </Popover>
-      <IconButton edge="end" onClick={() => navigate('/settings/device')} disabled={deviceReadonly}>
+
+      <IconButton
+        edge="end"
+        className={classes.addButton}
+        onClick={() => navigate('/settings/device')}
+        disabled={deviceReadonly}
+      >
         <Tooltip
           open={!deviceReadonly && devicesLoaded && Object.keys(devices).length === 0}
           title={t('deviceRegisterFirst')}
           arrow
         >
-          <AddIcon />
+          <AddIcon fontSize="small" />
         </Tooltip>
       </IconButton>
     </Toolbar>

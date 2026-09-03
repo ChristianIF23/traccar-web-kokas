@@ -11,9 +11,12 @@ import {
   TableFooter,
   FormControlLabel,
   Switch,
+  Box,
+  Typography,
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
-import { useTheme } from '@mui/material/styles';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import { useTheme, alpha } from '@mui/material/styles';
 import { useAsyncTask, useScrollToLoad, pageSize } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
@@ -107,89 +110,169 @@ const DevicesPage = () => {
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'deviceTitle']}>
       <SearchHeader keyword={searchKeyword} setKeyword={setSearchKeyword} />
-      <Table className={classes.table}>
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('sharedName')}</TableCell>
-            <TableCell>{t('deviceIdentifier')}</TableCell>
-            <TableCell>{t('groupParent')}</TableCell>
-            <TableCell>{t('sharedPhone')}</TableCell>
-            <TableCell>{t('deviceModel')}</TableCell>
-            <TableCell>{t('deviceContact')}</TableCell>
-            <TableCell>{t('userExpirationTime')}</TableCell>
-            <TableCell>{t('positionAddress')}</TableCell>
-            {manager && <TableCell>{t('settingsUsers')}</TableCell>}
-            <TableCell className={classes.columnAction} />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.uniqueId}</TableCell>
-              <TableCell>{item.groupId ? groups[item.groupId]?.name : null}</TableCell>
-              <TableCell>{item.phone}</TableCell>
-              <TableCell>{item.model}</TableCell>
-              <TableCell>{item.contact}</TableCell>
-              <TableCell>{formatTime(item.expirationTime, 'date')}</TableCell>
-              <TableCell>
-                {positions[item.id] && (
-                  <AddressValue
-                    latitude={positions[item.id].latitude}
-                    longitude={positions[item.id].longitude}
-                    originalAddress={positions[item.id]?.address}
-                  />
-                )}
-              </TableCell>
-              {manager && (
-                <TableCell>
-                  <DeviceUsersValue deviceId={item.id} />
-                </TableCell>
-              )}
-              <TableCell className={classes.columnAction} padding="none">
-                <CollectionActions
-                  itemId={item.id}
-                  editPath="/settings/device"
-                  endpoint="devices"
-                  onReload={reload}
-                  customActions={[actionConnections]}
-                  readonly={deviceReadonly}
+
+      {/* Kontainer Kartu Tabel */}
+      <Box
+        sx={{
+          backgroundColor: 'background.paper',
+          borderRadius: '16px',
+          border: `1px solid ${theme.palette.divider}`,
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+          mx: { xs: 1, sm: 2 },
+          mb: 4,
+        }}
+      >
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <Table
+            className={classes.table}
+            sx={{
+              minWidth: 850,
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+              '& .MuiTableHead-root .MuiTableCell-root': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                color: 'text.secondary',
+                fontWeight: 600,
+                fontSize: '0.78rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                py: 1.8,
+                px: 2.5,
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                whiteSpace: 'nowrap',
+              },
+              '& .MuiTableBody-root .MuiTableRow-root': {
+                transition: 'background-color 0.15s ease',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                },
+              },
+              '& .MuiTableBody-root .MuiTableCell-root': {
+                py: 1.8,
+                px: 2.5,
+                fontSize: '0.875rem',
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              },
+            }}
+          >
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('sharedName')}</TableCell>
+                <TableCell>{t('deviceIdentifier')}</TableCell>
+                <TableCell>{t('groupParent')}</TableCell>
+                <TableCell>{t('sharedPhone')}</TableCell>
+                <TableCell>{t('deviceModel')}</TableCell>
+                <TableCell>{t('deviceContact')}</TableCell>
+                <TableCell>{t('userExpirationTime')}</TableCell>
+                <TableCell>{t('positionAddress')}</TableCell>
+                {manager && <TableCell>{t('settingsUsers')}</TableCell>}
+                <TableCell className={classes.columnAction} align="right" />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight={600} color="text.primary">
+                      {item.name}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.82rem !important', color: 'text.secondary' }}>
+                    {item.uniqueId}
+                  </TableCell>
+                  <TableCell>{item.groupId ? groups[item.groupId]?.name : '—'}</TableCell>
+                  <TableCell>{item.phone || '—'}</TableCell>
+                  <TableCell>{item.model || '—'}</TableCell>
+                  <TableCell>{item.contact || '—'}</TableCell>
+                  <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                    {formatTime(item.expirationTime, 'date') || '—'}
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 260, color: 'text.secondary' }}>
+                    {positions[item.id] ? (
+                      <AddressValue
+                        latitude={positions[item.id].latitude}
+                        longitude={positions[item.id].longitude}
+                        originalAddress={positions[item.id]?.address}
+                      />
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
+                  {manager && (
+                    <TableCell>
+                      <DeviceUsersValue deviceId={item.id} />
+                    </TableCell>
+                  )}
+                  <TableCell className={classes.columnAction} padding="none" align="right">
+                    <CollectionActions
+                      itemId={item.id}
+                      editPath="/settings/device"
+                      endpoint="devices"
+                      onReload={reload}
+                      customActions={[actionConnections]}
+                      readonly={deviceReadonly}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+              {hasMore && (
+                <TableShimmer
+                  ref={items.length > 0 ? sentinelRef : null}
+                  columns={manager ? 9 : 8}
+                  endAction
                 />
-              </TableCell>
-            </TableRow>
-          ))}
-          {hasMore && (
-            <TableShimmer
-              ref={items.length > 0 ? sentinelRef : null}
-              columns={manager ? 9 : 8}
-              endAction
-            />
-          )}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell>
-              <Button onClick={handleExport} variant="text">
-                {t('reportExport')}
-              </Button>
-            </TableCell>
-            <TableCell colSpan={manager ? 9 : 8} align="right">
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={showAll}
-                    onChange={(e) => setShowAll(e.target.checked)}
+              )}
+            </TableBody>
+            <TableFooter>
+              <TableRow sx={{ '& .MuiTableCell-root': { py: 1.5, px: 2.5, borderTop: `1px solid ${theme.palette.divider}`, borderBottom: 'none' } }}>
+                <TableCell>
+                  <Button
+                    onClick={handleExport}
+                    variant="outlined"
                     size="small"
+                    startIcon={<FileDownloadOutlinedIcon />}
+                    sx={{
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '0.82rem',
+                      color: 'text.secondary',
+                      borderColor: 'divider',
+                      '&:hover': {
+                        borderColor: 'text.secondary',
+                        backgroundColor: 'action.hover',
+                      },
+                    }}
+                  >
+                    {t('reportExport')}
+                  </Button>
+                </TableCell>
+                <TableCell colSpan={manager ? 9 : 8} align="right">
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={showAll}
+                        onChange={(e) => setShowAll(e.target.checked)}
+                        size="small"
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                        {t('notificationAlways')}
+                      </Typography>
+                    }
+                    labelPlacement="start"
+                    disabled={!manager}
                   />
-                }
-                label={t('notificationAlways')}
-                labelPlacement="start"
-                disabled={!manager}
-              />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </Box>
+      </Box>
+
       <CollectionFab editPath="/settings/device" />
     </PageLayout>
   );

@@ -11,7 +11,12 @@ import {
   TableRow,
   TableBody,
   TableCell,
+  TableContainer,
+  Paper,
+  Box,
+  Typography,
 } from '@mui/material';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import { useTheme } from '@mui/material/styles';
 import {
   formatDistance,
@@ -94,7 +99,7 @@ const SummaryReportPage = () => {
     const rows = [];
     const deviceHeader = t('sharedDevice');
     items.forEach((item) => {
-      const row = { [deviceHeader]: devices[item.deviceId].name };
+      const row = { [deviceHeader]: devices[item.deviceId]?.name || item.deviceId };
       columns.forEach((key) => {
         const header = t(columnsMap.get(key));
         row[header] = formatValue(item, key);
@@ -121,7 +126,7 @@ const SummaryReportPage = () => {
     const value = item[key];
     switch (key) {
       case 'deviceId':
-        return devices[value].name;
+        return devices[value]?.name || value;
       case 'startTime':
         return formatTime(value, 'date');
       case 'startOdometer':
@@ -154,7 +159,7 @@ const SummaryReportPage = () => {
           formats={['xlsx']}
         >
           <div className={classes.filterItem}>
-            <FormControl fullWidth>
+            <FormControl fullWidth size="small">
               <InputLabel>{t('sharedType')}</InputLabel>
               <Select
                 label={t('sharedType')}
@@ -164,6 +169,7 @@ const SummaryReportPage = () => {
                     String(e.target.value),
                   ])
                 }
+                sx={{ borderRadius: '10px' }}
               >
                 <MenuItem value={false}>{t('reportSummary')}</MenuItem>
                 <MenuItem value>{t('reportDaily')}</MenuItem>
@@ -173,30 +179,99 @@ const SummaryReportPage = () => {
           <ColumnSelect columns={columns} setColumns={setColumns} columnsArray={columnsArray} />
         </ReportFilter>
       </div>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('sharedDevice')}</TableCell>
-            {columns.map((key) => (
-              <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {!loading ? (
-            items.map((item) => (
-              <TableRow key={`${item.deviceId}_${Date.parse(item.startTime)}`}>
-                <TableCell>{devices[item.deviceId].name}</TableCell>
+
+      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+        <TableContainer
+          component={Paper}
+          elevation={0}
+          sx={{
+            borderRadius: '12px',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+          }}
+        >
+          <Table size="small">
+            <TableHead>
+              <TableRow
+                sx={{
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                }}
+              >
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    py: 1.5,
+                  }}
+                >
+                  {t('sharedDevice')}
+                </TableCell>
                 {columns.map((key) => (
-                  <TableCell key={key}>{formatValue(item, key)}</TableCell>
+                  <TableCell
+                    key={key}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
+                    {t(columnsMap.get(key))}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableShimmer columns={columns.length + 1} />
-          )}
-        </TableBody>
-      </Table>
+            </TableHead>
+            <TableBody>
+              {!loading ? (
+                items.length > 0 ? (
+                  items.map((item) => (
+                    <TableRow
+                      key={`${item.deviceId}_${Date.parse(item.startTime)}`}
+                      hover
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        transition: 'background-color 0.15s ease',
+                      }}
+                    >
+                      <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                        {devices[item.deviceId]?.name || item.deviceId}
+                      </TableCell>
+                      {columns.map((key) => (
+                        <TableCell
+                          key={key}
+                          sx={{
+                            fontSize: '0.85rem',
+                            color: 'text.primary',
+                            py: 1.25,
+                          }}
+                        >
+                          {formatValue(item, key)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6 }}>
+                      <AssessmentOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sharedNoData')}
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled">
+                        Pilih perangkat dan klik tampilkan untuk memuat ringkasan armada.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )
+              ) : (
+                <TableShimmer columns={columns.length + 1} />
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </PageLayout>
   );
 };

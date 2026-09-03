@@ -1,6 +1,17 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { IconButton, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import {
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  Box,
+  Typography,
+} from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import ReportFilter, { updateReportParams } from './components/ReportFilter';
@@ -42,7 +53,7 @@ const PositionsReportPage = () => {
   const [columns, setColumns] = useState(['fixTime', 'latitude', 'longitude', 'speed', 'address']);
   const [items, setItems] = useState([]);
   const geofenceId = searchParams.has('geofenceId')
-    ? parseInt(searchParams.get('geofenceId'))
+    ? parseInt(searchParams.get('geofenceId'), 10)
     : null;
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -121,11 +132,21 @@ const PositionsReportPage = () => {
       <div className={classes.container}>
         {selectedItem && (
           <>
-            <div className={classes.containerMap}>
+            <Box
+              className={classes.containerMap}
+              sx={{
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                m: { xs: 1, sm: 1.5 },
+                mb: 0,
+              }}
+            >
               <MapView>
                 <MapGeofence />
                 {[...new Set(items.map((it) => it.deviceId))].map((deviceId) => {
-                  const positions = items.filter((position) => position.deviceId === deviceId);
+                  const positions = items.filter((pos) => pos.deviceId === deviceId);
                   return (
                     <Fragment key={deviceId}>
                       <MapRoutePath positions={positions} />
@@ -137,10 +158,11 @@ const PositionsReportPage = () => {
               </MapView>
               <MapScale />
               <MapCamera positions={items} />
-            </div>
+            </Box>
             <ResizeHandle />
           </>
         )}
+
         <div className={classes.containerMain}>
           <div className={classes.header}>
             <ReportFilter
@@ -172,61 +194,127 @@ const PositionsReportPage = () => {
               />
             </ReportFilter>
           </div>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.columnAction} />
-                {columns.map((key) => (
-                  <TableCell key={key}>{positionAttributes[key]?.name || key}</TableCell>
-                ))}
-                <TableCell className={classes.columnAction} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {!loading ? (
-                items.slice(0, 4000).map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className={classes.columnAction} padding="none">
-                      {selectedItem === item ? (
-                        <IconButton
-                          size="small"
-                          onClick={() => setSelectedItem(null)}
-                          ref={selectedRef}
-                        >
-                          <GpsFixedIcon fontSize="small" />
-                        </IconButton>
-                      ) : (
-                        <IconButton size="small" onClick={() => setSelectedItem(item)}>
-                          <LocationSearchingIcon fontSize="small" />
-                        </IconButton>
-                      )}
-                    </TableCell>
+
+          <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+            <TableContainer
+              component={Paper}
+              elevation={0}
+              sx={{
+                borderRadius: '12px',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                overflow: 'hidden',
+              }}
+            >
+              <Table size="small">
+                <TableHead>
+                  <TableRow
+                    sx={{
+                      backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                    }}
+                  >
+                    <TableCell className={classes.columnAction} sx={{ width: 44 }} />
                     {columns.map((key) => (
-                      <TableCell key={key}>
-                        <PositionValue
-                          position={item}
-                          property={item.hasOwnProperty(key) ? key : null}
-                          attribute={item.hasOwnProperty(key) ? null : key}
-                        />
+                      <TableCell
+                        key={key}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.8125rem',
+                          color: 'text.secondary',
+                          py: 1.5,
+                        }}
+                      >
+                        {positionAttributes[key]?.name || key}
                       </TableCell>
                     ))}
-                    <TableCell className={classes.actionCellPadding}>
-                      <CollectionActions
-                        itemId={item.id}
-                        endpoint="positions"
-                        readonly={readonly}
-                        onReload={() => {
-                          setItems(items.filter((position) => position.id !== item.id));
-                        }}
-                      />
-                    </TableCell>
+                    <TableCell className={classes.columnAction} sx={{ width: 48 }} />
                   </TableRow>
-                ))
-              ) : (
-                <TableShimmer columns={columns.length + 1} startAction />
-              )}
-            </TableBody>
-          </Table>
+                </TableHead>
+                <TableBody>
+                  {!loading ? (
+                    items.length > 0 ? (
+                      items.slice(0, 4000).map((item) => {
+                        const isSelected = selectedItem === item;
+                        return (
+                          <TableRow
+                            key={item.id}
+                            hover
+                            selected={isSelected}
+                            sx={{
+                              transition: 'background-color 0.15s ease',
+                              ...(isSelected && {
+                                backgroundColor: (theme) =>
+                                  theme.palette.mode === 'dark'
+                                    ? 'rgba(25, 118, 210, 0.16) !important'
+                                    : 'rgba(25, 118, 210, 0.08) !important',
+                              }),
+                            }}
+                          >
+                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1 }}>
+                              {isSelected ? (
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => setSelectedItem(null)}
+                                  ref={selectedRef}
+                                >
+                                  <GpsFixedIcon fontSize="small" />
+                                </IconButton>
+                              ) : (
+                                <IconButton
+                                  size="small"
+                                  onClick={() => setSelectedItem(item)}
+                                  sx={{ color: 'text.secondary' }}
+                                >
+                                  <LocationSearchingIcon fontSize="small" />
+                                </IconButton>
+                              )}
+                            </TableCell>
+                            {columns.map((key) => (
+                              <TableCell
+                                key={key}
+                                sx={{
+                                  fontSize: '0.85rem',
+                                  color: 'text.primary',
+                                  py: 1.25,
+                                }}
+                              >
+                                <PositionValue
+                                  position={item}
+                                  property={Object.prototype.hasOwnProperty.call(item, key) ? key : null}
+                                  attribute={Object.prototype.hasOwnProperty.call(item, key) ? null : key}
+                                />
+                              </TableCell>
+                            ))}
+                            <TableCell className={classes.actionCellPadding}>
+                              <CollectionActions
+                                itemId={item.id}
+                                endpoint="positions"
+                                readonly={readonly}
+                                onReload={() => {
+                                  setItems(items.filter((pos) => pos.id !== item.id));
+                                }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('sharedNoData')}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  ) : (
+                    <TableShimmer columns={columns.length + 1} startAction />
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         </div>
       </div>
     </PageLayout>

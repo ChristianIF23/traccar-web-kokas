@@ -8,7 +8,7 @@ const ColumnSelect = ({ columns, setColumns, columnsArray, rawValues, disabled }
 
   return (
     <div className={classes.filterItem}>
-      <FormControl fullWidth>
+      <FormControl fullWidth size="small">
         <InputLabel>{t('sharedColumns')}</InputLabel>
         <Select
           label={t('sharedColumns')}
@@ -16,6 +16,12 @@ const ColumnSelect = ({ columns, setColumns, columnsArray, rawValues, disabled }
           onChange={(e) => setColumns(e.target.value)}
           multiple
           disabled={disabled}
+          sx={{
+            borderRadius: '10px',
+            '& .MuiSelect-select': {
+              py: '8.5px',
+            },
+          }}
         >
           {columnsArray.map(([key, string]) => (
             <MenuItem key={key} value={key}>

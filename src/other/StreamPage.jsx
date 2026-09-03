@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Typography, IconButton, Toolbar, Paper, TextField } from '@mui/material';
+import {
+  Typography,
+  IconButton,
+  Toolbar,
+  Paper,
+  TextField,
+  Box,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { default as Hls, Events } from 'hls.js/light';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
+import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { useCatchCallback } from '../reactHelper';
 import BackIcon from '../common/components/BackIcon';
@@ -16,22 +26,42 @@ const useStyles = makeStyles()((theme) => ({
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: theme.palette.background.default,
   },
-  video: {
+  toolbar: {
+    zIndex: 2,
+    backgroundColor:
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+    borderBottom: `1px solid ${theme.palette.divider}`,
+  },
+  content: {
     flexGrow: 1,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: theme.spacing(3),
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(1.5),
+    },
+  },
+  playerContainer: {
+    width: '100%',
+    maxWidth: 960,
+    aspectRatio: '16 / 9',
+    backgroundColor: theme.palette.mode === 'dark' ? '#000000' : '#0f172a',
+    borderRadius: '16px',
+    border: `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
   player: {
-    maxWidth: '100%',
-    maxHeight: '100%',
-  },
-  title: {
-    flexGrow: 1,
-  },
-  channel: {
-    marginInline: theme.spacing(1),
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
   },
 }));
 
@@ -45,6 +75,7 @@ const StreamPage = () => {
   const [channel, setChannel] = useState(1);
   const [activeChannel, setActiveChannel] = useState(null);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [searchParams] = useSearchParams();
   const deviceId = searchParams.get('deviceId');
@@ -65,14 +96,26 @@ const StreamPage = () => {
 
   useEffect(() => {
     if (activeChannel !== null) {
+      setLoading(true);
+      setError(false);
       sendCommand('videoStart', { index: activeChannel });
+
       const hls = new Hls();
       hls.loadSource(`/api/stream/${deviceId}/${activeChannel}/live.m3u8`);
       hls.attachMedia(videoRef.current);
-      hls.on(Events.MANIFEST_PARSED, () => videoRef.current.play());
-      hls.on(Events.ERROR, (_, data) => {
-        if (data.fatal) setError(true);
+
+      hls.on(Events.MANIFEST_PARSED, () => {
+        setLoading(false);
+        videoRef.current?.play();
       });
+
+      hls.on(Events.ERROR, (_, data) => {
+        if (data.fatal) {
+          setLoading(false);
+          setError(true);
+        }
+      });
+
       return () => {
         hls.destroy();
         sendCommand('videoStop', { index: activeChannel });
@@ -82,40 +125,90 @@ const StreamPage = () => {
 
   return (
     <div className={classes.root}>
-      <Paper square>
-        <Toolbar>
-          <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+      <Paper elevation={0} square className={classes.toolbar}>
+        <Toolbar sx={{ minHeight: '64px !important', px: 2 }}>
+          <IconButton
+            edge="start"
+            sx={{
+              mr: 2,
+              color: 'text.secondary',
+              '&:hover': { color: 'text.primary', backgroundColor: 'action.hover' },
+            }}
+            onClick={() => navigate(-1)}
+          >
             <BackIcon />
           </IconButton>
-          <Typography variant="h6" className={classes.title}>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600, fontSize: '1.05rem' }}>
             {device?.name || t('linkLiveVideo')}
           </Typography>
-          <TextField
-            size="small"
-            type="number"
-            value={channel}
-            onChange={(event) => setChannel(Number(event.target.value) || 1)}
-            label={t('commandIndex')}
-            disabled={playing}
-            className={classes.channel}
-          />
-          <IconButton
-            edge="end"
-            color={playing ? 'error' : 'primary'}
-            onClick={() => {
-              setError(false);
-              setActiveChannel(playing ? null : channel);
-            }}
-          >
-            {playing ? <StopIcon /> : <PlayArrowIcon />}
-          </IconButton>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <TextField
+              size="small"
+              type="number"
+              value={channel}
+              onChange={(event) => setChannel(Number(event.target.value) || 1)}
+              label={t('commandIndex')}
+              disabled={playing}
+              sx={{ width: 90 }}
+              inputProps={{ min: 1, style: { textAlign: 'center' } }}
+            />
+            <IconButton
+              color={playing ? 'error' : 'primary'}
+              onClick={() => {
+                setError(false);
+                setActiveChannel(playing ? null : channel);
+              }}
+              sx={{
+                backgroundColor: playing ? 'rgba(239, 68, 68, 0.1)' : 'rgba(25, 118, 210, 0.1)',
+                '&:hover': {
+                  backgroundColor: playing ? 'rgba(239, 68, 68, 0.2)' : 'rgba(25, 118, 210, 0.2)',
+                },
+                p: 1,
+              }}
+            >
+              {playing ? <StopIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </Box>
         </Toolbar>
       </Paper>
-      <div className={classes.video}>
-        {error && <Typography>{t('errorConnection')}</Typography>}
-        {playing && !error && (
-          <video ref={videoRef} className={classes.player} autoPlay muted controls />
-        )}
+
+      <div className={classes.content}>
+        <Box className={classes.playerContainer}>
+          {error && (
+            <Alert
+              severity="error"
+              sx={{
+                borderRadius: '10px',
+                backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                color: '#fff',
+                '& .MuiAlert-icon': { color: '#fff' },
+              }}
+            >
+              {t('errorConnection')}
+            </Alert>
+          )}
+
+          {loading && !error && (
+            <CircularProgress sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+          )}
+
+          {!playing && !error && (
+            <Box sx={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
+              <VideocamOffIcon sx={{ fontSize: 56, mb: 1, opacity: 0.6 }} />
+              <Typography variant="body2">{t('sharedNoData') || 'Stream belum dimulai'}</Typography>
+            </Box>
+          )}
+
+          <video
+            ref={videoRef}
+            className={classes.player}
+            style={{ display: playing && !error ? 'block' : 'none' }}
+            autoPlay
+            muted
+            controls
+          />
+        </Box>
       </div>
     </div>
   );

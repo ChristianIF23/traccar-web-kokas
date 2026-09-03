@@ -28,12 +28,34 @@ const GroupConnectionsPage = () => {
       menu={<SettingsMenu />}
       breadcrumbs={['settingsTitle', 'groupDialog', 'sharedConnections']}
     >
-      <Container maxWidth="xs" className={classes.container}>
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="subtitle1">{t('sharedConnections')}</Typography>
+      <Container maxWidth="sm" className={classes.container} sx={{ py: 2 }}>
+        <Accordion
+          defaultExpanded
+          disableGutters
+          elevation={0}
+          sx={{
+            borderRadius: '16px !important',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+            '&:before': { display: 'none' },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            sx={{
+              px: 3,
+              py: 0.5,
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Typography variant="subtitle1" fontWeight={600}>
+              {t('sharedConnections')}
+            </Typography>
           </AccordionSummary>
-          <AccordionDetails className={classes.details}>
+          <AccordionDetails className={classes.details} sx={{ p: 3 }}>
             <LinkField
               endpointAll="/api/geofences"
               endpointLinked={`/api/geofences?groupId=${id}`}

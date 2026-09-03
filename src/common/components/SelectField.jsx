@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Autocomplete, TextField, Chip } from '@mui/material';
+import { Autocomplete, TextField, Chip, Paper, Typography } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useAsyncTask } from '../../reactHelper';
 import fetchOrThrow from '../util/fetchOrThrow';
@@ -37,6 +37,8 @@ const SelectField = ({
   placeholder,
   singleLine,
   allValue,
+  sx,
+  ...props
 }) => {
   const { classes } = useStyles();
   const [items, setItems] = useState();
@@ -77,9 +79,30 @@ const SelectField = ({
         className={multiple && singleLine ? classes.autocompleteMultiple : undefined}
         options={items}
         getOptionLabel={getOptionLabel}
-        renderOption={({ key, ...props }, option) => (
-          <li key={keyGetter(option) || key} {...props}>
-            {titleGetter(option)}
+        PaperComponent={(paperProps) => (
+          <Paper
+            elevation={0}
+            {...paperProps}
+            sx={{
+              mt: 0.75,
+              borderRadius: '12px',
+              border: (theme) => `1px solid ${theme.palette.divider}`,
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+              overflow: 'hidden',
+              py: 0.5,
+              ...paperProps.sx,
+            }}
+          />
+        )}
+        renderOption={({ key, ...optionProps }, option) => (
+          <li
+            key={keyGetter(option) || key}
+            {...optionProps}
+            style={{ ...optionProps.style, fontSize: '0.85rem', padding: '8px 14px' }}
+          >
+            <Typography variant="body2" noWrap>
+              {titleGetter(option)}
+            </Typography>
           </li>
         )}
         isOptionEqualToValue={(option, selectedOption) =>
@@ -103,24 +126,46 @@ const SelectField = ({
         renderValue={
           multiple && singleLine
             ? (tagValue, getItemProps) => {
-                if (!tagValue.length) {
-                  return null;
-                }
-                return (
-                  <>
-                    <Chip
-                      key={keyGetter(tagValue[0])}
-                      {...getItemProps({ index: 0 })}
-                      label={titleGetter(tagValue[0])}
-                      size="small"
-                      sx={{ minWidth: 0 }}
-                    />
-                    {tagValue.length > 1 && (
-                      <Chip label={`${tagValue.length - 1}`} size="small" sx={{ flexShrink: 0 }} />
-                    )}
-                  </>
-                );
+              if (!tagValue.length) {
+                return null;
               }
+              return (
+                <>
+                  <Chip
+                    key={keyGetter(tagValue[0])}
+                    {...getItemProps({ index: 0 })}
+                    label={titleGetter(tagValue[0])}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      minWidth: 0,
+                      height: 24,
+                      borderRadius: '6px',
+                      fontWeight: 500,
+                      fontSize: '0.75rem',
+                      borderColor: (theme) => theme.palette.divider,
+                      backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                    }}
+                  />
+                  {tagValue.length > 1 && (
+                    <Chip
+                      label={`+${tagValue.length - 1}`}
+                      size="small"
+                      color="primary"
+                      sx={{
+                        flexShrink: 0,
+                        height: 24,
+                        borderRadius: '6px',
+                        fontWeight: 600,
+                        fontSize: '0.725rem',
+                        px: 0.5,
+                      }}
+                    />
+                  )}
+                </>
+              );
+            }
             : undefined
         }
         fullWidth={fullWidth}
@@ -131,6 +176,12 @@ const SelectField = ({
             label={label}
             helperText={helperText}
             placeholder={multiple && !autocompleteValue.length ? placeholder : undefined}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '10px',
+              },
+              ...sx,
+            }}
             slotProps={{
               ...params.slotProps,
               inputLabel: {
@@ -142,6 +193,7 @@ const SelectField = ({
             }}
           />
         )}
+        {...props}
       />
     );
   }

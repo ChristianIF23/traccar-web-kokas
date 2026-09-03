@@ -6,11 +6,13 @@ import Logo from '../resources/images/logo.svg?react';
 const useStyles = makeStyles()((theme) => ({
   image: {
     alignSelf: 'center',
-    maxWidth: '240px',
-    maxHeight: '120px',
+    maxWidth: '100%',
+    maxHeight: 48,
     width: 'auto',
     height: 'auto',
-    margin: theme.spacing(2),
+    objectFit: 'contain',
+    display: 'block',
+    transition: 'transform 0.2s ease',
   },
 }));
 
@@ -25,9 +27,9 @@ const LogoImage = ({ color }) => {
 
   if (logo) {
     if (expanded && logoInverted) {
-      return <img className={classes.image} src={logoInverted} alt="" />;
+      return <img className={classes.image} src={logoInverted} alt="Logo" />;
     }
-    return <img className={classes.image} src={logo} alt="" />;
+    return <img className={classes.image} src={logo} alt="Logo" />;
   }
   return <Logo className={classes.image} style={{ color }} />;
 };

@@ -9,6 +9,8 @@ import {
   MenuItem,
   Typography,
   Badge,
+  ListItemIcon,
+  Divider,
 } from '@mui/material';
 
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -161,12 +163,63 @@ const BottomMenu = () => {
           <BottomNavigationAction label={t('settingsUser')} icon={<PersonIcon />} value="account" />
         )}
       </BottomNavigation>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-        <MenuItem onClick={handleAccount}>
-          <Typography color="textPrimary">{t('settingsUser')}</Typography>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        PaperProps={{
+          sx: {
+            mb: 1.5,
+            borderRadius: '14px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08)',
+            minWidth: 150,
+            p: 0.5,
+          },
+        }}
+      >
+        <MenuItem
+          onClick={handleAccount}
+          sx={{
+            borderRadius: '8px',
+            px: 1.5,
+            py: 1,
+            '&:hover': { backgroundColor: 'action.hover' },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 32, color: 'text.secondary' }}>
+            <PersonIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2" fontWeight={500} color="textPrimary">
+            {t('settingsUser')}
+          </Typography>
         </MenuItem>
-        <MenuItem onClick={handleLogout}>
-          <Typography color="error">{t('loginLogout')}</Typography>
+
+        <Divider sx={{ my: 0.5 }} />
+
+        <MenuItem
+          onClick={handleLogout}
+          sx={{
+            borderRadius: '8px',
+            px: 1.5,
+            py: 1,
+            '&:hover': { backgroundColor: 'error.lighter', color: 'error.main' },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 32, color: 'error.main' }}>
+            <ExitToAppIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2" fontWeight={500} color="error">
+            {t('loginLogout')}
+          </Typography>
         </MenuItem>
       </Menu>
     </Paper>

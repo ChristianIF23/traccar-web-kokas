@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-
-import { Typography, AppBar, Toolbar, IconButton } from '@mui/material';
+import { Typography, AppBar, Toolbar, IconButton, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { makeStyles } from 'tss-react/mui';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAsyncTask } from '../reactHelper';
@@ -15,22 +15,30 @@ import MapScale from '../map/MapScale';
 import BackIcon from '../common/components/BackIcon';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
-const useStyles = makeStyles()(() => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: theme.palette.background.default,
   },
   toolbar: {
-    zIndex: 1,
+    zIndex: 2,
+    backgroundColor:
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
   },
   mapContainer: {
     flexGrow: 1,
+    position: 'relative',
+    height: '100%',
   },
 }));
 
 const EventPage = () => {
   const { classes } = useStyles();
+  const theme = useTheme();
   const navigate = useNavigate();
   const t = useTranslation();
 
@@ -40,11 +48,11 @@ const EventPage = () => {
   const [position, setPosition] = useState();
   const [showCard, setShowCard] = useState(false);
 
-  const formatType = (event) =>
+  const formatType = (eventItem) =>
     formatNotificationTitle(t, {
-      type: event.type,
+      type: eventItem.type,
       attributes: {
-        alarms: event.attributes.alarm,
+        alarms: eventItem.attributes?.alarm,
       },
     });
 
@@ -80,14 +88,33 @@ const EventPage = () => {
 
   return (
     <div className={classes.root}>
-      <AppBar color="inherit" position="static" className={classes.toolbar}>
-        <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigate('/')}>
+      <AppBar color="inherit" position="static" elevation={0} className={classes.toolbar}>
+        <Toolbar sx={{ minHeight: '64px !important', px: 2 }}>
+          <IconButton
+            edge="start"
+            sx={{
+              mr: 2,
+              color: 'text.secondary',
+              '&:hover': { color: 'text.primary', backgroundColor: 'action.hover' },
+            }}
+            onClick={() => navigate('/')}
+          >
             <BackIcon />
           </IconButton>
-          <Typography variant="h6">{event && formatType(event)}</Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontSize: '1.05rem',
+              color: 'text.primary',
+              noWrap: true,
+            }}
+          >
+            {event ? formatType(event) : t('sharedLoading')}
+          </Typography>
         </Toolbar>
       </AppBar>
+
       <div className={classes.mapContainer}>
         <MapView>
           <MapGeofence />
@@ -102,12 +129,23 @@ const EventPage = () => {
         <MapScale />
         {position && <MapCamera latitude={position.latitude} longitude={position.longitude} />}
         {position && showCard && (
-          <StatusCard
-            deviceId={position.deviceId}
-            position={position}
-            onClose={() => setShowCard(false)}
-            disableActions
-          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 24,
+              left: 24,
+              zIndex: 3,
+              maxWidth: { xs: 'calc(100% - 48px)', sm: 380 },
+              filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.12))',
+            }}
+          >
+            <StatusCard
+              deviceId={position.deviceId}
+              position={position}
+              onClose={() => setShowCard(false)}
+              disableActions
+            />
+          </Box>
         )}
       </div>
     </div>

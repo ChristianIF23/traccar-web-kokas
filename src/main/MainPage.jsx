@@ -19,6 +19,8 @@ const MainMap = lazy(() => import('./MainMap'));
 const useStyles = makeStyles()((theme) => ({
   root: {
     height: '100%',
+    position: 'relative',
+    overflow: 'hidden',
   },
   sidebar: {
     pointerEvents: 'none',
@@ -28,10 +30,11 @@ const useStyles = makeStyles()((theme) => ({
       position: 'fixed',
       left: 0,
       top: 0,
-      height: `calc(100% - ${theme.spacing(3)})`,
+      height: `calc(100% - ${theme.spacing(4)})`,
       width: theme.dimensions.drawerWidthDesktop,
-      margin: theme.spacing(1.5),
+      margin: theme.spacing(2),
       zIndex: 3,
+      gap: theme.spacing(1),
     },
     [theme.breakpoints.down('md')]: {
       height: '100%',
@@ -41,10 +44,24 @@ const useStyles = makeStyles()((theme) => ({
   header: {
     pointerEvents: 'auto',
     zIndex: 6,
+    borderRadius: theme.spacing(1.5),
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 8px 24px rgba(0,0,0,0.4)'
+      : '0 8px 24px rgba(15,23,42,0.08)',
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.paper,
   },
   footer: {
     pointerEvents: 'auto',
     zIndex: 5,
+    borderRadius: theme.spacing(1.5),
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 8px 24px rgba(0,0,0,0.4)'
+      : '0 8px 24px rgba(15,23,42,0.08)',
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.paper,
   },
   middle: {
     flex: 1,
@@ -61,6 +78,13 @@ const useStyles = makeStyles()((theme) => ({
     zIndex: 4,
     display: 'flex',
     minHeight: 0,
+    borderRadius: theme.spacing(1.5),
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 8px 24px rgba(0,0,0,0.4)'
+      : '0 8px 24px rgba(15,23,42,0.08)',
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.paper,
   },
 }));
 
@@ -124,7 +148,7 @@ const MainPage = () => {
         </Suspense>
       )}
       <div className={classes.sidebar}>
-        <Paper square elevation={3} className={classes.header}>
+        <Paper elevation={0} className={classes.header}>
           <MainToolbar
             filteredDevices={filteredDevices}
             devicesOpen={devicesOpen}
@@ -152,7 +176,7 @@ const MainPage = () => {
             </div>
           )}
           <Paper
-            square
+            elevation={0}
             className={classes.contentList}
             style={devicesOpen ? {} : { visibility: 'hidden' }}
           >

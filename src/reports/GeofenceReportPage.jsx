@@ -2,7 +2,17 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
-import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableContainer,
+  Paper,
+  Box,
+  Typography,
+} from '@mui/material';
 import { formatNumericHours, formatTime } from '../common/util/formatter';
 import ReportFilter, { updateReportParams } from './components/ReportFilter';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -67,7 +77,7 @@ const GeofenceReportPage = () => {
   const onExport = useCatch(async () => {
     const sheets = new Map();
     items.forEach((item) => {
-      const deviceName = devices[item.deviceId].name;
+      const deviceName = devices[item.deviceId]?.name || item.deviceId;
       if (!sheets.has(deviceName)) {
         sheets.set(deviceName, []);
       }
@@ -121,32 +131,95 @@ const GeofenceReportPage = () => {
           <ColumnSelect columns={columns} setColumns={setColumns} columnsArray={columnsArray} />
         </ReportFilter>
       </div>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('sharedDevice')}</TableCell>
-            {columns.map((key) => (
-              <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {!loading ? (
-            items.map((item) => (
+
+      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+        <TableContainer
+          component={Paper}
+          elevation={0}
+          sx={{
+            borderRadius: '12px',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: 'hidden',
+          }}
+        >
+          <Table size="small">
+            <TableHead>
               <TableRow
-                key={`${item.deviceId}_${item.geofenceId}_${item.startTime}_${item.endTime}`}
+                sx={{
+                  backgroundColor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                }}
               >
-                <TableCell>{devices[item.deviceId]?.name || item.deviceId}</TableCell>
+                <TableCell
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.8125rem',
+                    color: 'text.secondary',
+                    py: 1.5,
+                  }}
+                >
+                  {t('sharedDevice')}
+                </TableCell>
                 {columns.map((key) => (
-                  <TableCell key={key}>{formatValue(item, key)}</TableCell>
+                  <TableCell
+                    key={key}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
+                    {t(columnsMap.get(key))}
+                  </TableCell>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableShimmer columns={columns.length + 1} />
-          )}
-        </TableBody>
-      </Table>
+            </TableHead>
+            <TableBody>
+              {!loading ? (
+                items.length > 0 ? (
+                  items.map((item) => (
+                    <TableRow
+                      key={`${item.deviceId}_${item.geofenceId}_${item.startTime}_${item.endTime}`}
+                      hover
+                      sx={{
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        transition: 'background-color 0.15s ease',
+                      }}
+                    >
+                      <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                        {devices[item.deviceId]?.name || item.deviceId}
+                      </TableCell>
+                      {columns.map((key) => (
+                        <TableCell
+                          key={key}
+                          sx={{
+                            fontSize: '0.85rem',
+                            color: 'text.primary',
+                            py: 1.25,
+                          }}
+                        >
+                          {formatValue(item, key)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sharedNoData')}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )
+              ) : (
+                <TableShimmer columns={columns.length + 1} />
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </PageLayout>
   );
 };

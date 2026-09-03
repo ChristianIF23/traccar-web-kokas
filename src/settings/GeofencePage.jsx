@@ -34,6 +34,15 @@ const GeofencePage = () => {
 
   const validate = () => item && item.name;
 
+  const accordionStyle = {
+    borderRadius: '14px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2,
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    '&:before': { display: 'none' },
+  };
+
   return (
     <EditItemView
       endpoint="geofences"
@@ -46,9 +55,9 @@ const GeofencePage = () => {
     >
       {item && (
         <>
-          <Accordion defaultExpanded>
+          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedRequired')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -58,9 +67,10 @@ const GeofencePage = () => {
               />
             </AccordionDetails>
           </Accordion>
-          <Accordion>
+
+          <Accordion elevation={0} disableGutters sx={accordionStyle}>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">{t('sharedExtra')}</Typography>
+              <Typography variant="subtitle1" fontWeight={600}>{t('sharedExtra')}</Typography>
             </AccordionSummary>
             <AccordionDetails className={classes.details}>
               <TextField
@@ -90,6 +100,7 @@ const GeofencePage = () => {
               />
             </AccordionDetails>
           </Accordion>
+
           <EditAttributesAccordion
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
