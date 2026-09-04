@@ -1,80 +1,85 @@
 import { useState, useEffect, useRef } from 'react';
-import { TextField, InputAdornment } from '@mui/material';
+import { TextField, InputAdornment, IconButton, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { makeStyles } from 'tss-react/mui';
+import ClearIcon from '@mui/icons-material/Clear';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 
-const useStyles = makeStyles()((theme) => ({
-  header: {
-    position: 'sticky',
-    left: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    padding: theme.spacing(2.5, 3, 2),
-    backgroundColor: theme.palette.background.paper,
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    zIndex: 2,
-  },
-  searchField: {
-    maxWidth: 520,
-    '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
-      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
-      transition: 'all 0.2s ease-in-out',
-      '& fieldset': {
-        borderColor: theme.palette.divider,
-      },
-      '&:hover fieldset': {
-        borderColor: theme.palette.primary.light,
-      },
-      '&.Mui-focused': {
-        backgroundColor: theme.palette.background.paper,
-        boxShadow: `0 0 0 3px ${theme.palette.primary.main}1A`,
-      },
-    },
-    '& .MuiOutlinedInput-input': {
-      padding: '10px 14px',
-      fontSize: '0.9rem',
-    },
-  },
-  icon: {
-    color: theme.palette.text.secondary,
-    fontSize: 20,
-  },
-}));
-
 const SearchHeader = ({ keyword, setKeyword }) => {
-  const { classes } = useStyles();
   const t = useTranslation();
 
   const [input, setInput] = useState(keyword);
   const timerRef = useRef();
 
   useEffect(() => {
-    timerRef.current = setTimeout(() => setKeyword(input), 500);
+    setInput(keyword);
+  }, [keyword]);
+
+  useEffect(() => {
+    timerRef.current = setTimeout(() => setKeyword(input), 400);
     return () => clearTimeout(timerRef.current);
   }, [input, setKeyword]);
 
+  const handleClear = () => {
+    setInput('');
+    setKeyword('');
+  };
+
   return (
-    <div className={classes.header}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+      }}
+    >
       <TextField
-        className={classes.searchField}
         variant="outlined"
+        size="small"
         placeholder={t('sharedSearch')}
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        sx={{
+          width: { xs: '100%', sm: 380, md: 420 },
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '10px',
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#ffffff',
+            transition: 'all 0.2s ease-in-out',
+            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+            '& fieldset': {
+              borderColor: (theme) => theme.palette.divider,
+            },
+            '&:hover fieldset': {
+              borderColor: (theme) => theme.palette.text.secondary,
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: 'primary.main',
+            },
+          },
+          '& .MuiOutlinedInput-input': {
+            fontSize: '0.875rem',
+            py: 1.1,
+          },
+        }}
         slotProps={{
           input: {
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon className={classes.icon} />
+                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
               </InputAdornment>
             ),
+            endAdornment: input ? (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={handleClear} edge="end">
+                  <ClearIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
           },
         }}
       />
-    </div>
+    </Box>
   );
 };
 

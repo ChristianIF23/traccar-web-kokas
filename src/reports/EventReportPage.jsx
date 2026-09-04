@@ -11,9 +11,11 @@ import {
   Paper,
   Box,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
 import { formatAddress, formatTime } from '../common/util/formatter';
@@ -244,7 +246,7 @@ const EventReportPage = () => {
                 overflow: 'hidden',
                 border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-                m: { xs: 1, sm: 1.5 },
+                m: { xs: 1, sm: 2 },
                 mb: 0,
               }}
             >
@@ -318,47 +320,47 @@ const EventReportPage = () => {
             </ReportFilter>
           </div>
 
-          <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+          <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box' }}>
             <TableContainer
               component={Paper}
               elevation={0}
               sx={{
-                borderRadius: '12px',
+                borderRadius: '16px',
                 border: (theme) => `1px solid ${theme.palette.divider}`,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
                 overflow: 'hidden',
               }}
             >
-              <Table size="small">
+              <Table
+                size="small"
+                sx={{
+                  minWidth: 700,
+                  borderCollapse: 'separate',
+                  borderSpacing: 0,
+                }}
+              >
                 <TableHead>
                   <TableRow
                     sx={{
-                      backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                      '& .MuiTableCell-root': {
+                        backgroundColor: (theme) =>
+                          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                        color: 'text.secondary',
+                        fontWeight: 600,
+                        fontSize: '0.78rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        py: 1.8,
+                        px: 2.5,
+                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        whiteSpace: 'nowrap',
+                      },
                     }}
                   >
-                    <TableCell className={classes.columnAction} sx={{ width: 44 }} />
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '0.8125rem',
-                        color: 'text.secondary',
-                        py: 1.5,
-                      }}
-                    >
-                      {t('sharedDevice')}
-                    </TableCell>
+                    <TableCell className={classes.columnAction} sx={{ width: 48, px: 1.5 }} />
+                    <TableCell>{t('sharedDevice')}</TableCell>
                     {columns.map((key) => (
-                      <TableCell
-                        key={key}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.8125rem',
-                          color: 'text.secondary',
-                          py: 1.5,
-                        }}
-                      >
-                        {t(columnsMap.get(key))}
-                      </TableCell>
+                      <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
@@ -374,47 +376,62 @@ const EventReportPage = () => {
                             selected={isSelected}
                             sx={{
                               transition: 'background-color 0.15s ease',
+                              '& .MuiTableCell-root': {
+                                py: 1.5,
+                                px: 2.5,
+                                fontSize: '0.875rem',
+                                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                              },
                               ...(isSelected && {
                                 backgroundColor: (theme) =>
                                   theme.palette.mode === 'dark'
-                                    ? 'rgba(25, 118, 210, 0.16) !important'
+                                    ? 'rgba(255, 255, 255, 0.16) !important'
                                     : 'rgba(25, 118, 210, 0.08) !important',
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1 }}>
+                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
                               {item.positionId ? (
                                 isSelected ? (
-                                  <IconButton
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => setSelectedItem(null)}
-                                  >
-                                    <GpsFixedIcon fontSize="small" />
-                                  </IconButton>
+                                  <Tooltip title={t('sharedHideOnMap')} arrow>
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => setSelectedItem(null)}
+                                      sx={{ borderRadius: '8px', p: 0.75 }}
+                                    >
+                                      <GpsFixedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
                                 ) : (
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => setSelectedItem(item)}
-                                    sx={{ color: 'text.secondary' }}
-                                  >
-                                    <LocationSearchingIcon fontSize="small" />
-                                  </IconButton>
+                                  <Tooltip title={t('sharedShowOnMap')} arrow>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => setSelectedItem(item)}
+                                      sx={{
+                                        color: 'text.secondary',
+                                        borderRadius: '8px',
+                                        p: 0.75,
+                                        '&:hover': { color: 'primary.main' },
+                                      }}
+                                    >
+                                      <LocationSearchingIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
                                 )
                               ) : (
                                 ''
                               )}
                             </TableCell>
-                            <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                            <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
                               {devices[item.deviceId]?.name}
                             </TableCell>
                             {columns.map((key) => (
                               <TableCell
                                 key={key}
                                 sx={{
-                                  fontSize: '0.85rem',
                                   color: 'text.primary',
-                                  py: 1.25,
+                                  ...(key === 'eventTime' && { fontVariantNumeric: 'tabular-nums' }),
                                 }}
                               >
                                 {formatValue(item, key)}
@@ -425,15 +442,21 @@ const EventReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('sharedNoData')}
-                          </Typography>
+                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                            <NotificationsActiveOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                            <Typography variant="body2" color="text.secondary">
+                              {t('sharedNoData')}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled">
+                              Pilih perangkat dan tipe event untuk memuat riwayat log event.
+                            </Typography>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     )
                   ) : (
-                    <TableShimmer columns={columns.length + 2} />
+                    <TableShimmer columns={columns.length + 2} startAction />
                   )}
                 </TableBody>
               </Table>

@@ -13,6 +13,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import FenceOutlinedIcon from '@mui/icons-material/FenceOutlined';
 import { formatNumericHours, formatTime } from '../common/util/formatter';
 import ReportFilter, { updateReportParams } from './components/ReportFilter';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -132,46 +133,46 @@ const GeofenceReportPage = () => {
         </ReportFilter>
       </div>
 
-      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+      <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box' }}>
         <TableContainer
           component={Paper}
           elevation={0}
           sx={{
-            borderRadius: '12px',
+            borderRadius: '16px',
             border: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             overflow: 'hidden',
           }}
         >
-          <Table size="small">
+          <Table
+            size="small"
+            sx={{
+              minWidth: 700,
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+            }}
+          >
             <TableHead>
               <TableRow
                 sx={{
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                  '& .MuiTableCell-root': {
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    py: 1.8,
+                    px: 2.5,
+                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                    whiteSpace: 'nowrap',
+                  },
                 }}
               >
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    py: 1.5,
-                  }}
-                >
-                  {t('sharedDevice')}
-                </TableCell>
+                <TableCell>{t('sharedDevice')}</TableCell>
                 {columns.map((key) => (
-                  <TableCell
-                    key={key}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '0.8125rem',
-                      color: 'text.secondary',
-                      py: 1.5,
-                    }}
-                  >
-                    {t(columnsMap.get(key))}
-                  </TableCell>
+                  <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
@@ -183,22 +184,20 @@ const GeofenceReportPage = () => {
                       key={`${item.deviceId}_${item.geofenceId}_${item.startTime}_${item.endTime}`}
                       hover
                       sx={{
-                        '&:last-child td, &:last-child th': { border: 0 },
                         transition: 'background-color 0.15s ease',
+                        '& .MuiTableCell-root': {
+                          py: 1.5,
+                          px: 2.5,
+                          fontSize: '0.875rem',
+                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                       }}
                     >
-                      <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
                         {devices[item.deviceId]?.name || item.deviceId}
                       </TableCell>
                       {columns.map((key) => (
-                        <TableCell
-                          key={key}
-                          sx={{
-                            fontSize: '0.85rem',
-                            color: 'text.primary',
-                            py: 1.25,
-                          }}
-                        >
+                        <TableCell key={key} sx={{ color: 'text.primary' }}>
                           {formatValue(item, key)}
                         </TableCell>
                       ))}
@@ -206,10 +205,16 @@ const GeofenceReportPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('sharedNoData')}
-                      </Typography>
+                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <FenceOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {t('sharedNoData')}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          Pilih perangkat serta geofence untuk memuat laporan riwayat geofence.
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 )

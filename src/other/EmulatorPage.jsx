@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Typography,
-  Container,
   Paper,
   AppBar,
   Toolbar,
@@ -37,9 +36,16 @@ const useStyles = makeStyles()((theme) => ({
     overflow: 'auto',
     paddingTop: theme.spacing(3),
     paddingBottom: theme.spacing(4),
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(3),
+    alignItems: 'center',
+  },
+  wrapper: {
+    width: '100%',
+    maxWidth: 960,
   },
 }));
 
@@ -118,7 +124,7 @@ const NetworkPage = () => {
 
       <div className={classes.content}>
         {/* Cell Towers Table */}
-        <Container maxWidth="md">
+        <Box className={classes.wrapper}>
           <TableContainer
             component={Paper}
             elevation={0}
@@ -126,7 +132,7 @@ const NetworkPage = () => {
               borderRadius: '16px',
               border: (theme) => `1px solid ${theme.palette.divider}`,
               overflow: 'hidden',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             }}
           >
             <Box
@@ -151,22 +157,25 @@ const NetworkPage = () => {
               <TableHead>
                 <TableRow
                   sx={{
-                    backgroundColor: (theme) =>
-                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                    '& .MuiTableCell-root': {
+                      backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                      color: 'text.secondary',
+                      fontWeight: 600,
+                      fontSize: '0.78rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      py: 1.8,
+                      px: 2.5,
+                      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                      whiteSpace: 'nowrap',
+                    },
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
-                    MCC
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
-                    MNC
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
-                    LAC
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
-                    CID
-                  </TableCell>
+                  <TableCell>MCC</TableCell>
+                  <TableCell>MNC</TableCell>
+                  <TableCell>LAC</TableCell>
+                  <TableCell>CID</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -185,27 +194,32 @@ const NetworkPage = () => {
                       key={cell.cellId || idx}
                       hover
                       sx={{
-                        '&:last-child td, &:last-child th': { border: 0 },
                         transition: 'background-color 0.15s ease',
+                        '& .MuiTableCell-root': {
+                          py: 1.5,
+                          px: 2.5,
+                          fontSize: '0.875rem',
+                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                       }}
                     >
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem' }}>
                         {cell.mobileCountryCode}
                       </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem' }}>
                         {cell.mobileNetworkCode}
                       </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem' }}>
                         {cell.locationAreaCode}
                       </TableCell>
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem' }}>
                         {cell.cellId}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={4} align="center" sx={{ py: 6, borderBottom: 'none' }}>
                       <Typography variant="body2" color="text.secondary">
                         {t('sharedNoData')}
                       </Typography>
@@ -215,10 +229,10 @@ const NetworkPage = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        </Container>
+        </Box>
 
         {/* Wi-Fi Access Points Table */}
-        <Container maxWidth="md">
+        <Box className={classes.wrapper}>
           <TableContainer
             component={Paper}
             elevation={0}
@@ -226,7 +240,7 @@ const NetworkPage = () => {
               borderRadius: '16px',
               border: (theme) => `1px solid ${theme.palette.divider}`,
               overflow: 'hidden',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             }}
           >
             <Box
@@ -251,16 +265,23 @@ const NetworkPage = () => {
               <TableHead>
                 <TableRow
                   sx={{
-                    backgroundColor: (theme) =>
-                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                    '& .MuiTableCell-root': {
+                      backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                      color: 'text.secondary',
+                      fontWeight: 600,
+                      fontSize: '0.78rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      py: 1.8,
+                      px: 2.5,
+                      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                      whiteSpace: 'nowrap',
+                    },
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
-                    MAC Address
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
-                    Signal Strength (RSSI)
-                  </TableCell>
+                  <TableCell>MAC Address</TableCell>
+                  <TableCell>Signal Strength (RSSI)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -277,14 +298,19 @@ const NetworkPage = () => {
                       key={wifi.macAddress || idx}
                       hover
                       sx={{
-                        '&:last-child td, &:last-child th': { border: 0 },
                         transition: 'background-color 0.15s ease',
+                        '& .MuiTableCell-root': {
+                          py: 1.5,
+                          px: 2.5,
+                          fontSize: '0.875rem',
+                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                       }}
                     >
-                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem' }}>
                         {wifi.macAddress}
                       </TableCell>
-                      <TableCell sx={{ py: 1.25 }}>
+                      <TableCell>
                         <Chip
                           size="small"
                           label={`${wifi.signalStrength} dBm`}
@@ -297,7 +323,7 @@ const NetworkPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={2} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
                       <Typography variant="body2" color="text.secondary">
                         {t('sharedNoData')}
                       </Typography>
@@ -307,7 +333,7 @@ const NetworkPage = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        </Container>
+        </Box>
       </div>
     </div>
   );

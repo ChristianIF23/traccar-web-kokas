@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 import {
   Accordion,
   AccordionSummary,
@@ -51,12 +50,18 @@ const NotificationPage = () => {
     (!item.notificators?.includes('command') || item.commandId);
 
   const accordionStyle = {
-    borderRadius: '14px !important',
+    borderRadius: '16px !important',
     border: (theme) => `1px solid ${theme.palette.divider}`,
     overflow: 'hidden',
-    mb: 2,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
   };
 
   return (
@@ -74,8 +79,13 @@ const NotificationPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <SelectField
+                fullWidth
+                size="small"
                 value={item.type}
                 onChange={(e) => setItem({ ...item, type: e.target.value })}
                 endpoint="/api/notifications/types"
@@ -87,10 +97,13 @@ const NotificationPage = () => {
                     ? t('notificationGeofenceLabel')
                     : null
                 }
+                sx={inputStyle}
               />
               {item.type === 'alarm' && (
                 <SelectField
+                  fullWidth
                   multiple
+                  size="small"
                   value={
                     item.attributes && item.attributes.alarms
                       ? item.attributes.alarms.split(/[, ]+/)
@@ -105,24 +118,31 @@ const NotificationPage = () => {
                   data={alarms}
                   keyGetter={(it) => it.key}
                   label={t('sharedAlarms')}
+                  sx={inputStyle}
                 />
               )}
               <SelectField
+                fullWidth
                 multiple
+                size="small"
                 value={item.notificators ? item.notificators.split(/[, ]+/) : []}
                 onChange={(e) => setItem({ ...item, notificators: e.target.value.join() })}
                 endpoint="/api/notifications/notificators"
                 keyGetter={(it) => it.type}
                 titleGetter={(it) => t(prefixString('notificator', it.type))}
                 label={t('notificationNotificators')}
+                sx={inputStyle}
               />
               {item.notificators?.includes('command') && (
                 <SelectField
+                  fullWidth
+                  size="small"
                   value={item.commandId}
                   onChange={(e) => setItem({ ...item, commandId: Number(e.target.value) })}
                   endpoint="/api/commands"
                   titleGetter={(it) => it.description}
                   label={t('sharedSavedCommand')}
+                  sx={inputStyle}
                 />
               )}
               <Button
@@ -134,20 +154,23 @@ const NotificationPage = () => {
                   borderRadius: '10px',
                   textTransform: 'none',
                   fontWeight: 600,
-                  py: 0.9,
+                  py: 1,
+                  alignSelf: 'flex-start',
+                  px: 2.5,
                 }}
               >
                 {t('sharedTestNotificators')}
               </Button>
-              <FormGroup>
+              <FormGroup sx={{ pt: 0.5 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.always}
                       onChange={(e) => setItem({ ...item, always: e.target.checked })}
                     />
                   }
-                  label={t('notificationAlways')}
+                  label={<Typography variant="body2">{t('notificationAlways')}</Typography>}
                 />
               </FormGroup>
             </AccordionDetails>
@@ -157,21 +180,32 @@ const NotificationPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedExtra')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.description || ''}
                 onChange={(e) => setItem({ ...item, description: e.target.value })}
                 label={t('sharedDescription')}
+                sx={inputStyle}
               />
               <SelectField
+                fullWidth
+                size="small"
                 value={item.calendarId}
                 onChange={(e) => setItem({ ...item, calendarId: Number(e.target.value) })}
                 endpoint="/api/calendars"
                 label={t('sharedCalendar')}
+                sx={inputStyle}
               />
               {['geofenceEnter', 'geofenceExit', 'geofenceCrossed'].includes(item.type) && (
                 <SelectField
+                  fullWidth
                   multiple
+                  size="small"
                   value={item.attributes?.geofenceIds ? item.attributes.geofenceIds.split(',') : []}
                   onChange={(e) => {
                     const geofenceIds = e.target.value.join();
@@ -186,12 +220,14 @@ const NotificationPage = () => {
                   endpoint="/api/geofences"
                   keyGetter={(it) => String(it.id)}
                   label={t('sharedGeofences')}
+                  sx={inputStyle}
                 />
               )}
-              <FormGroup>
+              <FormGroup sx={{ pt: 0.5 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.attributes && item.attributes.priority}
                       onChange={(e) =>
                         setItem({
@@ -201,7 +237,7 @@ const NotificationPage = () => {
                       }
                     />
                   }
-                  label={t('sharedPriority')}
+                  label={<Typography variant="body2">{t('sharedPriority')}</Typography>}
                 />
               </FormGroup>
             </AccordionDetails>

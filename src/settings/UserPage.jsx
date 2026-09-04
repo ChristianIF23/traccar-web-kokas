@@ -129,11 +129,18 @@ const UserPage = () => {
     (admin || !totpForce || item.totpKey);
 
   const accordionStyle = {
-    borderRadius: '14px !important',
+    borderRadius: '16px !important',
     border: (theme) => `1px solid ${theme.palette.divider}`,
     overflow: 'hidden',
-    mb: 2,
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
   };
 
   return (
@@ -153,31 +160,44 @@ const UserPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.name || ''}
                 onChange={(e) => setItem({ ...item, name: e.target.value })}
                 label={t('sharedName')}
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 value={item.email || ''}
                 onChange={(e) => setItem({ ...item, email: e.target.value })}
                 label={t('userEmail')}
                 disabled={fixedEmail && item.id === currentUser.id}
+                sx={inputStyle}
               />
               {!openIdForced && (
                 <PasswordField
+                  fullWidth
+                  size="small"
                   onChange={(e) => setItem({ ...item, password: e.target.value })}
                   label={t('userPassword')}
+                  sx={inputStyle}
                 />
               )}
               {totpEnable && (
-                <FormControl>
+                <FormControl fullWidth size="small" sx={inputStyle}>
                   <InputLabel>{t('loginTotpKey')}</InputLabel>
                   <OutlinedInput
                     readOnly
                     label={t('loginTotpKey')}
                     value={item.totpKey || ''}
+                    sx={{ borderRadius: '10px' }}
                     endAdornment={
                       <InputAdornment position="end">
                         <IconButton size="small" edge="end" onClick={handleGenerateTotp}>
@@ -202,13 +222,19 @@ const UserPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedPreferences')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.phone || ''}
                 onChange={(e) => setItem({ ...item, phone: e.target.value })}
                 label={t('sharedPhone')}
+                sx={inputStyle}
               />
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('mapDefault')}</InputLabel>
                 <Select
                   label={t('mapDefault')}
@@ -224,7 +250,7 @@ const UserPage = () => {
                     ))}
                 </Select>
               </FormControl>
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('settingsCoordinateFormat')}</InputLabel>
                 <Select
                   label={t('settingsCoordinateFormat')}
@@ -236,7 +262,7 @@ const UserPage = () => {
                   <MenuItem value="dms">{t('sharedDegreesMinutesSeconds')}</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('settingsSpeedUnit')}</InputLabel>
                 <Select
                   label={t('settingsSpeedUnit')}
@@ -253,7 +279,7 @@ const UserPage = () => {
                   <MenuItem value="mph">{t('sharedMph')}</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('settingsDistanceUnit')}</InputLabel>
                 <Select
                   label={t('settingsDistanceUnit')}
@@ -270,7 +296,7 @@ const UserPage = () => {
                   <MenuItem value="nmi">{t('sharedNmi')}</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('settingsAltitudeUnit')}</InputLabel>
                 <Select
                   label={t('settingsAltitudeUnit')}
@@ -286,7 +312,7 @@ const UserPage = () => {
                   <MenuItem value="ft">{t('sharedFeet')}</MenuItem>
                 </Select>
               </FormControl>
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('settingsVolumeUnit')}</InputLabel>
                 <Select
                   label={t('settingsVolumeUnit')}
@@ -304,6 +330,8 @@ const UserPage = () => {
                 </Select>
               </FormControl>
               <SelectField
+                fullWidth
+                size="small"
                 value={item.attributes && item.attributes.timezone}
                 onChange={(e) =>
                   setItem({ ...item, attributes: { ...item.attributes, timezone: e.target.value } })
@@ -312,11 +340,15 @@ const UserPage = () => {
                 keyGetter={(it) => it}
                 titleGetter={(it) => it}
                 label={t('sharedTimezone')}
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 value={item.poiLayer || ''}
                 onChange={(e) => setItem({ ...item, poiLayer: e.target.value })}
                 label={t('mapPoiLayer')}
+                sx={inputStyle}
               />
             </AccordionDetails>
           </Accordion>
@@ -325,29 +357,48 @@ const UserPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedLocation')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={item.latitude || 0}
                 onChange={(e) => setItem({ ...item, latitude: Number(e.target.value) })}
                 label={t('positionLatitude')}
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={item.longitude || 0}
                 onChange={(e) => setItem({ ...item, longitude: Number(e.target.value) })}
                 label={t('positionLongitude')}
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={item.zoom || 0}
                 onChange={(e) => setItem({ ...item, zoom: Number(e.target.value) })}
                 label={t('serverZoom')}
+                sx={inputStyle}
               />
               <Button
                 variant="outlined"
                 color="primary"
-                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1,
+                  alignSelf: 'flex-start',
+                  px: 2.5,
+                }}
                 onClick={() => {
                   const { lng, lat } = map.getCenter();
                   setItem({
@@ -367,8 +418,13 @@ const UserPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedPermissions')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 label={t('userExpirationTime')}
                 type="date"
                 value={item.expirationTime ? item.expirationTime.split('T')[0] : '2099-01-01'}
@@ -378,98 +434,119 @@ const UserPage = () => {
                   }
                 }}
                 disabled={!manager}
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={item.deviceLimit || 0}
                 onChange={(e) => setItem({ ...item, deviceLimit: Number(e.target.value) })}
                 label={t('userDeviceLimit')}
                 disabled={!admin}
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={item.userLimit || 0}
                 onChange={(e) => setItem({ ...item, userLimit: Number(e.target.value) })}
                 label={t('userUserLimit')}
                 disabled={!admin}
+                sx={inputStyle}
               />
               <Button
                 variant="outlined"
                 color="primary"
-                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1,
+                  alignSelf: 'flex-start',
+                  px: 2.5,
+                }}
                 onClick={() => setRevokeDialogOpen(true)}
               >
                 {t('userRevokeToken')}
               </Button>
-              <FormGroup>
+              <FormGroup sx={{ pt: 0.5 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.disabled}
                       onChange={(e) => setItem({ ...item, disabled: e.target.checked })}
                     />
                   }
-                  label={t('sharedDisabled')}
+                  label={<Typography variant="body2">{t('sharedDisabled')}</Typography>}
                   disabled={!manager}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.administrator}
                       onChange={(e) => setItem({ ...item, administrator: e.target.checked })}
                     />
                   }
-                  label={t('userAdmin')}
+                  label={<Typography variant="body2">{t('userAdmin')}</Typography>}
                   disabled={!admin}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.readonly}
                       onChange={(e) => setItem({ ...item, readonly: e.target.checked })}
                     />
                   }
-                  label={t('serverReadonly')}
+                  label={<Typography variant="body2">{t('serverReadonly')}</Typography>}
                   disabled={!manager}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.deviceReadonly}
                       onChange={(e) => setItem({ ...item, deviceReadonly: e.target.checked })}
                     />
                   }
-                  label={t('userDeviceReadonly')}
+                  label={<Typography variant="body2">{t('userDeviceReadonly')}</Typography>}
                   disabled={!manager}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.limitCommands}
                       onChange={(e) => setItem({ ...item, limitCommands: e.target.checked })}
                     />
                   }
-                  label={t('userLimitCommands')}
+                  label={<Typography variant="body2">{t('userLimitCommands')}</Typography>}
                   disabled={!manager}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.disableReports}
                       onChange={(e) => setItem({ ...item, disableReports: e.target.checked })}
                     />
                   }
-                  label={t('userDisableReports')}
+                  label={<Typography variant="body2">{t('userDisableReports')}</Typography>}
                   disabled={!manager}
                 />
                 <FormControlLabel
                   control={
                     <Checkbox
+                      size="small"
                       checked={item.fixedEmail}
                       onChange={(e) => setItem({ ...item, fixedEmail: e.target.checked })}
                     />
                   }
-                  label={t('userFixedEmail')}
+                  label={<Typography variant="body2">{t('userFixedEmail')}</Typography>}
                   disabled={!manager}
                 />
               </FormGroup>
@@ -491,19 +568,32 @@ const UserPage = () => {
                   {t('userDeleteAccount')}
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails className={classes.details}>
+              <AccordionDetails
+                className={classes.details}
+                sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              >
                 <TextField
+                  fullWidth
+                  size="small"
                   value={deleteEmail}
                   onChange={(e) => setDeleteEmail(e.target.value)}
                   label={t('userEmail')}
                   error={deleteFailed}
+                  sx={inputStyle}
                 />
                 <Button
                   variant="outlined"
                   color="error"
                   onClick={handleDelete}
                   startIcon={<DeleteForeverIcon />}
-                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    py: 1,
+                    alignSelf: 'flex-start',
+                    px: 2.5,
+                  }}
                 >
                   {t('userDeleteAccount')}
                 </Button>
@@ -518,21 +608,34 @@ const UserPage = () => {
         onClose={closeRevokeDialog}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: '16px', p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            p: 1,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          },
+        }}
       >
-        <DialogContent className={classes.details}>
+        <DialogContent sx={{ p: 2.5 }}>
           <TextField
+            size="small"
             value={revokeToken}
             onChange={(e) => setRevokeToken(e.target.value)}
             label={t('userToken')}
             autoFocus
             fullWidth
+            sx={inputStyle}
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+        <DialogActions sx={{ px: 2.5, pb: 2, gap: 1 }}>
           <Button
             onClick={closeRevokeDialog}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              color: 'text.secondary',
+            }}
           >
             {t('sharedCancel')}
           </Button>
@@ -540,7 +643,11 @@ const UserPage = () => {
             onClick={handleRevokeToken}
             disabled={!revokeToken}
             variant="contained"
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
           >
             {t('userRevokeToken')}
           </Button>

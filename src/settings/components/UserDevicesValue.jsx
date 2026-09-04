@@ -39,9 +39,10 @@ const UserDevicesValue = ({ userId }) => {
         size="small"
         variant="outlined"
         sx={{
-          height: 22,
+          height: 24,
           fontSize: '0.75rem',
           fontWeight: 600,
+          borderRadius: '6px',
           fontVariantNumeric: 'tabular-nums',
           borderColor: (theme) => theme.palette.divider,
           backgroundColor: (theme) =>
@@ -56,6 +57,7 @@ const UserDevicesValue = ({ userId }) => {
       component="button"
       type="button"
       onClick={loadDevices}
+      disabled={loading}
       underline="hover"
       sx={{
         color: 'primary.main',

@@ -35,12 +35,18 @@ const GeofencePage = () => {
   const validate = () => item && item.name;
 
   const accordionStyle = {
-    borderRadius: '14px !important',
+    borderRadius: '16px !important',
     border: (theme) => `1px solid ${theme.palette.divider}`,
     overflow: 'hidden',
-    mb: 2,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
   };
 
   return (
@@ -59,11 +65,17 @@ const GeofencePage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.name || ''}
                 onChange={(event) => setItem({ ...item, name: event.target.value })}
                 label={t('sharedName')}
+                sx={inputStyle}
               />
             </AccordionDetails>
           </Accordion>
@@ -72,21 +84,31 @@ const GeofencePage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedExtra')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.description || ''}
                 onChange={(event) => setItem({ ...item, description: event.target.value })}
                 label={t('sharedDescription')}
+                sx={inputStyle}
               />
               <SelectField
+                fullWidth
+                size="small"
                 value={item.calendarId}
                 onChange={(event) => setItem({ ...item, calendarId: Number(event.target.value) })}
                 endpoint="/api/calendars"
                 label={t('sharedCalendar')}
+                sx={inputStyle}
               />
               <FormControlLabel
                 control={
                   <Checkbox
+                    size="small"
                     checked={item.attributes.hide}
                     onChange={(e) =>
                       setItem({
@@ -96,7 +118,8 @@ const GeofencePage = () => {
                     }
                   />
                 }
-                label={t('sharedFilterMap')}
+                label={<Typography variant="body2">{t('sharedFilterMap')}</Typography>}
+                sx={{ pt: 0.5 }}
               />
             </AccordionDetails>
           </Accordion>

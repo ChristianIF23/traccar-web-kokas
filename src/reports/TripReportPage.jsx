@@ -13,6 +13,7 @@ import {
   Paper,
   Box,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
@@ -237,9 +238,9 @@ const TripReportPage = () => {
               sx={{
                 borderRadius: '16px',
                 overflow: 'hidden',
-                border: (theme) => `1px solid ${theme.palette.divider}`,
+                border: (th) => `1px solid ${th.palette.divider}`,
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-                m: { xs: 1, sm: 1.5 },
+                m: { xs: 1, sm: 2 },
                 mb: 0,
               }}
             >
@@ -273,47 +274,47 @@ const TripReportPage = () => {
             </ReportFilter>
           </div>
 
-          <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+          <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box' }}>
             <TableContainer
               component={Paper}
               elevation={0}
               sx={{
-                borderRadius: '12px',
-                border: (theme) => `1px solid ${theme.palette.divider}`,
+                borderRadius: '16px',
+                border: (th) => `1px solid ${th.palette.divider}`,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
                 overflow: 'hidden',
               }}
             >
-              <Table size="small">
+              <Table
+                size="small"
+                sx={{
+                  minWidth: 700,
+                  borderCollapse: 'separate',
+                  borderSpacing: 0,
+                }}
+              >
                 <TableHead>
                   <TableRow
                     sx={{
-                      backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                      '& .MuiTableCell-root': {
+                        backgroundColor: (th) =>
+                          th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                        color: 'text.secondary',
+                        fontWeight: 600,
+                        fontSize: '0.78rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        py: 1.8,
+                        px: 2,
+                        borderBottom: (th) => `1px solid ${th.palette.divider}`,
+                        whiteSpace: 'nowrap',
+                      },
                     }}
                   >
-                    <TableCell className={classes.columnAction} sx={{ width: 72 }} />
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '0.8125rem',
-                        color: 'text.secondary',
-                        py: 1.5,
-                      }}
-                    >
-                      {t('sharedDevice')}
-                    </TableCell>
+                    <TableCell className={classes.columnAction} sx={{ width: 76, px: 1.5 }} />
+                    <TableCell>{t('sharedDevice')}</TableCell>
                     {columns.map((key) => (
-                      <TableCell
-                        key={key}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.8125rem',
-                          color: 'text.secondary',
-                          py: 1.5,
-                        }}
-                      >
-                        {t(columnsMap.get(key))}
-                      </TableCell>
+                      <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
@@ -329,57 +330,70 @@ const TripReportPage = () => {
                             selected={isSelected}
                             sx={{
                               transition: 'background-color 0.15s ease',
+                              '& .MuiTableCell-root': {
+                                py: 1.5,
+                                px: 2,
+                                fontSize: '0.875rem',
+                                borderBottom: (th) => `1px solid ${th.palette.divider}`,
+                              },
                               ...(isSelected && {
-                                backgroundColor: (theme) =>
-                                  theme.palette.mode === 'dark'
+                                backgroundColor: (th) =>
+                                  th.palette.mode === 'dark'
                                     ? 'rgba(25, 118, 210, 0.16) !important'
                                     : 'rgba(25, 118, 210, 0.08) !important',
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1 }}>
+                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
                               <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
                                 {isSelected ? (
-                                  <IconButton
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => setSelectedItem(null)}
-                                  >
-                                    <GpsFixedIcon fontSize="small" />
-                                  </IconButton>
+                                  <Tooltip title={t('sharedHideOnMap')} arrow>
+                                    <IconButton
+                                      size="small"
+                                      color="primary"
+                                      onClick={() => setSelectedItem(null)}
+                                      sx={{ borderRadius: '8px', p: 0.75 }}
+                                    >
+                                      <GpsFixedIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
                                 ) : (
+                                  <Tooltip title={t('sharedShowOnMap')} arrow>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => setSelectedItem(item)}
+                                      sx={{
+                                        color: 'text.secondary',
+                                        borderRadius: '8px',
+                                        p: 0.75,
+                                        '&:hover': { color: 'primary.main' },
+                                      }}
+                                    >
+                                      <LocationSearchingIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                                <Tooltip title={t('reportReplay')} arrow>
                                   <IconButton
                                     size="small"
-                                    onClick={() => setSelectedItem(item)}
-                                    sx={{ color: 'text.secondary' }}
+                                    onClick={() => navigateToReplay(item)}
+                                    sx={{
+                                      color: 'text.secondary',
+                                      borderRadius: '8px',
+                                      p: 0.75,
+                                      '&:hover': { color: 'primary.main' },
+                                    }}
                                   >
-                                    <LocationSearchingIcon fontSize="small" />
+                                    <RouteIcon fontSize="small" />
                                   </IconButton>
-                                )}
-                                <IconButton
-                                  size="small"
-                                  onClick={() => navigateToReplay(item)}
-                                  sx={{
-                                    color: 'text.secondary',
-                                    '&:hover': { color: 'primary.main' },
-                                  }}
-                                >
-                                  <RouteIcon fontSize="small" />
-                                </IconButton>
+                                </Tooltip>
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                            <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
                               {devices[item.deviceId]?.name || item.deviceId}
                             </TableCell>
                             {columns.map((key) => (
-                              <TableCell
-                                key={key}
-                                sx={{
-                                  fontSize: '0.85rem',
-                                  color: 'text.primary',
-                                  py: 1.25,
-                                }}
-                              >
+                              <TableCell key={key} sx={{ color: 'text.primary' }}>
                                 {formatValue(item, key)}
                               </TableCell>
                             ))}
@@ -388,7 +402,7 @@ const TripReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6 }}>
+                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
                           <Typography variant="body2" color="text.secondary">
                             {t('sharedNoData')}
                           </Typography>

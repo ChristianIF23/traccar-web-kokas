@@ -93,10 +93,17 @@ const BaseCommandView = ({
     }
   };
 
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, width: '100%' }}>
       <Autocomplete
         size="small"
+        fullWidth
         options={options}
         groupBy={
           includeSaved
@@ -129,7 +136,7 @@ const BaseCommandView = ({
           <TextField
             {...params}
             label={t('sharedType')}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            sx={inputStyle}
           />
         )}
       />
@@ -143,7 +150,7 @@ const BaseCommandView = ({
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  p: 1,
+                  py: 0.5,
                   px: 1.5,
                   borderRadius: '10px',
                   border: (theme) => `1px solid ${theme.palette.divider}`,
@@ -183,42 +190,44 @@ const BaseCommandView = ({
               }}
               label={name}
               fullWidth
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              sx={inputStyle}
             />
           );
         })}
 
-      {textEnabled && (
-        <FormControlLabel
-          control={
-            <Checkbox
-              size="small"
-              checked={Boolean(item.textChannel)}
-              onChange={(e) => setItem({ ...item, textChannel: e.target.checked })}
-            />
-          }
-          label={<Typography variant="body2">{t('commandSendSms')}</Typography>}
-          sx={{ mt: -0.5 }}
-        />
-      )}
-
-      {!item.textChannel && (
-        <FormControlLabel
-          control={
-            <Checkbox
-              size="small"
-              checked={Boolean(item.attributes?.noQueue)}
-              onChange={(e) =>
-                setItem({
-                  ...item,
-                  attributes: { ...item?.attributes, noQueue: e.target.checked },
-                })
+      {(textEnabled || !item.textChannel) && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {textEnabled && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size="small"
+                  checked={Boolean(item.textChannel)}
+                  onChange={(e) => setItem({ ...item, textChannel: e.target.checked })}
+                />
               }
+              label={<Typography variant="body2">{t('commandSendSms')}</Typography>}
             />
-          }
-          label={<Typography variant="body2">{t('commandNoQueue')}</Typography>}
-          sx={{ mt: -1 }}
-        />
+          )}
+
+          {!item.textChannel && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size="small"
+                  checked={Boolean(item.attributes?.noQueue)}
+                  onChange={(e) =>
+                    setItem({
+                      ...item,
+                      attributes: { ...item?.attributes, noQueue: e.target.checked },
+                    })
+                  }
+                />
+              }
+              label={<Typography variant="body2">{t('commandNoQueue')}</Typography>}
+            />
+          )}
+        </Box>
       )}
     </Box>
   );

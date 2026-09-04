@@ -180,46 +180,46 @@ const SummaryReportPage = () => {
         </ReportFilter>
       </div>
 
-      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+      <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box' }}>
         <TableContainer
           component={Paper}
           elevation={0}
           sx={{
-            borderRadius: '12px',
-            border: (theme) => `1px solid ${theme.palette.divider}`,
+            borderRadius: '16px',
+            border: (th) => `1px solid ${th.palette.divider}`,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             overflow: 'hidden',
           }}
         >
-          <Table size="small">
+          <Table
+            size="small"
+            sx={{
+              minWidth: 700,
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+            }}
+          >
             <TableHead>
               <TableRow
                 sx={{
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                  '& .MuiTableCell-root': {
+                    backgroundColor: (th) =>
+                      th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    py: 1.8,
+                    px: 2.5,
+                    borderBottom: (th) => `1px solid ${th.palette.divider}`,
+                    whiteSpace: 'nowrap',
+                  },
                 }}
               >
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    py: 1.5,
-                  }}
-                >
-                  {t('sharedDevice')}
-                </TableCell>
+                <TableCell>{t('sharedDevice')}</TableCell>
                 {columns.map((key) => (
-                  <TableCell
-                    key={key}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '0.8125rem',
-                      color: 'text.secondary',
-                      py: 1.5,
-                    }}
-                  >
-                    {t(columnsMap.get(key))}
-                  </TableCell>
+                  <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
@@ -231,22 +231,20 @@ const SummaryReportPage = () => {
                       key={`${item.deviceId}_${Date.parse(item.startTime)}`}
                       hover
                       sx={{
-                        '&:last-child td, &:last-child th': { border: 0 },
                         transition: 'background-color 0.15s ease',
+                        '& .MuiTableCell-root': {
+                          py: 1.5,
+                          px: 2.5,
+                          fontSize: '0.875rem',
+                          borderBottom: (th) => `1px solid ${th.palette.divider}`,
+                        },
                       }}
                     >
-                      <TableCell sx={{ fontWeight: 500, fontSize: '0.85rem' }}>
+                      <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
                         {devices[item.deviceId]?.name || item.deviceId}
                       </TableCell>
                       {columns.map((key) => (
-                        <TableCell
-                          key={key}
-                          sx={{
-                            fontSize: '0.85rem',
-                            color: 'text.primary',
-                            py: 1.25,
-                          }}
-                        >
+                        <TableCell key={key} sx={{ color: 'text.primary' }}>
                           {formatValue(item, key)}
                         </TableCell>
                       ))}
@@ -254,14 +252,16 @@ const SummaryReportPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6 }}>
-                      <AssessmentOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {t('sharedNoData')}
-                      </Typography>
-                      <Typography variant="caption" color="text.disabled">
-                        Pilih perangkat dan klik tampilkan untuk memuat ringkasan armada.
-                      </Typography>
+                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <AssessmentOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {t('sharedNoData')}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          Pilih perangkat dan klik tampilkan untuk memuat ringkasan armada.
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 )

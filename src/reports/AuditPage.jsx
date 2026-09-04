@@ -10,6 +10,7 @@ import {
   Typography,
   Box,
 } from '@mui/material';
+import HistoryEduOutlinedIcon from '@mui/icons-material/HistoryEduOutlined';
 import { formatTime } from '../common/util/formatter';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
@@ -27,7 +28,7 @@ const columnsArray = [
   ['address', 'positionAddress'],
   ['userId', 'settingsUser'],
   ['actionType', 'sharedActionType'],
-  ['objectType', 'sharedQbjectType'],
+  ['objectType', 'sharedObjectType'],
   ['objectId', 'deviceIdentifier'],
 ];
 const columnsMap = new Map(columnsArray);
@@ -64,37 +65,45 @@ const AuditPage = () => {
         </ReportFilter>
       </div>
 
-      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+      <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box' }}>
         <TableContainer
           component={Paper}
           elevation={0}
           sx={{
-            borderRadius: '12px',
+            borderRadius: '16px',
             border: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             overflow: 'hidden',
           }}
         >
-          <Table size="small">
+          <Table
+            size="small"
+            sx={{
+              minWidth: 700,
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+            }}
+          >
             <TableHead>
               <TableRow
                 sx={{
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                  '& .MuiTableCell-root': {
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    py: 1.8,
+                    px: 2.5,
+                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                    whiteSpace: 'nowrap',
+                  },
                 }}
               >
                 {columns.map((key) => (
-                  <TableCell
-                    key={key}
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '0.8125rem',
-                      color: 'text.secondary',
-                      py: 1.5,
-                      borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                    }}
-                  >
-                    {t(columnsMap.get(key))}
-                  </TableCell>
+                  <TableCell key={key}>{t(columnsMap.get(key))}</TableCell>
                 ))}
               </TableRow>
             </TableHead>
@@ -106,17 +115,21 @@ const AuditPage = () => {
                       key={item.id}
                       hover
                       sx={{
-                        '&:last-child td, &:last-child th': { border: 0 },
                         transition: 'background-color 0.15s ease',
+                        '& .MuiTableCell-root': {
+                          py: 1.5,
+                          px: 2.5,
+                          fontSize: '0.875rem',
+                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                       }}
                     >
                       {columns.map((key) => (
                         <TableCell
                           key={key}
                           sx={{
-                            fontSize: '0.85rem',
                             color: 'text.primary',
-                            py: 1.25,
+                            ...(key === 'actionTime' && { fontVariantNumeric: 'tabular-nums' }),
                           }}
                         >
                           {key === 'actionTime' ? formatTime(item[key], 'minutes') : item[key]}
@@ -126,10 +139,16 @@ const AuditPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 6 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('sharedNoData')}
-                      </Typography>
+                    <TableCell colSpan={columns.length} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <HistoryEduOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {t('sharedNoData')}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          Tentukan rentang tanggal di atas untuk memuat log audit aktivitas.
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 )
