@@ -14,6 +14,7 @@ import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from '../../common/components/LocalizationProvider';
@@ -36,7 +37,7 @@ const SettingsMenu = () => {
 
   return (
     <>
-      <List sx={{ py: 1 }}>
+      <List sx={{ py: 1.5, px: 1.5 }}>
         <MenuItem
           title={t('sharedPreferences')}
           link="/settings/preferences"
@@ -81,7 +82,7 @@ const SettingsMenu = () => {
               <MenuItem
                 title={t('sharedDrivers')}
                 link="/settings/drivers"
-                icon={<PersonOutlineOutlinedIcon />}
+                icon={<BadgeOutlinedIcon />}
                 selected={location.pathname.startsWith('/settings/driver')}
               />
             )}
@@ -126,10 +127,11 @@ const SettingsMenu = () => {
           <MenuItem title={t('settingsSupport')} link={supportLink} icon={<HelpOutlineOutlinedIcon />} />
         )}
       </List>
+
       {manager && (
         <>
-          <Divider sx={{ my: 1, mx: 2 }} />
-          <List sx={{ py: 1 }}>
+          <Divider sx={{ my: 1, mx: 2, borderColor: 'divider' }} />
+          <List sx={{ py: 1, px: 1.5 }}>
             <MenuItem
               title={t('serverAnnouncement')}
               link="/settings/announcement"

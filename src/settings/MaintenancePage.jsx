@@ -129,12 +129,18 @@ const MaintenancePage = () => {
   const validate = () => item && item.name && item.type && item.start && item.period;
 
   const accordionStyle = {
-    borderRadius: '14px !important',
+    borderRadius: '16px !important',
     border: (theme) => `1px solid ${theme.palette.divider}`,
     overflow: 'hidden',
-    mb: 2,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
   };
 
   return (
@@ -152,13 +158,19 @@ const MaintenancePage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.name || ''}
                 onChange={(e) => setItem({ ...item, name: e.target.value })}
                 label={t('sharedName')}
+                sx={inputStyle}
               />
-              <FormControl>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('sharedType')}</InputLabel>
                 <Select
                   label={t('sharedType')}
@@ -173,6 +185,8 @@ const MaintenancePage = () => {
                 </Select>
               </FormControl>
               <TextField
+                fullWidth
+                size="small"
                 type={item.type?.endsWith('Time') ? 'date' : 'number'}
                 value={rawToValue(true, item.start) || ''}
                 onChange={(e) => setItem({ ...item, start: valueToRaw(true, e.target.value) })}
@@ -181,8 +195,11 @@ const MaintenancePage = () => {
                     ? `${t('maintenanceStart')} (${labels.start})`
                     : t('maintenanceStart')
                 }
+                sx={inputStyle}
               />
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={rawToValue(false, item.period) || ''}
                 onChange={(e) => setItem({ ...item, period: valueToRaw(false, e.target.value) })}
@@ -191,6 +208,7 @@ const MaintenancePage = () => {
                     ? `${t('maintenancePeriod')} (${labels.period})`
                     : t('maintenancePeriod')
                 }
+                sx={inputStyle}
               />
             </AccordionDetails>
           </Accordion>

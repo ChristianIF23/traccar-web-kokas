@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import TextField from '@mui/material/TextField';
-
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditItemView from './components/EditItemView';
@@ -34,12 +33,18 @@ const GroupPage = () => {
   const validate = () => item && item.name;
 
   const accordionStyle = {
-    borderRadius: '14px !important',
+    borderRadius: '16px !important',
     border: (theme) => `1px solid ${theme.palette.divider}`,
     overflow: 'hidden',
-    mb: 2,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
   };
 
   return (
@@ -58,11 +63,17 @@ const GroupPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.name || ''}
                 onChange={(event) => setItem({ ...item, name: event.target.value })}
                 label={t('sharedName')}
+                sx={inputStyle}
               />
             </AccordionDetails>
           </Accordion>
@@ -71,12 +82,18 @@ const GroupPage = () => {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>{t('sharedExtra')}</Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <SelectField
+                fullWidth
+                size="small"
                 value={item.groupId}
                 onChange={(event) => setItem({ ...item, groupId: Number(event.target.value) })}
                 endpoint="/api/groups"
                 label={t('groupParent')}
+                sx={inputStyle}
               />
             </AccordionDetails>
           </Accordion>

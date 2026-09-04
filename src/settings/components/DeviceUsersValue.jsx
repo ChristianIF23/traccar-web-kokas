@@ -35,7 +35,7 @@ const DeviceUsersValue = ({ deviceId }) => {
     if (!users.length) {
       return (
         <Typography variant="body2" color="text.secondary">
-          -
+          —
         </Typography>
       );
     }
@@ -50,12 +50,13 @@ const DeviceUsersValue = ({ deviceId }) => {
             size="small"
             variant="outlined"
             sx={{
-              height: 22,
+              height: 24,
               fontSize: '0.75rem',
               fontWeight: 500,
+              borderRadius: '6px',
               borderColor: (theme) => theme.palette.divider,
               backgroundColor: (theme) =>
-                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f1f5f9',
             }}
           />
         ))}
@@ -68,6 +69,7 @@ const DeviceUsersValue = ({ deviceId }) => {
       component="button"
       type="button"
       onClick={loadUsers}
+      disabled={loading}
       underline="hover"
       sx={{
         color: 'primary.main',

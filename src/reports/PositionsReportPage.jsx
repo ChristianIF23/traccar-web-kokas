@@ -11,6 +11,7 @@ import {
   Paper,
   Box,
   Typography,
+  Tooltip,
 } from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
@@ -139,7 +140,7 @@ const PositionsReportPage = () => {
                 overflow: 'hidden',
                 border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-                m: { xs: 1, sm: 1.5 },
+                m: { xs: 1, sm: 2 },
                 mb: 0,
               }}
             >
@@ -195,39 +196,50 @@ const PositionsReportPage = () => {
             </ReportFilter>
           </div>
 
-          <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%' }}>
+          <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box' }}>
             <TableContainer
               component={Paper}
               elevation={0}
               sx={{
-                borderRadius: '12px',
+                borderRadius: '16px',
                 border: (theme) => `1px solid ${theme.palette.divider}`,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
                 overflow: 'hidden',
               }}
             >
-              <Table size="small">
+              <Table
+                size="small"
+                sx={{
+                  minWidth: 700,
+                  borderCollapse: 'separate',
+                  borderSpacing: 0,
+                }}
+              >
                 <TableHead>
                   <TableRow
                     sx={{
-                      backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                      '& .MuiTableCell-root': {
+                        backgroundColor: (theme) =>
+                          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                        color: 'text.secondary',
+                        fontWeight: 600,
+                        fontSize: '0.78rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        py: 1.8,
+                        px: 2,
+                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        whiteSpace: 'nowrap',
+                      },
                     }}
                   >
-                    <TableCell className={classes.columnAction} sx={{ width: 44 }} />
+                    <TableCell className={classes.columnAction} sx={{ width: 48, px: 1.5 }} />
                     {columns.map((key) => (
-                      <TableCell
-                        key={key}
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '0.8125rem',
-                          color: 'text.secondary',
-                          py: 1.5,
-                        }}
-                      >
+                      <TableCell key={key}>
                         {positionAttributes[key]?.name || key}
                       </TableCell>
                     ))}
-                    <TableCell className={classes.columnAction} sx={{ width: 48 }} />
+                    <TableCell className={classes.columnAction} sx={{ width: 48, px: 1.5 }} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -242,6 +254,12 @@ const PositionsReportPage = () => {
                             selected={isSelected}
                             sx={{
                               transition: 'background-color 0.15s ease',
+                              '& .MuiTableCell-root': {
+                                py: 1.5,
+                                px: 2,
+                                fontSize: '0.875rem',
+                                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                              },
                               ...(isSelected && {
                                 backgroundColor: (theme) =>
                                   theme.palette.mode === 'dark'
@@ -250,33 +268,42 @@ const PositionsReportPage = () => {
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1 }}>
+                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
                               {isSelected ? (
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  onClick={() => setSelectedItem(null)}
-                                  ref={selectedRef}
-                                >
-                                  <GpsFixedIcon fontSize="small" />
-                                </IconButton>
+                                <Tooltip title={t('sharedHideOnMap')} arrow>
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => setSelectedItem(null)}
+                                    ref={selectedRef}
+                                    sx={{ borderRadius: '8px', p: 0.75 }}
+                                  >
+                                    <GpsFixedIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               ) : (
-                                <IconButton
-                                  size="small"
-                                  onClick={() => setSelectedItem(item)}
-                                  sx={{ color: 'text.secondary' }}
-                                >
-                                  <LocationSearchingIcon fontSize="small" />
-                                </IconButton>
+                                <Tooltip title={t('sharedShowOnMap')} arrow>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => setSelectedItem(item)}
+                                    sx={{
+                                      color: 'text.secondary',
+                                      borderRadius: '8px',
+                                      p: 0.75,
+                                      '&:hover': { color: 'primary.main' },
+                                    }}
+                                  >
+                                    <LocationSearchingIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               )}
                             </TableCell>
                             {columns.map((key) => (
                               <TableCell
                                 key={key}
                                 sx={{
-                                  fontSize: '0.85rem',
                                   color: 'text.primary',
-                                  py: 1.25,
+                                  fontVariantNumeric: 'tabular-nums',
                                 }}
                               >
                                 <PositionValue
@@ -286,7 +313,7 @@ const PositionsReportPage = () => {
                                 />
                               </TableCell>
                             ))}
-                            <TableCell className={classes.actionCellPadding}>
+                            <TableCell className={classes.actionCellPadding} sx={{ px: 1.5 }}>
                               <CollectionActions
                                 itemId={item.id}
                                 endpoint="positions"
@@ -301,7 +328,7 @@ const PositionsReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6 }}>
+                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
                           <Typography variant="body2" color="text.secondary">
                             {t('sharedNoData')}
                           </Typography>
@@ -309,7 +336,7 @@ const PositionsReportPage = () => {
                       </TableRow>
                     )
                   ) : (
-                    <TableShimmer columns={columns.length + 1} startAction />
+                    <TableShimmer columns={columns.length + 2} startAction endAction />
                   )}
                 </TableBody>
               </Table>

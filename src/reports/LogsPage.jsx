@@ -14,7 +14,6 @@ import {
   Box,
   Typography,
 } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutlined';
 import TerminalIcon from '@mui/icons-material/Terminal';
@@ -23,15 +22,7 @@ import PageLayout from '../common/components/PageLayout';
 import ReportsMenu from './components/ReportsMenu';
 import { sessionActions } from '../store';
 
-const useStyles = makeStyles()((theme) => ({
-  columnAction: {
-    width: 44,
-    paddingLeft: theme.spacing(1),
-  },
-}));
-
 const LogsPage = () => {
-  const { classes } = useStyles();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const t = useTranslation();
@@ -50,55 +41,47 @@ const LogsPage = () => {
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'sharedLogs']}>
-      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, width: '100%' }}>
+      <Box sx={{ p: { xs: 1.5, sm: 3 }, width: '100%', boxSizing: 'border-box' }}>
         <TableContainer
           component={Paper}
           elevation={0}
           sx={{
-            borderRadius: '12px',
+            borderRadius: '16px',
             border: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             overflow: 'hidden',
           }}
         >
-          <Table size="small">
+          <Table
+            size="small"
+            sx={{
+              minWidth: 700,
+              borderCollapse: 'separate',
+              borderSpacing: 0,
+            }}
+          >
             <TableHead>
               <TableRow
                 sx={{
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+                  '& .MuiTableCell-root': {
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    py: 1.8,
+                    px: 2.5,
+                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                    whiteSpace: 'nowrap',
+                  },
                 }}
               >
-                <TableCell className={classes.columnAction} />
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    py: 1.5,
-                  }}
-                >
-                  {t('deviceIdentifier')}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    py: 1.5,
-                  }}
-                >
-                  {t('positionProtocol')}
-                </TableCell>
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    color: 'text.secondary',
-                    py: 1.5,
-                  }}
-                >
-                  {t('commandData')}
-                </TableCell>
+                <TableCell sx={{ width: 52, px: 1.5 }} />
+                <TableCell>{t('deviceIdentifier')}</TableCell>
+                <TableCell>{t('positionProtocol')}</TableCell>
+                <TableCell>{t('commandData')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -108,21 +91,34 @@ const LogsPage = () => {
                     key={index}
                     hover
                     sx={{
-                      '&:last-child td, &:last-child th': { border: 0 },
                       transition: 'background-color 0.15s ease',
+                      '& .MuiTableCell-root': {
+                        py: 1.5,
+                        px: 2.5,
+                        fontSize: '0.875rem',
+                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                      },
                     }}
                   >
-                    <TableCell className={classes.columnAction} padding="none">
+                    <TableCell padding="none" sx={{ width: 52, pl: 1.5 }}>
                       {item.deviceId ? (
-                        <IconButton color="success" size="small" disabled sx={{ opacity: 0.8 }}>
-                          <CheckCircleOutlineIcon fontSize="small" />
-                        </IconButton>
+                        <Tooltip title={t('deviceStatusOnline') || 'Registered'} arrow>
+                          <IconButton
+                            color="success"
+                            size="small"
+                            disabled
+                            sx={{ borderRadius: '8px', p: 0.75, opacity: 0.85 }}
+                          >
+                            <CheckCircleOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       ) : (
                         <Tooltip title={t('loginRegister')} arrow>
                           <IconButton
                             color="error"
                             size="small"
                             onClick={() => registerDevice(item.uniqueId)}
+                            sx={{ borderRadius: '8px', p: 0.75 }}
                           >
                             <HelpOutlineIcon fontSize="small" />
                           </IconButton>
@@ -132,19 +128,17 @@ const LogsPage = () => {
                     <TableCell
                       sx={{
                         fontFamily: 'monospace',
-                        fontSize: '0.825rem',
+                        fontSize: '0.8125rem',
                         fontWeight: 600,
                         color: 'text.primary',
-                        py: 1.25,
                       }}
                     >
                       {item.uniqueId}
                     </TableCell>
                     <TableCell
                       sx={{
-                        fontSize: '0.825rem',
+                        fontSize: '0.8125rem',
                         color: 'text.secondary',
-                        py: 1.25,
                       }}
                     >
                       {item.protocol}
@@ -155,7 +149,6 @@ const LogsPage = () => {
                         fontSize: '0.8rem',
                         wordBreak: 'break-all',
                         color: 'text.primary',
-                        py: 1.25,
                       }}
                     >
                       {item.data}
@@ -164,14 +157,16 @@ const LogsPage = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
-                    <TerminalIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {t('sharedNoData')}
-                    </Typography>
-                    <Typography variant="caption" color="text.disabled">
-                      Menunggu lalu lintas data dari perangkat...
-                    </Typography>
+                  <TableCell colSpan={4} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                      <TerminalIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sharedNoData')}
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled">
+                        Menunggu lalu lintas data dari perangkat...
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
               )}

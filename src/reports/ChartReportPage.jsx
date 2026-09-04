@@ -9,6 +9,7 @@ import {
   Paper,
   Box,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import {
@@ -55,6 +56,7 @@ const ChartReportPage = () => {
   const [types, setTypes] = useState(['speed']);
   const [selectedTypes, setSelectedTypes] = useState(['speed']);
   const [timeType, setTimeType] = useState('fixTime');
+  const [loading, setLoading] = useState(false);
 
   const values = items.map((it) =>
     selectedTypes.map((type) => it[type]).filter((value) => value != null),
@@ -65,63 +67,68 @@ const ChartReportPage = () => {
 
   const onShow = useCatchCallback(
     async ({ deviceIds, from, to }) => {
-      const query = new URLSearchParams({ from, to });
-      deviceIds.forEach((deviceId) => query.append('deviceId', deviceId));
-      const response = await fetchOrThrow(`/api/reports/route?${query.toString()}`, {
-        headers: { Accept: 'application/json' },
-      });
-      const positions = await response.json();
-      const keySet = new Set();
-      const keyList = [];
-      const formattedPositions = positions.map((position) => {
-        const data = { ...position, ...position.attributes };
-        const formatted = {};
-        formatted.fixTime = dayjs(position.fixTime).valueOf();
-        formatted.deviceTime = dayjs(position.deviceTime).valueOf();
-        formatted.serverTime = dayjs(position.serverTime).valueOf();
-        Object.keys(data)
-          .filter((key) => !['id', 'deviceId'].includes(key))
-          .forEach((key) => {
-            const value = data[key];
-            if (typeof value === 'number') {
-              keySet.add(key);
-              const definition = positionAttributes[key] || {};
-              switch (definition.dataType) {
-                case 'speed':
-                  if (key === 'obdSpeed') {
-                    formatted[key] = speedFromKnots(speedToKnots(value, 'kmh'), speedUnit).toFixed(2);
-                  } else {
-                    formatted[key] = speedFromKnots(value, speedUnit).toFixed(2);
-                  }
-                  break;
-                case 'altitude':
-                  formatted[key] = altitudeFromMeters(value, altitudeUnit).toFixed(2);
-                  break;
-                case 'distance':
-                  formatted[key] = distanceFromMeters(value, distanceUnit).toFixed(2);
-                  break;
-                case 'volume':
-                  formatted[key] = volumeFromLiters(value, volumeUnit).toFixed(2);
-                  break;
-                case 'hours':
-                  formatted[key] = (value / 1000).toFixed(2);
-                  break;
-                default:
-                  formatted[key] = value;
-                  break;
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({ from, to });
+        deviceIds.forEach((deviceId) => query.append('deviceId', deviceId));
+        const response = await fetchOrThrow(`/api/reports/route?${query.toString()}`, {
+          headers: { Accept: 'application/json' },
+        });
+        const positions = await response.json();
+        const keySet = new Set();
+        const keyList = [];
+        const formattedPositions = positions.map((position) => {
+          const data = { ...position, ...position.attributes };
+          const formatted = {};
+          formatted.fixTime = dayjs(position.fixTime).valueOf();
+          formatted.deviceTime = dayjs(position.deviceTime).valueOf();
+          formatted.serverTime = dayjs(position.serverTime).valueOf();
+          Object.keys(data)
+            .filter((key) => !['id', 'deviceId'].includes(key))
+            .forEach((key) => {
+              const value = data[key];
+              if (typeof value === 'number') {
+                keySet.add(key);
+                const definition = positionAttributes[key] || {};
+                switch (definition.dataType) {
+                  case 'speed':
+                    if (key === 'obdSpeed') {
+                      formatted[key] = speedFromKnots(speedToKnots(value, 'kmh'), speedUnit).toFixed(2);
+                    } else {
+                      formatted[key] = speedFromKnots(value, speedUnit).toFixed(2);
+                    }
+                    break;
+                  case 'altitude':
+                    formatted[key] = altitudeFromMeters(value, altitudeUnit).toFixed(2);
+                    break;
+                  case 'distance':
+                    formatted[key] = distanceFromMeters(value, distanceUnit).toFixed(2);
+                    break;
+                  case 'volume':
+                    formatted[key] = volumeFromLiters(value, volumeUnit).toFixed(2);
+                    break;
+                  case 'hours':
+                    formatted[key] = (value / 1000).toFixed(2);
+                    break;
+                  default:
+                    formatted[key] = value;
+                    break;
+                }
               }
-            }
-          });
-        return formatted;
-      });
-      Object.keys(positionAttributes).forEach((key) => {
-        if (keySet.has(key)) {
-          keyList.push(key);
-          keySet.delete(key);
-        }
-      });
-      setTypes([...keyList, ...keySet]);
-      setItems(formattedPositions);
+            });
+          return formatted;
+        });
+        Object.keys(positionAttributes).forEach((key) => {
+          if (keySet.has(key)) {
+            keyList.push(key);
+            keySet.delete(key);
+          }
+        });
+        setTypes([...keyList, ...keySet]);
+        setItems(formattedPositions);
+      } finally {
+        setLoading(false);
+      }
     },
     [positionAttributes, speedUnit, altitudeUnit, distanceUnit, volumeUnit],
   );
@@ -139,7 +146,7 @@ const ChartReportPage = () => {
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportChart']}>
       <div className={classes.header}>
-        <ReportFilter onShow={onShow} onExport={() => { }} deviceType="single" formats={[]}>
+        <ReportFilter onShow={onShow} onExport={() => { }} deviceType="single" formats={[]} loading={loading}>
           <div className={classes.filterItem}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('reportChartType')}</InputLabel>
@@ -178,14 +185,33 @@ const ChartReportPage = () => {
         </ReportFilter>
       </div>
 
-      <Box sx={{ p: { xs: 1.5, sm: 2.5 }, pt: 0, width: '100%', flexGrow: 1, minHeight: 0 }}>
-        {items.length > 0 ? (
+      <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box', flexGrow: 1, minHeight: 0 }}>
+        {loading ? (
           <Paper
             elevation={0}
             sx={{
-              p: 2.5,
+              p: 6,
               borderRadius: '16px',
               border: `1px solid ${theme.palette.divider}`,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 420,
+              backgroundColor: theme.palette.background.paper,
+            }}
+          >
+            <CircularProgress size={36} thickness={4} />
+          </Paper>
+        ) : items.length > 0 ? (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: '16px',
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
               height: 'calc(100vh - 210px)',
               minHeight: 450,
               display: 'flex',
@@ -236,7 +262,7 @@ const ChartReportPage = () => {
                   dataKey={timeType}
                   height={32}
                   stroke={theme.palette.primary.main}
-                  fill={theme.palette.mode === 'dark' ? '#1e293b' : '#f1f5f9'}
+                  fill={theme.palette.mode === 'dark' ? theme.palette.background.default : '#f8fafc'}
                   tickFormatter={() => ''}
                 />
                 {selectedTypes.map((type, index) => (
@@ -261,11 +287,12 @@ const ChartReportPage = () => {
               p: 6,
               borderRadius: '16px',
               border: `1px solid ${theme.palette.divider}`,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: 380,
+              minHeight: 400,
               backgroundColor: theme.palette.background.paper,
               textAlign: 'center',
             }}

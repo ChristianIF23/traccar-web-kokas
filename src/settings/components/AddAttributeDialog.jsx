@@ -14,21 +14,9 @@ import {
   Typography,
 } from '@mui/material';
 import { createFilterOptions } from '@mui/material/useAutocomplete';
-import { makeStyles } from 'tss-react/mui';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 
-const useStyles = makeStyles()((theme) => ({
-  details: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(2),
-    paddingTop: theme.spacing(1),
-    paddingBottom: theme.spacing(2),
-  },
-}));
-
 const AddAttributeDialog = ({ open, onResult, definitions }) => {
-  const { classes } = useStyles();
   const t = useTranslation();
 
   const filter = createFilterOptions({
@@ -51,28 +39,44 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
   const [key, setKey] = useState();
   const [type, setType] = useState('string');
 
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
+  };
+
   return (
     <Dialog
       open={open}
       fullWidth
       maxWidth="xs"
-      PaperProps={{
-        elevation: 0,
-        sx: {
-          borderRadius: '16px',
-          border: (theme) => `1px solid ${theme.palette.divider}`,
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12)',
-          p: 1,
+      slotProps={{
+        paper: {
+          elevation: 0,
+          sx: {
+            borderRadius: '16px',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12)',
+            p: 1,
+          },
         },
       }}
     >
-      <DialogTitle sx={{ pb: 1 }}>
+      <DialogTitle sx={{ px: 2.5, pt: 2, pb: 1 }}>
         <Typography variant="h6" fontWeight={600} color="text.primary">
           {t('sharedAddAttribute') || t('sharedAttributes')}
         </Typography>
       </DialogTitle>
 
-      <DialogContent className={classes.details}>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2.5,
+          px: 2.5,
+          py: 1.5,
+        }}
+      >
         <Autocomplete
           freeSolo
           size="small"
@@ -110,18 +114,17 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
             <TextField
               {...params}
               label={t('sharedAttribute')}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              sx={inputStyle}
             />
           )}
         />
 
-        <FormControl fullWidth size="small" disabled={key in definitions}>
+        <FormControl fullWidth size="small" disabled={key in definitions} sx={inputStyle}>
           <InputLabel>{t('sharedType')}</InputLabel>
           <Select
             label={t('sharedType')}
             value={type || 'string'}
             onChange={(e) => setType(e.target.value)}
-            sx={{ borderRadius: '10px' }}
           >
             <MenuItem value="string">{t('sharedTypeString')}</MenuItem>
             <MenuItem value="number">{t('sharedTypeNumber')}</MenuItem>
@@ -130,16 +133,22 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
         </FormControl>
       </DialogContent>
 
-      <DialogActions sx={{ px: 2, pb: 2, gap: 1 }}>
+      <DialogActions sx={{ px: 2.5, pb: 2, pt: 1, gap: 1 }}>
         <Button
           variant="outlined"
-          color="inherit"
           onClick={() => onResult(null)}
           sx={{
             borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 600,
-            borderColor: (theme) => theme.palette.divider,
+            px: 2.5,
+            py: 0.8,
+            borderColor: 'divider',
+            color: 'text.secondary',
+            '&:hover': {
+              borderColor: 'text.secondary',
+              backgroundColor: 'action.hover',
+            },
           }}
         >
           {t('sharedCancel')}
@@ -153,7 +162,12 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
             borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 600,
+            px: 3,
+            py: 0.8,
             boxShadow: 'none',
+            '&:hover': {
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            },
           }}
         >
           {t('sharedAdd')}

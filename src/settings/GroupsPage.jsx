@@ -81,89 +81,101 @@ const GroupsPage = () => {
 
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'settingsGroups']}>
-      <SearchHeader keyword={searchKeyword} setKeyword={setSearchKeyword} />
-
-      {/* Kontainer Kartu Tabel */}
       <Box
         sx={{
-          backgroundColor: 'background.paper',
-          borderRadius: '16px',
-          border: `1px solid ${theme.palette.divider}`,
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-          mx: { xs: 1, sm: 2 },
-          mb: 4,
+          width: '100%',
+          p: { xs: 2, sm: 3, md: 4 },
+          boxSizing: 'border-box',
+          overflowY: 'auto',
         }}
       >
-        <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <Table
-            className={classes.table}
+        <Box sx={{ width: '100%' }}>
+          <Box sx={{ mb: 2.5 }}>
+            <SearchHeader keyword={searchKeyword} setKeyword={setSearchKeyword} />
+          </Box>
+
+          <Box
             sx={{
-              minWidth: 500,
-              borderCollapse: 'separate',
-              borderSpacing: 0,
-              '& .MuiTableHead-root .MuiTableCell-root': {
-                backgroundColor:
-                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-                color: 'text.secondary',
-                fontWeight: 600,
-                fontSize: '0.78rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                py: 1.8,
-                px: 2.5,
-                borderBottom: `1px solid ${theme.palette.divider}`,
-                whiteSpace: 'nowrap',
-              },
-              '& .MuiTableBody-root .MuiTableRow-root': {
-                transition: 'background-color 0.15s ease',
-                '&:hover': {
-                  backgroundColor:
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-                },
-              },
-              '& .MuiTableBody-root .MuiTableCell-root': {
-                py: 1.8,
-                px: 2.5,
-                fontSize: '0.875rem',
-                borderBottom: `1px solid ${theme.palette.divider}`,
-              },
+              backgroundColor: 'background.paper',
+              borderRadius: '16px',
+              border: `1px solid ${theme.palette.divider}`,
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+              mb: 4,
+              width: '100%',
             }}
           >
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('sharedName')}</TableCell>
-                <TableCell className={classes.columnAction} align="right" />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={600} color="text.primary">
-                      {item.name}
-                    </Typography>
-                  </TableCell>
-                  <TableCell className={classes.columnAction} padding="none" align="right">
-                    <CollectionActions
-                      itemId={item.id}
-                      editPath="/settings/group"
-                      endpoint="groups"
-                      onReload={reload}
-                      customActions={[
-                        actionConnections,
-                        ...(!limitCommands ? [actionCommand] : []),
-                        ...(!shareDisabled && !user.temporary ? [actionShare] : []),
-                      ]}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-              {hasMore && (
-                <TableShimmer ref={items.length > 0 ? sentinelRef : null} columns={2} endAction />
-              )}
-            </TableBody>
-          </Table>
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <Table
+                className={classes.table}
+                sx={{
+                  minWidth: 500,
+                  borderCollapse: 'separate',
+                  borderSpacing: 0,
+                  '& .MuiTableHead-root .MuiTableCell-root': {
+                    backgroundColor:
+                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    py: 1.8,
+                    px: 2.5,
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    whiteSpace: 'nowrap',
+                  },
+                  '& .MuiTableBody-root .MuiTableRow-root': {
+                    transition: 'background-color 0.15s ease',
+                    '&:hover': {
+                      backgroundColor:
+                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    },
+                  },
+                  '& .MuiTableBody-root .MuiTableCell-root': {
+                    py: 1.8,
+                    px: 2.5,
+                    fontSize: '0.875rem',
+                    borderBottom: `1px solid ${theme.palette.divider}`,
+                  },
+                }}
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('sharedName')}</TableCell>
+                    <TableCell className={classes.columnAction} align="right" />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600} color="text.primary">
+                          {item.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell className={classes.columnAction} padding="none" align="right">
+                        <CollectionActions
+                          itemId={item.id}
+                          editPath="/settings/group"
+                          endpoint="groups"
+                          onReload={reload}
+                          customActions={[
+                            actionConnections,
+                            ...(!limitCommands ? [actionCommand] : []),
+                            ...(!shareDisabled && !user.temporary ? [actionShare] : []),
+                          ]}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {hasMore && (
+                    <TableShimmer ref={items.length > 0 ? sentinelRef : null} columns={2} endAction />
+                  )}
+                </TableBody>
+              </Table>
+            </Box>
+          </Box>
         </Box>
       </Box>
 

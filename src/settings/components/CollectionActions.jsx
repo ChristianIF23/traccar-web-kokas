@@ -55,8 +55,16 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
         <>
           <IconButton
             size="small"
+            aria-label="actions"
             onClick={(event) => setMenuAnchorEl(event.currentTarget)}
-            sx={{ color: 'text.secondary' }}
+            sx={{
+              color: 'text.secondary',
+              borderRadius: '8px',
+              '&:hover': {
+                backgroundColor: (th) =>
+                  th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+              },
+            }}
           >
             <MoreVertIcon fontSize="small" />
           </IconButton>
@@ -71,7 +79,7 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                   borderRadius: '12px',
                   border: (th) => `1px solid ${th.palette.divider}`,
                   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-                  minWidth: 140,
+                  minWidth: 150,
                   py: 0.5,
                 },
               },
@@ -82,30 +90,35 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                 <MenuItem
                   onClick={() => handleCustom(action)}
                   key={action.key}
-                  sx={{ fontSize: '0.85rem', py: 1 }}
+                  sx={{ py: 1 }}
                 >
                   {action.icon && (
                     <ListItemIcon sx={{ minWidth: 28, color: 'inherit' }}>
                       {action.icon}
                     </ListItemIcon>
                   )}
-                  <ListItemText primary={action.title} />
+                  <ListItemText
+                    primary={action.title}
+                    primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 500 }}
+                  />
                 </MenuItem>
               ))}
             {!readonly && (
               <>
                 {editPath && (
-                  <MenuItem onClick={handleEdit} sx={{ fontSize: '0.85rem', py: 1 }}>
+                  <MenuItem onClick={handleEdit} sx={{ py: 1 }}>
                     <ListItemIcon sx={{ minWidth: 28, color: 'inherit' }}>
                       <EditOutlinedIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText primary={t('sharedEdit')} />
+                    <ListItemText
+                      primary={t('sharedEdit')}
+                      primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 500 }}
+                    />
                   </MenuItem>
                 )}
                 <MenuItem
                   onClick={handleRemove}
                   sx={{
-                    fontSize: '0.85rem',
                     py: 1,
                     color: 'error.main',
                     '&:hover': {
@@ -119,7 +132,10 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                   <ListItemIcon sx={{ minWidth: 28, color: 'error.main' }}>
                     <DeleteOutlineIcon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText primary={t('sharedRemove')} />
+                  <ListItemText
+                    primary={t('sharedRemove')}
+                    primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 500 }}
+                  />
                 </MenuItem>
               </>
             )}
@@ -132,10 +148,20 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
               <Tooltip title={action.title} key={action.key} arrow>
                 <IconButton
                   size="small"
+                  aria-label={action.title}
                   onClick={() => handleCustom(action)}
                   sx={{
                     color: 'text.secondary',
-                    '&:hover': { color: 'primary.main' },
+                    borderRadius: '8px',
+                    p: 0.75,
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      color: 'primary.main',
+                      backgroundColor: (th) =>
+                        th.palette.mode === 'dark'
+                          ? 'rgba(255, 255, 255, 0.06)'
+                          : 'rgba(0, 0, 0, 0.04)',
+                    },
                   }}
                 >
                   {action.icon}
@@ -148,10 +174,20 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                 <Tooltip title={t('sharedEdit')} arrow>
                   <IconButton
                     size="small"
+                    aria-label={t('sharedEdit')}
                     onClick={handleEdit}
                     sx={{
                       color: 'text.secondary',
-                      '&:hover': { color: 'primary.main' },
+                      borderRadius: '8px',
+                      p: 0.75,
+                      transition: 'all 0.15s ease',
+                      '&:hover': {
+                        color: 'primary.main',
+                        backgroundColor: (th) =>
+                          th.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.06)'
+                            : 'rgba(0, 0, 0, 0.04)',
+                      },
                     }}
                   >
                     <EditOutlinedIcon fontSize="small" />
@@ -161,10 +197,20 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
               <Tooltip title={t('sharedRemove')} arrow>
                 <IconButton
                   size="small"
+                  aria-label={t('sharedRemove')}
                   onClick={handleRemove}
                   sx={{
                     color: 'text.secondary',
-                    '&:hover': { color: 'error.main' },
+                    borderRadius: '8px',
+                    p: 0.75,
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      color: 'error.main',
+                      backgroundColor: (th) =>
+                        th.palette.mode === 'dark'
+                          ? 'rgba(211, 47, 47, 0.15)'
+                          : 'rgba(211, 47, 47, 0.08)',
+                    },
                   }}
                 >
                   <DeleteOutlineIcon fontSize="small" />

@@ -72,12 +72,18 @@ const ComputedAttributePage = () => {
   const validate = () => item && item.description && item.expression;
 
   const accordionStyle = {
-    borderRadius: '14px !important',
+    borderRadius: '16px !important',
     border: (theme) => `1px solid ${theme.palette.divider}`,
     overflow: 'hidden',
-    mb: 2,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
   };
 
   return (
@@ -97,14 +103,22 @@ const ComputedAttributePage = () => {
                 {t('sharedRequired')}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 value={item.description || ''}
                 onChange={(e) => setItem({ ...item, description: e.target.value })}
                 label={t('sharedDescription')}
+                sx={inputStyle}
               />
               <Autocomplete
                 freeSolo
+                size="small"
+                fullWidth
                 value={
                   options.find((option) => option.key === item.attribute) || item.attribute || null
                 }
@@ -134,16 +148,21 @@ const ComputedAttributePage = () => {
                   typeof option === 'object' ? option.inputValue || option.name : option
                 }
                 renderOption={(props, option) => <li {...props}>{option.name || option}</li>}
-                renderInput={(params) => <TextField {...params} label={t('sharedAttribute')} />}
+                renderInput={(params) => (
+                  <TextField {...params} label={t('sharedAttribute')} sx={inputStyle} />
+                )}
               />
               <TextField
+                fullWidth
+                size="small"
                 value={item.expression || ''}
                 onChange={(e) => setItem({ ...item, expression: e.target.value })}
                 label={t('sharedExpression')}
                 multiline
                 rows={4}
+                sx={inputStyle}
               />
-              <FormControl disabled={item.attribute in positionAttributes}>
+              <FormControl fullWidth size="small" disabled={item.attribute in positionAttributes} sx={inputStyle}>
                 <InputLabel>{t('sharedType')}</InputLabel>
                 <Select
                   label={t('sharedType')}
@@ -164,12 +183,18 @@ const ComputedAttributePage = () => {
                 {t('sharedExtra')}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
+                fullWidth
+                size="small"
                 type="number"
                 value={item.priority || 0}
                 onChange={(e) => setItem({ ...item, priority: Number(e.target.value) })}
                 label={t('sharedPriority')}
+                sx={inputStyle}
               />
             </AccordionDetails>
           </Accordion>
@@ -180,12 +205,18 @@ const ComputedAttributePage = () => {
                 {t('sharedTest')}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <SelectField
+                fullWidth
+                size="small"
                 value={deviceId}
                 onChange={(e) => setDeviceId(Number(e.target.value))}
                 endpoint="/api/devices"
                 label={t('sharedDevice')}
+                sx={inputStyle}
               />
               <Button
                 variant="outlined"
@@ -196,7 +227,9 @@ const ComputedAttributePage = () => {
                   borderRadius: '10px',
                   textTransform: 'none',
                   fontWeight: 600,
-                  py: 0.9,
+                  py: 1,
+                  px: 2.5,
+                  alignSelf: 'flex-start',
                 }}
               >
                 {t('sharedTestExpression')}

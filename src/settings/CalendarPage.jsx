@@ -108,6 +108,21 @@ const CalendarPage = () => {
 
   const validate = () => item && item.name && item.data;
 
+  const accordionStyle = {
+    borderRadius: '16px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
+  };
+
   return (
     <EditItemView
       endpoint="calendars"
@@ -125,27 +140,26 @@ const CalendarPage = () => {
             defaultExpanded
             disableGutters
             elevation={0}
-            sx={{
-              borderRadius: '12px !important',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              overflow: 'hidden',
-              marginBottom: 2,
-              '&:before': { display: 'none' },
-            }}
+            sx={accordionStyle}
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography variant="subtitle1" fontWeight={600}>
                 {t('sharedRequired')}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails className={classes.details}>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
               <TextField
                 fullWidth
+                size="small"
                 value={item.name || ''}
                 onChange={(event) => setItem({ ...item, name: event.target.value })}
                 label={t('sharedName')}
+                sx={inputStyle}
               />
-              <FormControl fullWidth>
+              <FormControl fullWidth size="small" sx={inputStyle}>
                 <InputLabel>{t('sharedType')}</InputLabel>
                 <Select
                   label={t('sharedType')}
@@ -165,6 +179,7 @@ const CalendarPage = () => {
                 <>
                   <TextField
                     fullWidth
+                    size="small"
                     label={t('reportFrom')}
                     type="datetime-local"
                     value={dayjs(lines[5].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
@@ -172,9 +187,11 @@ const CalendarPage = () => {
                       const time = formatCalendarTime(dayjs(e.target.value, 'YYYY-MM-DDTHH:mm'));
                       setItem({ ...item, data: updateCalendar(lines, 5, `DTSTART;${time}`) });
                     }}
+                    sx={inputStyle}
                   />
                   <TextField
                     fullWidth
+                    size="small"
                     label={t('reportTo')}
                     type="datetime-local"
                     value={dayjs(lines[6].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
@@ -182,8 +199,9 @@ const CalendarPage = () => {
                       const time = formatCalendarTime(dayjs(e.target.value, 'YYYY-MM-DDTHH:mm'));
                       setItem({ ...item, data: updateCalendar(lines, 6, `DTEND;${time}`) });
                     }}
+                    sx={inputStyle}
                   />
-                  <FormControl fullWidth>
+                  <FormControl fullWidth size="small" sx={inputStyle}>
                     <InputLabel>{t('calendarRecurrence')}</InputLabel>
                     <Select
                       label={t('calendarRecurrence')}
@@ -203,13 +221,13 @@ const CalendarPage = () => {
                     </Select>
                   </FormControl>
                   {['WEEKLY', 'MONTHLY'].includes(rule.frequency) && (
-                    <FormControl fullWidth>
+                    <FormControl fullWidth size="small" sx={inputStyle}>
                       <InputLabel>{t('calendarDays')}</InputLabel>
                       <Select
                         multiple
                         fullWidth
                         label={t('calendarDays')}
-                        value={rule.by}
+                        value={rule.by || []}
                         onChange={(e) =>
                           setItem({
                             ...item,

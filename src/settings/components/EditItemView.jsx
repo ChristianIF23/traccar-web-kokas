@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Container,
   Button,
   Accordion,
   AccordionDetails,
@@ -65,91 +64,111 @@ const EditItemView = ({
     navigate(-1);
   });
 
+  const skeletonAccordionStyle = {
+    borderRadius: '16px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    '&:before': { display: 'none' },
+  };
+
   return (
     <PageLayout menu={menu} breadcrumbs={breadcrumbs}>
-      <Container maxWidth={false} className={classes.container} sx={{ py: 2 }}>
-        {item ? (
-          children
-        ) : (
-          <Accordion
-            defaultExpanded
-            disableGutters
-            elevation={0}
-            sx={{
-              borderRadius: '14px !important',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              overflow: 'hidden',
-              '&:before': { display: 'none' },
-            }}
-          >
-            <AccordionSummary>
-              <Typography variant="subtitle1" fontWeight={600}>
-                <Skeleton width="10em" height={28} />
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={-i} width="100%" height={56} sx={{ borderRadius: '10px' }}>
-                  <TextField fullWidth />
-                </Skeleton>
-              ))}
-            </AccordionDetails>
-          </Accordion>
-        )}
+      {/* Kontainer Utama Pengatur Lebar & Padding Halaman */}
+      <Box
+        sx={{
+          width: '100%',
+          p: { xs: 2, sm: 3, md: 4 },
+          boxSizing: 'border-box',
+          overflowY: 'auto',
+        }}
+      >
+        {/* Batas Konten 960px Simetris di Tengah */}
+        <Box sx={{ maxWidth: 960, width: '100%', mx: 'auto' }}>
+          {item ? (
+            children
+          ) : (
+            <Accordion
+              defaultExpanded
+              disableGutters
+              elevation={0}
+              sx={skeletonAccordionStyle}
+            >
+              <AccordionSummary>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  <Skeleton width="10em" height={28} />
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails
+                className={classes.details}
+                sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              >
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={-i} width="100%" height={44} sx={{ borderRadius: '10px' }}>
+                    <TextField fullWidth size="small" />
+                  </Skeleton>
+                ))}
+              </AccordionDetails>
+            </Accordion>
+          )}
 
-        <Box
-          className={classes.buttons}
-          sx={{
-            display: 'flex',
-            gap: 1.5,
-            justifyContent: 'flex-end',
-            mt: 3,
-            pt: 2,
-            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          }}
-        >
-          <Button
-            variant="outlined"
-            onClick={() => navigate(-1)}
-            disabled={!item}
+          <Box
+            className={classes.buttons}
             sx={{
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderColor: 'divider',
-              color: 'text.secondary',
-              '&:hover': {
-                borderColor: 'text.secondary',
-                backgroundColor: 'action.hover',
-              },
+              display: 'flex',
+              gap: 1.5,
+              justifyContent: 'flex-end',
+              mt: 3,
+              pt: 2,
+              borderTop: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
-            {t('sharedCancel')}
-          </Button>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => navigate(-1)}
+              disabled={!item}
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderColor: 'divider',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'text.secondary',
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              {t('sharedCancel')}
+            </Button>
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            disabled={!item || !validate()}
-            sx={{
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3.5,
-              py: 1,
-              boxShadow: 'none',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              },
-            }}
-          >
-            {t('sharedSave')}
-          </Button>
+            <Button
+              type="button"
+              variant="contained"
+              color="primary"
+              onClick={handleSave}
+              disabled={!item || !validate()}
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3.5,
+                py: 1,
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+              }}
+            >
+              {t('sharedSave')}
+            </Button>
+          </Box>
         </Box>
-      </Container>
+      </Box>
     </PageLayout>
   );
 };

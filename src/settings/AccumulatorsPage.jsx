@@ -6,9 +6,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   Typography,
-  Container,
   TextField,
   Button,
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -51,58 +51,132 @@ const AccumulatorsPage = () => {
     navigate(-1);
   });
 
+  const accordionStyle = {
+    borderRadius: '16px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    mb: 2.5,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
+  };
+
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['sharedDeviceAccumulators']}>
-      {item && (
-        <Container maxWidth="xs" className={classes.container}>
-          <Accordion
-            defaultExpanded
-            disableGutters
-            elevation={0}
-            sx={{
-              borderRadius: '12px !important',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              overflow: 'hidden',
-              '&:before': { display: 'none' },
-            }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
-              <TextField
-                fullWidth
-                type="number"
-                value={item.hours / 3600000}
-                onChange={(event) =>
-                  setItem({ ...item, hours: Number(event.target.value) * 3600000 })
-                }
-                label={t('positionHours')}
-              />
-              <TextField
-                fullWidth
-                type="number"
-                value={distanceFromMeters(item.totalDistance, distanceUnit)}
-                onChange={(event) =>
-                  setItem({
-                    ...item,
-                    totalDistance: distanceToMeters(Number(event.target.value), distanceUnit),
-                  })
-                }
-                label={`${t('deviceTotalDistance')} (${distanceUnitString(distanceUnit, t)})`}
-              />
-            </AccordionDetails>
-          </Accordion>
-          <div className={classes.buttons}>
-            <Button type="button" color="primary" variant="outlined" onClick={() => navigate(-1)}>
-              {t('sharedCancel')}
-            </Button>
-            <Button type="button" color="primary" variant="contained" onClick={handleSave}>
-              {t('sharedSave')}
-            </Button>
-          </div>
-        </Container>
-      )}
+      <Box
+        sx={{
+          width: '100%',
+          p: { xs: 2, sm: 3, md: 4 },
+          boxSizing: 'border-box',
+          overflowY: 'auto',
+        }}
+      >
+        <Box sx={{ maxWidth: 960, width: '100%', mx: 'auto' }}>
+          {item && (
+            <>
+              <Accordion
+                defaultExpanded
+                disableGutters
+                elevation={0}
+                sx={accordionStyle}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    {t('sharedRequired')}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails
+                  className={classes.details}
+                  sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+                >
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="number"
+                    value={item.hours / 3600000}
+                    onChange={(event) =>
+                      setItem({ ...item, hours: Number(event.target.value) * 3600000 })
+                    }
+                    label={t('positionHours')}
+                    sx={inputStyle}
+                  />
+                  <TextField
+                    fullWidth
+                    size="small"
+                    type="number"
+                    value={distanceFromMeters(item.totalDistance, distanceUnit)}
+                    onChange={(event) =>
+                      setItem({
+                        ...item,
+                        totalDistance: distanceToMeters(Number(event.target.value), distanceUnit),
+                      })
+                    }
+                    label={`${t('deviceTotalDistance')} (${distanceUnitString(distanceUnit, t)})`}
+                    sx={inputStyle}
+                  />
+                </AccordionDetails>
+              </Accordion>
+
+              <Box
+                className={classes.buttons}
+                sx={{
+                  display: 'flex',
+                  gap: 1.5,
+                  justifyContent: 'flex-end',
+                  mt: 3,
+                  pt: 2,
+                  borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+                }}
+              >
+                <Button
+                  type="button"
+                  variant="outlined"
+                  onClick={() => navigate(-1)}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderColor: 'divider',
+                    color: 'text.secondary',
+                    '&:hover': {
+                      borderColor: 'text.secondary',
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                >
+                  {t('sharedCancel')}
+                </Button>
+                <Button
+                  type="button"
+                  color="primary"
+                  variant="contained"
+                  onClick={handleSave}
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3.5,
+                    py: 1,
+                    boxShadow: 'none',
+                    '&:hover': {
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    },
+                  }}
+                >
+                  {t('sharedSave')}
+                </Button>
+              </Box>
+            </>
+          )}
+        </Box>
+      </Box>
     </PageLayout>
   );
 };

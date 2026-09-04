@@ -6,7 +6,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   Typography,
-  Container,
   Button,
   FormControl,
   InputLabel,
@@ -46,120 +45,141 @@ const CommandDevicePage = () => {
     navigate(-1);
   });
 
+  const accordionStyle = {
+    borderRadius: '16px !important',
+    border: (theme) => `1px solid ${theme.palette.divider}`,
+    overflow: 'hidden',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    '&:before': { display: 'none' },
+  };
+
+  const inputStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px',
+    },
+  };
+
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'deviceCommand']}>
-      <Container maxWidth="sm" className={classes.container} sx={{ py: 2 }}>
-        <Accordion
-          defaultExpanded
-          disableGutters
-          elevation={0}
-          sx={{
-            borderRadius: '16px !important',
-            border: (theme) => `1px solid ${theme.palette.divider}`,
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            '&:before': { display: 'none' },
-          }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-              px: 3,
-              py: 0.5,
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-              borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-            }}
+      <Box
+        sx={{
+          width: '100%',
+          p: { xs: 2, sm: 3, md: 4 },
+          boxSizing: 'border-box',
+          overflowY: 'auto',
+        }}
+      >
+        <Box sx={{ maxWidth: 960, width: '100%', mx: 'auto' }}>
+          <Accordion
+            defaultExpanded
+            disableGutters
+            elevation={0}
+            sx={accordionStyle}
           >
-            <Typography variant="subtitle1" fontWeight={600}>
-              {t('sharedRequired')}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails
-            className={classes.details}
-            sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
-          >
-            <FormControl fullWidth>
-              <InputLabel>{t('sharedType')}</InputLabel>
-              <Select label={t('sharedType')} value="custom" disabled>
-                <MenuItem value="custom">{t('commandCustom')}</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              value={item.attributes.data || ''}
-              onChange={(e) =>
-                setItem({ ...item, attributes: { ...item.attributes, data: e.target.value } })
-              }
-              label={t('commandData')}
-              fullWidth
-            />
-            {textEnabled && (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!item.textChannel}
-                    onChange={(event) => setItem({ ...item, textChannel: event.target.checked })}
-                  />
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                px: 3,
+                py: 0.5,
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={600}>
+                {t('sharedRequired')}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails
+              className={classes.details}
+              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+            >
+              <FormControl fullWidth size="small" sx={inputStyle}>
+                <InputLabel>{t('sharedType')}</InputLabel>
+                <Select label={t('sharedType')} value="custom" disabled>
+                  <MenuItem value="custom">{t('commandCustom')}</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                size="small"
+                value={item.attributes.data || ''}
+                onChange={(e) =>
+                  setItem({ ...item, attributes: { ...item.attributes, data: e.target.value } })
                 }
-                label={t('commandSendSms')}
+                label={t('commandData')}
+                fullWidth
+                sx={inputStyle}
               />
-            )}
-          </AccordionDetails>
-        </Accordion>
+              {textEnabled && (
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={!!item.textChannel}
+                      onChange={(event) => setItem({ ...item, textChannel: event.target.checked })}
+                    />
+                  }
+                  label={<Typography variant="body2">{t('commandSendSms')}</Typography>}
+                  sx={{ pt: 0.5 }}
+                />
+              )}
+            </AccordionDetails>
+          </Accordion>
 
-        <Box
-          className={classes.buttons}
-          sx={{
-            display: 'flex',
-            gap: 1.5,
-            justifyContent: 'flex-end',
-            mt: 3,
-            pt: 2,
-            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          }}
-        >
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={() => navigate(-1)}
+          <Box
+            className={classes.buttons}
             sx={{
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3,
-              py: 1,
-              borderColor: 'divider',
-              color: 'text.secondary',
-              '&:hover': {
-                borderColor: 'text.secondary',
-                backgroundColor: 'action.hover',
-              },
+              display: 'flex',
+              gap: 1.5,
+              justifyContent: 'flex-end',
+              mt: 3,
+              pt: 2,
+              borderTop: (theme) => `1px solid ${theme.palette.divider}`,
             }}
           >
-            {t('sharedCancel')}
-          </Button>
-          <Button
-            type="button"
-            color="primary"
-            variant="contained"
-            onClick={handleSend}
-            disabled={!item.attributes.data}
-            sx={{
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 3.5,
-              py: 1,
-              boxShadow: 'none',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              },
-            }}
-          >
-            {t('commandSend')}
-          </Button>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => navigate(-1)}
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderColor: 'divider',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: 'text.secondary',
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              {t('sharedCancel')}
+            </Button>
+            <Button
+              type="button"
+              color="primary"
+              variant="contained"
+              onClick={handleSend}
+              disabled={!item.attributes.data}
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3.5,
+                py: 1,
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+              }}
+            >
+              {t('commandSend')}
+            </Button>
+          </Box>
         </Box>
-      </Container>
+      </Box>
     </PageLayout>
   );
 };
