@@ -11,7 +11,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Box,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FileInput from '../common/components/FileInput';
 import EditItemView from './components/EditItemView';
@@ -21,7 +23,6 @@ import SettingsMenu from './components/SettingsMenu';
 import { prefixString } from '../common/util/stringUtils';
 import { calendarsActions } from '../store';
 import { useCatch } from '../reactHelper';
-import useSettingsStyles from './common/useSettingsStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const formatCalendarTime = (time) => {
@@ -74,19 +75,17 @@ const simpleCalendar = () =>
   );
 
 const CalendarPage = () => {
-  const { classes } = useSettingsStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const [item, setItem] = useState();
   const [file, setFile] = useState(null);
 
   const decoded = item && item.data && window.atob(item.data);
-
   const simple = decoded && decoded.indexOf('//Traccar//') > 0;
-
   const lines = decoded && decoded.split('\n');
-
   const rule = simple && parseRule(lines[7]);
 
   const handleFileChange = (newFile) => {
@@ -106,20 +105,38 @@ const CalendarPage = () => {
     dispatch(calendarsActions.refresh(await response.json()));
   });
 
-  const validate = () => item && item.name && item.data;
+  const validate = () => Boolean(item && item.name && item.data);
 
-  const accordionStyle = {
-    borderRadius: '16px !important',
-    border: (theme) => `1px solid ${theme.palette.divider}`,
+  const accordionCardStyle = {
+    borderRadius: '18px !important',
+    border: (th) =>
+      `1px solid ${
+        th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+      }`,
+    backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+    boxShadow: (th) =>
+      th.palette.mode === 'dark'
+        ? '0 12px 30px rgba(0, 0, 0, 0.45)'
+        : '0 8px 24px rgba(15, 23, 42, 0.04)',
     overflow: 'hidden',
-    mb: 2.5,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    mb: 2,
     '&:before': { display: 'none' },
   };
 
   const inputStyle = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '10px',
+      borderRadius: '12px',
+      backgroundColor: (th) => (th.palette.mode === 'dark' ? alpha('#0f172a', 0.8) : '#ffffff'),
+      '& fieldset': {
+        borderColor: (th) =>
+          th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#1d4ed8',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#1d4ed8',
+      },
     },
   };
 
@@ -135,21 +152,32 @@ const CalendarPage = () => {
       breadcrumbs={['settingsTitle', 'sharedCalendar']}
     >
       {item && (
-        <>
-          <Accordion
-            defaultExpanded
-            disableGutters
-            elevation={0}
-            sx={accordionStyle}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          {/* 1. Pengaturan Wajib Kalender */}
+          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
                 {t('sharedRequired')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <TextField
                 fullWidth
@@ -177,30 +205,38 @@ const CalendarPage = () => {
               </FormControl>
               {simple ? (
                 <>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label={t('reportFrom')}
-                    type="datetime-local"
-                    value={dayjs(lines[5].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
-                    onChange={(e) => {
-                      const time = formatCalendarTime(dayjs(e.target.value, 'YYYY-MM-DDTHH:mm'));
-                      setItem({ ...item, data: updateCalendar(lines, 5, `DTSTART;${time}`) });
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                      gap: 2,
                     }}
-                    sx={inputStyle}
-                  />
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label={t('reportTo')}
-                    type="datetime-local"
-                    value={dayjs(lines[6].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
-                    onChange={(e) => {
-                      const time = formatCalendarTime(dayjs(e.target.value, 'YYYY-MM-DDTHH:mm'));
-                      setItem({ ...item, data: updateCalendar(lines, 6, `DTEND;${time}`) });
-                    }}
-                    sx={inputStyle}
-                  />
+                  >
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={t('reportFrom')}
+                      type="datetime-local"
+                      value={dayjs(lines[5].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
+                      onChange={(e) => {
+                        const time = formatCalendarTime(dayjs(e.target.value, 'YYYY-MM-DDTHH:mm'));
+                        setItem({ ...item, data: updateCalendar(lines, 5, `DTSTART;${time}`) });
+                      }}
+                      sx={inputStyle}
+                    />
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label={t('reportTo')}
+                      type="datetime-local"
+                      value={dayjs(lines[6].slice(-15)).locale('en').format('YYYY-MM-DDTHH:mm')}
+                      onChange={(e) => {
+                        const time = formatCalendarTime(dayjs(e.target.value, 'YYYY-MM-DDTHH:mm'));
+                        setItem({ ...item, data: updateCalendar(lines, 6, `DTEND;${time}`) });
+                      }}
+                      sx={inputStyle}
+                    />
+                  </Box>
                   <FormControl fullWidth size="small" sx={inputStyle}>
                     <InputLabel>{t('calendarRecurrence')}</InputLabel>
                     <Select
@@ -241,23 +277,23 @@ const CalendarPage = () => {
                       >
                         {rule.frequency === 'WEEKLY'
                           ? [
-                            'sunday',
-                            'monday',
-                            'tuesday',
-                            'wednesday',
-                            'thursday',
-                            'friday',
-                            'saturday',
-                          ].map((it) => (
-                            <MenuItem key={it} value={it.substring(0, 2).toUpperCase()}>
-                              {t(prefixString('calendar', it))}
-                            </MenuItem>
-                          ))
+                              'sunday',
+                              'monday',
+                              'tuesday',
+                              'wednesday',
+                              'thursday',
+                              'friday',
+                              'saturday',
+                            ].map((it) => (
+                              <MenuItem key={it} value={it.substring(0, 2).toUpperCase()}>
+                                {t(prefixString('calendar', it))}
+                              </MenuItem>
+                            ))
                           : Array.from({ length: 31 }, (_, i) => i + 1).map((it) => (
-                            <MenuItem key={it} value={String(it)}>
-                              {it}
-                            </MenuItem>
-                          ))}
+                              <MenuItem key={it} value={String(it)}>
+                                {it}
+                              </MenuItem>
+                            ))}
                       </Select>
                     </FormControl>
                   )}
@@ -271,12 +307,14 @@ const CalendarPage = () => {
               )}
             </AccordionDetails>
           </Accordion>
+
+          {/* 2. Atribut Kustom Kalender */}
           <EditAttributesAccordion
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
             definitions={{}}
           />
-        </>
+        </Box>
       )}
     </EditItemView>
   );

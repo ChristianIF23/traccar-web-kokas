@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { IconButton, Paper, Slider, Toolbar, Typography, Box } from '@mui/material';
+import { IconButton, Paper, Slider, Toolbar, Typography, Box, Menu, MenuItem } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import TuneIcon from '@mui/icons-material/Tune';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -7,6 +7,7 @@ import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import PauseRoundedIcon from '@mui/icons-material/PauseRounded';
 import FastForwardRoundedIcon from '@mui/icons-material/FastForwardRounded';
 import FastRewindRoundedIcon from '@mui/icons-material/FastRewindRounded';
+import SpeedIcon from '@mui/icons-material/Speed';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import MapView from '../map/core/MapView';
@@ -94,6 +95,10 @@ const ReplayPage = () => {
   const [loading, setLoading] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
+  // State untuk Kecepatan Playback (1x, 2x, 4x, 8x)
+  const [speed, setSpeed] = useState(500);
+  const [anchorElSpeed, setAnchorElSpeed] = useState(null);
+
   const loaded = Boolean(from && to && !loading && positions.length);
 
   const deviceName = useSelector((state) => {
@@ -112,24 +117,24 @@ const ReplayPage = () => {
     }
   }, [from, to, setPositions]);
 
+  // Handle animasi play / pause dengan interval dinamis sesuai speed
   useEffect(() => {
     if (playing && positions.length > 0) {
       timerRef.current = setInterval(() => {
-        setIndex((prevIndex) => prevIndex + 1);
-      }, 500);
+        setIndex((prevIndex) => {
+          if (prevIndex >= positions.length - 1) {
+            setPlaying(false);
+            return prevIndex;
+          }
+          return prevIndex + 1;
+        });
+      }, speed);
     } else {
       clearInterval(timerRef.current);
     }
 
     return () => clearInterval(timerRef.current);
-  }, [playing, positions]);
-
-  useEffect(() => {
-    if (index >= positions.length - 1) {
-      clearInterval(timerRef.current);
-      setPlaying(false);
-    }
-  }, [index, positions]);
+  }, [playing, positions, speed]);
 
   const onPointClick = useCallback(
     (_, clickedIndex) => {
@@ -188,7 +193,9 @@ const ReplayPage = () => {
         )}
       </MapView>
       <MapScale />
-      <MapCamera positions={positions} />
+      {/* Fokuskan kamera ke seluruh rute saat awal, atau ke titik aktif saat di-play */}
+      <MapCamera positions={playing ? [positions[index]] : positions} />
+
       <div className={classes.sidebar}>
         <Paper
           elevation={0}
@@ -235,8 +242,7 @@ const ReplayPage = () => {
                 <Slider
                   className={classes.slider}
                   max={positions.length - 1}
-                  step={null}
-                  marks={positions.map((_, i) => ({ value: i }))}
+                  step={1}
                   value={index}
                   onChange={(_, val) => setIndex(val)}
                 />
@@ -252,7 +258,15 @@ const ReplayPage = () => {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <IconButton
-                    onClick={() => setIndex((prev) => prev - 1)}
+                    onClick={(e) => setAnchorElSpeed(e.currentTarget)}
+                    size="small"
+                    sx={{ mr: 0.5 }}
+                  >
+                    <SpeedIcon fontSize="small" />
+                  </IconButton>
+
+                  <IconButton
+                    onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
                     disabled={playing || index <= 0}
                     size="small"
                   >
@@ -260,13 +274,20 @@ const ReplayPage = () => {
                   </IconButton>
 
                   <IconButton
-                    onClick={() => setPlaying(!playing)}
-                    disabled={index >= positions.length - 1}
+                    onClick={() => {
+                      if (index >= positions.length - 1) {
+                        setIndex(0);
+                      }
+                      setPlaying(!playing);
+                    }}
                     sx={{
                       backgroundColor: 'primary.main',
                       color: 'primary.contrastText',
                       '&:hover': { backgroundColor: 'primary.dark' },
-                      '&.Mui-disabled': { opacity: 0.4, backgroundColor: 'action.disabledBackground' },
+                      '&.Mui-disabled': {
+                        opacity: 0.4,
+                        backgroundColor: 'action.disabledBackground',
+                      },
                       p: 1.25,
                     }}
                   >
@@ -278,7 +299,7 @@ const ReplayPage = () => {
                   </IconButton>
 
                   <IconButton
-                    onClick={() => setIndex((prev) => prev + 1)}
+                    onClick={() => setIndex((prev) => Math.min(positions.length - 1, prev + 1))}
                     disabled={playing || index >= positions.length - 1}
                     size="small"
                   >
@@ -291,9 +312,49 @@ const ReplayPage = () => {
                   color="text.secondary"
                   sx={{ fontVariantNumeric: 'tabular-nums', minWidth: 64, textAlign: 'right' }}
                 >
-                  {formatTime(positions[index].fixTime, 'seconds')}
+                  {formatTime(positions[index]?.fixTime, 'seconds')}
                 </Typography>
               </div>
+
+              {/* Menu Pemilihan Kecepatan Replay */}
+              <Menu
+                anchorEl={anchorElSpeed}
+                open={Boolean(anchorElSpeed)}
+                onClose={() => setAnchorElSpeed(null)}
+              >
+                <MenuItem
+                  onClick={() => {
+                    setSpeed(1000);
+                    setAnchorElSpeed(null);
+                  }}
+                >
+                  1x (Slow)
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setSpeed(500);
+                    setAnchorElSpeed(null);
+                  }}
+                >
+                  2x (Normal)
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setSpeed(200);
+                    setAnchorElSpeed(null);
+                  }}
+                >
+                  5x (Fast)
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setSpeed(50);
+                    setAnchorElSpeed(null);
+                  }}
+                >
+                  20x (Very Fast)
+                </MenuItem>
+              </Menu>
             </>
           )}
           <div style={{ display: loaded && !filterOpen ? 'none' : 'block' }}>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import TextField from '@mui/material/TextField';
-import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Typography, Box } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditItemView from './components/EditItemView';
 import EditAttributesAccordion from './components/EditAttributesAccordion';
@@ -12,13 +13,13 @@ import useCommonDeviceAttributes from '../common/attributes/useCommonDeviceAttri
 import useGroupAttributes from '../common/attributes/useGroupAttributes';
 import { useCatch } from '../reactHelper';
 import { groupsActions } from '../store';
-import useSettingsStyles from './common/useSettingsStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const GroupPage = () => {
-  const { classes } = useSettingsStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const commonDeviceAttributes = useCommonDeviceAttributes(t);
   const groupAttributes = useGroupAttributes(t);
@@ -30,20 +31,38 @@ const GroupPage = () => {
     dispatch(groupsActions.refresh(await response.json()));
   });
 
-  const validate = () => item && item.name;
+  const validate = () => Boolean(item && item.name);
 
-  const accordionStyle = {
-    borderRadius: '16px !important',
-    border: (theme) => `1px solid ${theme.palette.divider}`,
+  const accordionCardStyle = {
+    borderRadius: '18px !important',
+    border: (th) =>
+      `1px solid ${
+        th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+      }`,
+    backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+    boxShadow: (th) =>
+      th.palette.mode === 'dark'
+        ? '0 12px 30px rgba(0, 0, 0, 0.45)'
+        : '0 8px 24px rgba(15, 23, 42, 0.04)',
     overflow: 'hidden',
     mb: 2.5,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
   };
 
   const inputStyle = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '10px',
+      borderRadius: '12px',
+      backgroundColor: (th) => (th.palette.mode === 'dark' ? alpha('#0f172a', 0.8) : '#ffffff'),
+      '& fieldset': {
+        borderColor: (th) =>
+          th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#1d4ed8',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#1d4ed8',
+      },
     },
   };
 
@@ -58,14 +77,32 @@ const GroupPage = () => {
       breadcrumbs={['settingsTitle', 'groupDialog']}
     >
       {item && (
-        <>
-          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* 1. Pengaturan Wajib Grup */}
+          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                {t('sharedRequired')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <TextField
                 fullWidth
@@ -78,13 +115,31 @@ const GroupPage = () => {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>{t('sharedExtra')}</Typography>
+          {/* 2. Pengaturan Ekstra (Grup Induk) */}
+          <Accordion elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                {t('sharedExtra')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <SelectField
                 fullWidth
@@ -98,12 +153,13 @@ const GroupPage = () => {
             </AccordionDetails>
           </Accordion>
 
+          {/* 3. Atribut Kustom Grup */}
           <EditAttributesAccordion
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
             definitions={{ ...commonDeviceAttributes, ...groupAttributes }}
           />
-        </>
+        </Box>
       )}
     </EditItemView>
   );

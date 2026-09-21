@@ -46,7 +46,7 @@ const NetworkPage = () => {
   const navigate = useNavigate();
   const { positionId } = useParams();
 
-  const [item, setItem] = useState({});
+  const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useAsyncTask(
@@ -56,8 +56,14 @@ const NetworkPage = () => {
         try {
           const response = await fetchOrThrow(`/api/positions?id=${positionId}`, { signal });
           const positions = await response.json();
-          if (positions.length > 0) {
+          if (positions && positions.length > 0) {
             setItem(positions[0]);
+          } else {
+            setItem(null);
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Failed to fetch position network data:', error);
           }
         } finally {
           setLoading(false);
@@ -69,7 +75,7 @@ const NetworkPage = () => {
 
   const deviceName = useSelector((state) => {
     if (item?.deviceId) {
-      const device = state.devices.items[item.deviceId];
+      const device = state.devices?.items?.[item.deviceId];
       if (device) {
         return device.name;
       }
@@ -77,8 +83,8 @@ const NetworkPage = () => {
     return null;
   });
 
-  const cellTowers = item.network?.cellTowers || [];
-  const wifiPoints = item.network?.wifiAccessPoints || [];
+  const cellTowers = item?.network?.cellTowers || [];
+  const wifiPoints = item?.network?.wifiAccessPoints || [];
 
   return (
     <div className={classes.root}>
@@ -145,16 +151,44 @@ const NetworkPage = () => {
                       theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
                     MCC
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
                     MNC
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
                     LAC
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
                     CID
                   </TableCell>
                 </TableRow>
@@ -162,17 +196,25 @@ const NetworkPage = () => {
               <TableBody>
                 {loading ? (
                   Array.from({ length: 2 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
+                    <TableRow key={`cell-skeleton-${i}`}>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : cellTowers.length > 0 ? (
                   cellTowers.map((cell, idx) => (
                     <TableRow
-                      key={cell.cellId || idx}
+                      key={cell.cellId || `cell-${idx}`}
                       hover
                       sx={{
                         '&:last-child td, &:last-child th': { border: 0 },
@@ -180,16 +222,16 @@ const NetworkPage = () => {
                       }}
                     >
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
-                        {cell.mobileCountryCode}
+                        {cell.mobileCountryCode ?? '-'}
                       </TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
-                        {cell.mobileNetworkCode}
+                        {cell.mobileNetworkCode ?? '-'}
                       </TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
-                        {cell.locationAreaCode}
+                        {cell.locationAreaCode ?? '-'}
                       </TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
-                        {cell.cellId}
+                        {cell.cellId ?? '-'}
                       </TableCell>
                     </TableRow>
                   ))
@@ -245,10 +287,24 @@ const NetworkPage = () => {
                       theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
                     MAC Address
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600, fontSize: '0.8125rem', color: 'text.secondary', py: 1.5 }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                      py: 1.5,
+                    }}
+                  >
                     Signal Strength (RSSI)
                   </TableCell>
                 </TableRow>
@@ -256,15 +312,19 @@ const NetworkPage = () => {
               <TableBody>
                 {loading ? (
                   Array.from({ length: 2 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
+                    <TableRow key={`wifi-skeleton-${i}`}>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : wifiPoints.length > 0 ? (
                   wifiPoints.map((wifi, idx) => (
                     <TableRow
-                      key={wifi.macAddress || idx}
+                      key={wifi.macAddress || `wifi-${idx}`}
                       hover
                       sx={{
                         '&:last-child td, &:last-child th': { border: 0 },
@@ -272,10 +332,10 @@ const NetworkPage = () => {
                       }}
                     >
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
-                        {wifi.macAddress}
+                        {wifi.macAddress ?? '-'}
                       </TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.825rem', py: 1.25 }}>
-                        {wifi.signalStrength} dBm
+                        {wifi.signalStrength ? `${wifi.signalStrength} dBm` : '-'}
                       </TableCell>
                     </TableRow>
                   ))

@@ -9,8 +9,9 @@ import {
   Box,
   Link,
 } from '@mui/material';
-import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
-import LaunchIcon from '@mui/icons-material/Launch';
+import { alpha } from '@mui/material/styles';
+import GavelRoundedIcon from '@mui/icons-material/GavelRounded';
+import LaunchRoundedIcon from '@mui/icons-material/LaunchRounded';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import { useTranslation } from './LocalizationProvider';
@@ -30,9 +31,16 @@ const TermsDialog = ({ open, onCancel, onAccept }) => {
       PaperProps={{
         elevation: 0,
         sx: {
-          borderRadius: '16px',
-          border: (theme) => `1px solid ${theme.palette.divider}`,
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12)',
+          borderRadius: '22px',
+          border: (theme) =>
+            `1px solid ${
+              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+            }`,
+          backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+          boxShadow: (theme) =>
+            theme.palette.mode === 'dark'
+              ? '0 24px 48px -12px rgba(0, 0, 0, 0.75)'
+              : '0 20px 44px -8px rgba(15, 23, 42, 0.14)',
           p: 1,
         },
       }}
@@ -43,23 +51,32 @@ const TermsDialog = ({ open, onCancel, onAccept }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
+            width: 42,
+            height: 42,
+            borderRadius: '14px',
             backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.16)' : 'rgba(25, 118, 210, 0.08)',
-            color: 'primary.main',
+              theme.palette.mode === 'dark' ? alpha('#1d4ed8', 0.2) : alpha('#1d4ed8', 0.08),
+            color: '#1d4ed8',
           }}
         >
-          <GavelOutlinedIcon fontSize="small" />
+          <GavelRoundedIcon sx={{ fontSize: 22 }} />
         </Box>
-        <Typography variant="h6" fontWeight={600} color="text.primary">
+        <Typography
+          variant="h6"
+          fontWeight={700}
+          color="text.primary"
+          sx={{ letterSpacing: '-0.01em' }}
+        >
           {t('userTerms')}
         </Typography>
       </DialogTitle>
 
       <DialogContent sx={{ py: 1.5 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, lineHeight: 1.6 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mb: 2.5, lineHeight: 1.6, fontSize: '0.86rem' }}
+        >
           {t('userTermsPrompt')}
         </Typography>
 
@@ -74,26 +91,37 @@ const TermsDialog = ({ open, onCancel, onAccept }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                p: 1.5,
-                borderRadius: '10px',
-                border: (theme) => `1px solid ${theme.palette.divider}`,
+                p: 1.75,
+                borderRadius: '14px',
+                border: (theme) =>
+                  `1px solid ${
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.08)'
+                      : 'rgba(15, 23, 42, 0.08)'
+                  }`,
                 backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
-                transition: 'all 0.15s ease',
+                  theme.palette.mode === 'dark' ? alpha('#0f172a', 0.5) : '#f8fafc',
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  borderColor: 'primary.main',
+                  borderColor: '#1d4ed8',
                   backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(25, 118, 210, 0.04)',
+                    theme.palette.mode === 'dark' ? alpha('#1d4ed8', 0.12) : alpha('#1d4ed8', 0.04),
+                  transform: 'translateY(-1px)',
                 },
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <DescriptionOutlinedIcon fontSize="small" color="primary" />
-                <Typography variant="body2" fontWeight={500} color="text.primary">
+                <DescriptionOutlinedIcon sx={{ fontSize: 20, color: '#1d4ed8' }} />
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  color="text.primary"
+                  sx={{ fontSize: '0.86rem' }}
+                >
                   {t('userTerms')}
                 </Typography>
               </Box>
-              <LaunchIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <LaunchRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
             </Link>
           )}
 
@@ -107,26 +135,37 @@ const TermsDialog = ({ open, onCancel, onAccept }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                p: 1.5,
-                borderRadius: '10px',
-                border: (theme) => `1px solid ${theme.palette.divider}`,
+                p: 1.75,
+                borderRadius: '14px',
+                border: (theme) =>
+                  `1px solid ${
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.08)'
+                      : 'rgba(15, 23, 42, 0.08)'
+                  }`,
                 backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
-                transition: 'all 0.15s ease',
+                  theme.palette.mode === 'dark' ? alpha('#0f172a', 0.5) : '#f8fafc',
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  borderColor: 'primary.main',
+                  borderColor: '#1d4ed8',
                   backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(25, 118, 210, 0.04)',
+                    theme.palette.mode === 'dark' ? alpha('#1d4ed8', 0.12) : alpha('#1d4ed8', 0.04),
+                  transform: 'translateY(-1px)',
                 },
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <SecurityOutlinedIcon fontSize="small" color="primary" />
-                <Typography variant="body2" fontWeight={500} color="text.primary">
+                <SecurityOutlinedIcon sx={{ fontSize: 20, color: '#1d4ed8' }} />
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  color="text.primary"
+                  sx={{ fontSize: '0.86rem' }}
+                >
                   {t('userPrivacy')}
                 </Typography>
               </Box>
-              <LaunchIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <LaunchRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
             </Link>
           )}
         </Box>
@@ -135,27 +174,47 @@ const TermsDialog = ({ open, onCancel, onAccept }) => {
       <DialogActions sx={{ px: 2.5, pb: 2, gap: 1 }}>
         <Button
           variant="outlined"
-          color="inherit"
           onClick={onCancel}
           sx={{
-            borderRadius: '10px',
+            borderRadius: '12px',
             textTransform: 'none',
             fontWeight: 600,
-            borderColor: (theme) => theme.palette.divider,
+            fontSize: '0.86rem',
+            px: 2,
+            py: 0.9,
+            borderColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.14)'
+                : 'rgba(15, 23, 42, 0.14)',
+            color: 'text.secondary',
+            '&:hover': {
+              borderColor: '#1d4ed8',
+              color: '#1d4ed8',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+            },
           }}
         >
           {t('sharedCancel')}
         </Button>
         <Button
           variant="contained"
-          color="primary"
           onClick={onAccept}
           sx={{
-            borderRadius: '10px',
+            borderRadius: '12px',
+            backgroundColor: '#1d4ed8',
+            color: '#ffffff',
             textTransform: 'none',
             fontWeight: 600,
+            fontSize: '0.86rem',
             boxShadow: 'none',
-            px: 2.5,
+            px: 2.75,
+            py: 0.9,
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              backgroundColor: '#1e40af',
+              boxShadow: '0 4px 12px rgba(29, 78, 216, 0.3)',
+            },
           }}
         >
           {t('sharedAccept')}

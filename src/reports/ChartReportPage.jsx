@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   FormControl,
   InputLabel,
@@ -58,12 +58,27 @@ const ChartReportPage = () => {
   const [timeType, setTimeType] = useState('fixTime');
   const [loading, setLoading] = useState(false);
 
-  const values = items.map((it) =>
-    selectedTypes.map((type) => it[type]).filter((value) => value != null),
-  );
-  const minValue = values.length ? Math.min(...values.flat()) : 0;
-  const maxValue = values.length ? Math.max(...values.flat()) : 100;
-  const valueRange = maxValue - minValue;
+  // Optimasi kalkulasi Min & Max Value menggunakan useMemo
+  const { minValue, maxValue, valueRange } = useMemo(() => {
+    if (!items.length || !selectedTypes.length) {
+      return { minValue: 0, maxValue: 100, valueRange: 100 };
+    }
+    const numericValues = items
+      .flatMap((it) => selectedTypes.map((type) => Number(it[type])))
+      .filter((val) => !Number.isNaN(val) && val !== null && val !== undefined);
+
+    if (!numericValues.length) return { minValue: 0, maxValue: 100, valueRange: 100 };
+
+    const min = Math.min(...numericValues);
+    const max = Math.max(...numericValues);
+    const range = max - min;
+
+    return {
+      minValue: min,
+      maxValue: max,
+      valueRange: range === 0 ? 10 : range, // Fallback agar tidak bernilai 0
+    };
+  }, [items, selectedTypes]);
 
   const onShow = useCatchCallback(
     async ({ deviceIds, from, to }) => {
@@ -77,12 +92,14 @@ const ChartReportPage = () => {
         const positions = await response.json();
         const keySet = new Set();
         const keyList = [];
+
         const formattedPositions = positions.map((position) => {
           const data = { ...position, ...position.attributes };
           const formatted = {};
           formatted.fixTime = dayjs(position.fixTime).valueOf();
           formatted.deviceTime = dayjs(position.deviceTime).valueOf();
           formatted.serverTime = dayjs(position.serverTime).valueOf();
+
           Object.keys(data)
             .filter((key) => !['id', 'deviceId'].includes(key))
             .forEach((key) => {
@@ -90,25 +107,29 @@ const ChartReportPage = () => {
               if (typeof value === 'number') {
                 keySet.add(key);
                 const definition = positionAttributes[key] || {};
+
+                // Pastikan mengembalikan angka (Number) bukan String agar Recharts bekerja sempurna
                 switch (definition.dataType) {
                   case 'speed':
                     if (key === 'obdSpeed') {
-                      formatted[key] = speedFromKnots(speedToKnots(value, 'kmh'), speedUnit).toFixed(2);
+                      formatted[key] = Number(
+                        speedFromKnots(speedToKnots(value, 'kmh'), speedUnit).toFixed(2),
+                      );
                     } else {
-                      formatted[key] = speedFromKnots(value, speedUnit).toFixed(2);
+                      formatted[key] = Number(speedFromKnots(value, speedUnit).toFixed(2));
                     }
                     break;
                   case 'altitude':
-                    formatted[key] = altitudeFromMeters(value, altitudeUnit).toFixed(2);
+                    formatted[key] = Number(altitudeFromMeters(value, altitudeUnit).toFixed(2));
                     break;
                   case 'distance':
-                    formatted[key] = distanceFromMeters(value, distanceUnit).toFixed(2);
+                    formatted[key] = Number(distanceFromMeters(value, distanceUnit).toFixed(2));
                     break;
                   case 'volume':
-                    formatted[key] = volumeFromLiters(value, volumeUnit).toFixed(2);
+                    formatted[key] = Number(volumeFromLiters(value, volumeUnit).toFixed(2));
                     break;
                   case 'hours':
-                    formatted[key] = (value / 1000).toFixed(2);
+                    formatted[key] = Number((value / 1000).toFixed(2));
                     break;
                   default:
                     formatted[key] = value;
@@ -118,12 +139,14 @@ const ChartReportPage = () => {
             });
           return formatted;
         });
+
         Object.keys(positionAttributes).forEach((key) => {
           if (keySet.has(key)) {
             keyList.push(key);
             keySet.delete(key);
           }
         });
+
         setTypes([...keyList, ...keySet]);
         setItems(formattedPositions);
       } finally {
@@ -146,7 +169,13 @@ const ChartReportPage = () => {
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportChart']}>
       <div className={classes.header}>
-        <ReportFilter onShow={onShow} onExport={() => { }} deviceType="single" formats={[]} loading={loading}>
+        <ReportFilter
+          onShow={onShow}
+          onExport={() => {}}
+          deviceType="single"
+          formats={[]}
+          loading={loading}
+        >
           <div className={classes.filterItem}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('reportChartType')}</InputLabel>
@@ -185,7 +214,16 @@ const ChartReportPage = () => {
         </ReportFilter>
       </div>
 
-      <Box sx={{ p: { xs: 1.5, sm: 3 }, pt: 0, width: '100%', boxSizing: 'border-box', flexGrow: 1, minHeight: 0 }}>
+      <Box
+        sx={{
+          p: { xs: 1.5, sm: 3 },
+          pt: 0,
+          width: '100%',
+          boxSizing: 'border-box',
+          flexGrow: 1,
+          minHeight: 0,
+        }}
+      >
         {loading ? (
           <Paper
             elevation={0}
@@ -262,7 +300,9 @@ const ChartReportPage = () => {
                   dataKey={timeType}
                   height={32}
                   stroke={theme.palette.primary.main}
-                  fill={theme.palette.mode === 'dark' ? theme.palette.background.default : '#f8fafc'}
+                  fill={
+                    theme.palette.mode === 'dark' ? theme.palette.background.default : '#f8fafc'
+                  }
                   tickFormatter={() => ''}
                 />
                 {selectedTypes.map((type, index) => (
@@ -302,7 +342,8 @@ const ChartReportPage = () => {
               {t('sharedNoData')}
             </Typography>
             <Typography variant="body2" color="text.disabled" sx={{ maxWidth: 360, mt: 0.5 }}>
-              Pilih perangkat dan rentang waktu pada filter di atas, lalu klik tampilkan untuk melihat grafik data.
+              Pilih perangkat dan rentang waktu pada filter di atas, lalu klik tampilkan untuk
+              melihat grafik data.
             </Typography>
           </Paper>
         )}

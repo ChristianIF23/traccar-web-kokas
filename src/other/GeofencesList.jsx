@@ -19,22 +19,19 @@ const GeofencesList = ({ onGeofenceSelected }) => {
   const { classes } = useStyles();
   const dispatch = useDispatch();
 
-  const items = useSelector((state) => state.geofences.items);
+  const items = useSelector((state) => state.geofences?.items || {});
 
   const refreshGeofences = useCatchCallback(async () => {
     const response = await fetchOrThrow('/api/geofences');
-    dispatch(geofencesActions.refresh(await response.json()));
+    const data = await response.json();
+    dispatch(geofencesActions.refresh(data));
   }, [dispatch]);
 
   const itemsList = Object.values(items);
 
   if (!itemsList.length) {
     return (
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ textAlign: 'center', py: 4 }}
-      >
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
         —
       </Typography>
     );
@@ -45,7 +42,7 @@ const GeofencesList = ({ onGeofenceSelected }) => {
       {itemsList.map((item) => (
         <ListItemButton
           key={item.id}
-          onClick={() => onGeofenceSelected(item.id)}
+          onClick={() => onGeofenceSelected?.(item.id)}
           sx={{
             mx: 1.5,
             my: 0.5,
@@ -58,12 +55,10 @@ const GeofencesList = ({ onGeofenceSelected }) => {
             boxShadow: '0 1px 2px rgba(0, 0, 0, 0.02)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justify: 'space-between',
             '&:hover': {
               backgroundColor: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? 'rgba(255, 255, 255, 0.04)'
-                  : '#f8fafc',
+                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
               borderColor: 'text.secondary',
             },
           }}

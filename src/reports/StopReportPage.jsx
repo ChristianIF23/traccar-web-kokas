@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
@@ -96,6 +96,38 @@ const StopReportPage = () => {
     }
   }, []);
 
+  const formatValue = useCallback(
+    (item, key) => {
+      const value = item[key];
+      switch (key) {
+        case 'deviceId':
+          return devices[value]?.name;
+        case 'startTime':
+        case 'endTime':
+          return formatTime(value, 'minutes');
+        case 'startOdometer':
+          return formatDistance(value, distanceUnit, t);
+        case 'duration':
+          return formatNumericHours(value, t);
+        case 'engineHours':
+          return value > 0 ? formatNumericHours(value, t) : null;
+        case 'spentFuel':
+          return value > 0 ? formatVolume(value, volumeUnit, t) : null;
+        case 'address':
+          return (
+            <AddressValue
+              latitude={item.latitude}
+              longitude={item.longitude}
+              originalAddress={value}
+            />
+          );
+        default:
+          return value;
+      }
+    },
+    [devices, distanceUnit, volumeUnit, t],
+  );
+
   const onExport = useCatch(async () => {
     const sheets = new Map();
     items.forEach((item) => {
@@ -122,35 +154,6 @@ const StopReportPage = () => {
     await scheduleReport(deviceIds, groupIds, report);
     navigate('/reports/scheduled');
   });
-
-  const formatValue = (item, key) => {
-    const value = item[key];
-    switch (key) {
-      case 'deviceId':
-        return devices[value]?.name;
-      case 'startTime':
-      case 'endTime':
-        return formatTime(value, 'minutes');
-      case 'startOdometer':
-        return formatDistance(value, distanceUnit, t);
-      case 'duration':
-        return formatNumericHours(value, t);
-      case 'engineHours':
-        return value > 0 ? formatNumericHours(value, t) : null;
-      case 'spentFuel':
-        return value > 0 ? formatVolume(value, volumeUnit, t) : null;
-      case 'address':
-        return (
-          <AddressValue
-            latitude={item.latitude}
-            longitude={item.longitude}
-            originalAddress={value}
-          />
-        );
-      default:
-        return value;
-    }
-  };
 
   const selectedMarker = selectedItem && {
     latitude: selectedItem.latitude,
@@ -247,11 +250,12 @@ const StopReportPage = () => {
                 <TableBody>
                   {!loading ? (
                     items.length > 0 ? (
-                      items.map((item) => {
-                        const isSelected = selectedItem === item;
+                      items.map((item, index) => {
+                        const isSelected =
+                          selectedItem?.positionId === item.positionId || selectedItem === item;
                         return (
                           <TableRow
-                            key={item.positionId}
+                            key={item.positionId || index}
                             hover
                             selected={isSelected}
                             sx={{
@@ -270,7 +274,11 @@ const StopReportPage = () => {
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
+                            <TableCell
+                              className={classes.columnAction}
+                              padding="none"
+                              sx={{ pl: 1.5 }}
+                            >
                               {isSelected ? (
                                 <Tooltip title={t('sharedHideOnMap')} arrow>
                                   <IconButton
@@ -312,7 +320,11 @@ const StopReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                        <TableCell
+                          colSpan={columns.length + 2}
+                          align="center"
+                          sx={{ py: 6, borderBottom: 'none' }}
+                        >
                           <Typography variant="body2" color="text.secondary">
                             {t('sharedNoData')}
                           </Typography>

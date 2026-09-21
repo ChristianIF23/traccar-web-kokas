@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Button,
   Dialog,
@@ -13,10 +13,11 @@ import {
   Autocomplete,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/useAutocomplete';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 
-const AddAttributeDialog = ({ open, onResult, definitions }) => {
+const AddAttributeDialog = ({ open, onResult, definitions = {} }) => {
   const t = useTranslation();
 
   const filter = createFilterOptions({
@@ -36,8 +37,17 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
     [definitions],
   );
 
-  const [key, setKey] = useState();
+  const [key, setKey] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [type, setType] = useState('string');
+
+  useEffect(() => {
+    if (!open) {
+      setKey('');
+      setInputValue('');
+      setType('string');
+    }
+  }, [open]);
 
   const inputStyle = {
     '& .MuiOutlinedInput-root': {
@@ -48,6 +58,7 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
   return (
     <Dialog
       open={open}
+      onClose={() => onResult(null)}
       fullWidth
       maxWidth="xs"
       slotProps={{
@@ -55,15 +66,29 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
           elevation: 0,
           sx: {
             borderRadius: '16px',
-            border: (theme) => `1px solid ${theme.palette.divider}`,
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.12)',
-            p: 1,
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark'
+                ? alpha(theme.palette.background.paper, 0.9)
+                : alpha(theme.palette.background.paper, 0.96),
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: (theme) =>
+              `1px solid ${
+                theme.palette.mode === 'dark'
+                  ? alpha(theme.palette.common.white, 0.08)
+                  : alpha(theme.palette.common.black, 0.06)
+              }`,
+            boxShadow: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '0 12px 40px rgba(0, 0, 0, 0.6)'
+                : '0 12px 32px rgba(15, 23, 42, 0.08)',
+            p: 0.5,
           },
         },
       }}
     >
       <DialogTitle sx={{ px: 2.5, pt: 2, pb: 1 }}>
-        <Typography variant="h6" fontWeight={600} color="text.primary">
+        <Typography variant="h6" fontWeight={700} color="text.primary">
           {t('sharedAddAttribute') || t('sharedAttributes')}
         </Typography>
       </DialogTitle>
@@ -80,12 +105,20 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
         <Autocomplete
           freeSolo
           size="small"
+          inputValue={inputValue}
+          onInputChange={(_, newInputValue) => {
+            setInputValue(newInputValue);
+            setKey(newInputValue);
+          }}
           onChange={(_, option) => {
-            setKey(
-              option && typeof option === 'object' ? (option.key ?? option.inputValue) : option,
-            );
-            if (option && (option.type || option.inputValue)) {
-              setType(option.type);
+            if (option && typeof option === 'object') {
+              const selectedKey = option.key ?? option.inputValue ?? '';
+              setKey(selectedKey);
+              if (option.type) {
+                setType(option.type);
+              }
+            } else if (typeof option === 'string') {
+              setKey(option);
             }
           }}
           filterOptions={(opts, params) => {
@@ -102,24 +135,54 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
             return filtered;
           }}
           options={options}
-          getOptionLabel={(option) =>
-            option && typeof option === 'object' ? option.inputValue || option.name : option
-          }
-          renderOption={(props, option) => (
-            <li {...props}>
-              <Typography variant="body2">{option.name || option}</Typography>
-            </li>
-          )}
+          getOptionLabel={(option) => {
+            if (typeof option === 'string') return option;
+            return option.inputValue || option.name || option.key || '';
+          }}
+          slotProps={{
+            paper: {
+              sx: {
+                borderRadius: '12px',
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? alpha(theme.palette.background.paper, 0.92)
+                    : alpha(theme.palette.background.paper, 0.98),
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: (theme) =>
+                  `1px solid ${
+                    theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.white, 0.08)
+                      : alpha(theme.palette.common.black, 0.06)
+                  }`,
+                boxShadow: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? '0 8px 32px rgba(0, 0, 0, 0.5)'
+                    : '0 8px 32px rgba(15, 23, 42, 0.08)',
+              },
+            },
+          }}
+          renderOption={(props, option) => {
+            const { key: optionKey, ...otherProps } = props;
+            return (
+              <li key={optionKey || option.key || option.inputValue || option} {...otherProps}>
+                <Typography variant="body2" fontWeight={500}>
+                  {option.name || option}
+                </Typography>
+              </li>
+            );
+          }}
           renderInput={(params) => (
-            <TextField
-              {...params}
-              label={t('sharedAttribute')}
-              sx={inputStyle}
-            />
+            <TextField {...params} label={t('sharedAttribute')} sx={inputStyle} />
           )}
         />
 
-        <FormControl fullWidth size="small" disabled={key in definitions} sx={inputStyle}>
+        <FormControl
+          fullWidth
+          size="small"
+          disabled={Boolean(key && key in definitions)}
+          sx={inputStyle}
+        >
           <InputLabel>{t('sharedType')}</InputLabel>
           <Select
             label={t('sharedType')}
@@ -156,17 +219,17 @@ const AddAttributeDialog = ({ open, onResult, definitions }) => {
         <Button
           variant="contained"
           color="primary"
-          disabled={!key}
-          onClick={() => onResult({ key, type })}
+          disabled={!key.trim()}
+          onClick={() => onResult({ key: key.trim(), type })}
           sx={{
             borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 600,
             px: 3,
             py: 0.8,
-            boxShadow: 'none',
+            boxShadow: (theme) => `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
             '&:hover': {
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              boxShadow: (theme) => `0 6px 18px ${alpha(theme.palette.primary.main, 0.45)}`,
             },
           }}
         >

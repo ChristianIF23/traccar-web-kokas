@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useTheme } from '@mui/material/styles';
 import {
   Table,
   TableRow,
@@ -18,10 +19,11 @@ import ReportsMenu from './components/ReportsMenu';
 import ReportFilter from './components/ReportFilter';
 import usePersistedState from '../common/util/usePersistedState';
 import ColumnSelect from './components/ColumnSelect';
-import { useCatchCallback } from '../reactHelper';
+import { useCatch, useCatchCallback } from '../reactHelper';
 import useReportStyles from './common/useReportStyles';
 import TableShimmer from '../common/components/TableShimmer';
 import fetchOrThrow from '../common/util/fetchOrThrow';
+import exportExcel from '../common/util/exportExcel';
 
 const columnsArray = [
   ['captureTime', 'statisticsCaptureTime'],
@@ -40,6 +42,7 @@ const columnsMap = new Map(columnsArray);
 const StatisticsPage = () => {
   const { classes } = useReportStyles();
   const t = useTranslation();
+  const theme = useTheme();
 
   const [columns, setColumns] = usePersistedState('statisticsColumns', [
     'captureTime',
@@ -61,10 +64,45 @@ const StatisticsPage = () => {
     }
   }, []);
 
+  const formatValue = useCallback((item, key) => {
+    const value = item[key];
+    if (value === undefined || value === null) return '-';
+
+    if (key === 'captureTime') {
+      return formatTime(value, 'date');
+    }
+
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+
+    return value;
+  }, []);
+
+  const onExport = useCatch(async () => {
+    const rowData = items.map((item) => {
+      const row = {};
+      columns.forEach((key) => {
+        const header = t(columnsMap.get(key));
+        row[header] = formatValue(item, key);
+      });
+      return row;
+    });
+
+    const sheets = new Map([[t('statisticsTitle'), rowData]]);
+    await exportExcel(t('statisticsTitle'), 'statistics.xlsx', sheets, theme);
+  });
+
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'statisticsTitle']}>
       <div className={classes.header}>
-        <ReportFilter onShow={onShow} deviceType="none" loading={loading}>
+        <ReportFilter
+          onShow={onShow}
+          onExport={onExport}
+          deviceType="none"
+          loading={loading}
+          formats={['xlsx']}
+        >
           <ColumnSelect columns={columns} setColumns={setColumns} columnsArray={columnsArray} />
         </ReportFilter>
       </div>
@@ -75,7 +113,7 @@ const StatisticsPage = () => {
           elevation={0}
           sx={{
             borderRadius: '16px',
-            border: (theme) => `1px solid ${theme.palette.divider}`,
+            border: (th) => `1px solid ${th.palette.divider}`,
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
             overflow: 'hidden',
           }}
@@ -92,8 +130,8 @@ const StatisticsPage = () => {
               <TableRow
                 sx={{
                   '& .MuiTableCell-root': {
-                    backgroundColor: (theme) =>
-                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                    backgroundColor: (th) =>
+                      th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
                     color: 'text.secondary',
                     fontWeight: 600,
                     fontSize: '0.78rem',
@@ -101,7 +139,7 @@ const StatisticsPage = () => {
                     letterSpacing: '0.04em',
                     py: 1.8,
                     px: 2.5,
-                    borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                    borderBottom: (th) => `1px solid ${th.palette.divider}`,
                     whiteSpace: 'nowrap',
                   },
                 }}
@@ -114,9 +152,9 @@ const StatisticsPage = () => {
             <TableBody>
               {!loading ? (
                 items.length > 0 ? (
-                  items.map((item) => (
+                  items.map((item, index) => (
                     <TableRow
-                      key={item.id}
+                      key={item.id || item.captureTime || index}
                       hover
                       sx={{
                         transition: 'background-color 0.15s ease',
@@ -124,7 +162,7 @@ const StatisticsPage = () => {
                           py: 1.5,
                           px: 2.5,
                           fontSize: '0.875rem',
-                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                          borderBottom: (th) => `1px solid ${th.palette.divider}`,
                         },
                       }}
                     >
@@ -136,15 +174,26 @@ const StatisticsPage = () => {
                             fontVariantNumeric: 'tabular-nums',
                           }}
                         >
-                          {key === 'captureTime' ? formatTime(item[key], 'date') : item[key]}
+                          {formatValue(item, key)}
                         </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <TableCell
+                      colSpan={columns.length}
+                      align="center"
+                      sx={{ py: 6, borderBottom: 'none' }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <BarChartOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
                         <Typography variant="body2" color="text.secondary">
                           {t('sharedNoData')}

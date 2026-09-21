@@ -27,9 +27,12 @@ const LogsPage = () => {
   const dispatch = useDispatch();
   const t = useTranslation();
 
+  // Mengaktifkan stream/listener log saat halaman dibuka dan mematikannya saat di-unmount
   useEffect(() => {
     dispatch(sessionActions.enableLogs(true));
-    return () => dispatch(sessionActions.enableLogs(false));
+    return () => {
+      dispatch(sessionActions.enableLogs(false));
+    };
   }, [dispatch]);
 
   const items = useSelector((state) => state.session.logs);
@@ -86,79 +89,93 @@ const LogsPage = () => {
             </TableHead>
             <TableBody>
               {items && items.length > 0 ? (
-                items.map((item, index) => (
-                  <TableRow
-                    key={index}
-                    hover
-                    sx={{
-                      transition: 'background-color 0.15s ease',
-                      '& .MuiTableCell-root': {
-                        py: 1.5,
-                        px: 2.5,
-                        fontSize: '0.875rem',
-                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                      },
-                    }}
-                  >
-                    <TableCell padding="none" sx={{ width: 52, pl: 1.5 }}>
-                      {item.deviceId ? (
-                        <Tooltip title={t('deviceStatusOnline') || 'Registered'} arrow>
-                          <IconButton
-                            color="success"
-                            size="small"
-                            disabled
-                            sx={{ borderRadius: '8px', p: 0.75, opacity: 0.85 }}
-                          >
-                            <CheckCircleOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title={t('loginRegister')} arrow>
-                          <IconButton
-                            color="error"
-                            size="small"
-                            onClick={() => registerDevice(item.uniqueId)}
-                            sx={{ borderRadius: '8px', p: 0.75 }}
-                          >
-                            <HelpOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </TableCell>
-                    <TableCell
+                items.map((item, index) => {
+                  // Key dibuat lebih spesifik untuk menghindari bug re-render pada data WebSocket real-time
+                  const rowKey = item.id || `${item.uniqueId}-${item.time || index}`;
+
+                  return (
+                    <TableRow
+                      key={rowKey}
+                      hover
                       sx={{
-                        fontFamily: 'monospace',
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        color: 'text.primary',
+                        transition: 'background-color 0.15s ease',
+                        '& .MuiTableCell-root': {
+                          py: 1.5,
+                          px: 2.5,
+                          fontSize: '0.875rem',
+                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        },
                       }}
                     >
-                      {item.uniqueId}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: '0.8125rem',
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {item.protocol}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontFamily: 'monospace',
-                        fontSize: '0.8rem',
-                        wordBreak: 'break-all',
-                        color: 'text.primary',
-                      }}
-                    >
-                      {item.data}
-                    </TableCell>
-                  </TableRow>
-                ))
+                      <TableCell padding="none" sx={{ width: 52, pl: 1.5 }}>
+                        {item.deviceId ? (
+                          <Tooltip title={t('deviceStatusOnline') || 'Registered'} arrow>
+                            <span>
+                              <IconButton
+                                color="success"
+                                size="small"
+                                disabled
+                                sx={{ borderRadius: '8px', p: 0.75, opacity: 0.85 }}
+                              >
+                                <CheckCircleOutlineIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title={t('loginRegister')} arrow>
+                            <IconButton
+                              color="error"
+                              size="small"
+                              onClick={() => registerDevice(item.uniqueId)}
+                              sx={{ borderRadius: '8px', p: 0.75 }}
+                            >
+                              <HelpOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {item.uniqueId}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontSize: '0.8125rem',
+                          color: 'text.secondary',
+                        }}
+                      >
+                        {item.protocol}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.8rem',
+                          wordBreak: 'break-all',
+                          color: 'text.primary',
+                        }}
+                      >
+                        {item.data}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
                       <TerminalIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
                       <Typography variant="body2" color="text.secondary">
                         {t('sharedNoData')}

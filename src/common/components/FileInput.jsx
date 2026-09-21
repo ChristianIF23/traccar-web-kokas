@@ -4,6 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import CloseIcon from '@mui/icons-material/Close';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import { alpha } from '@mui/material/styles';
 
 const FileInput = ({ placeholder, value, onChange, slotProps, ...props }) => {
   const inputRef = useRef(null);
@@ -31,6 +32,7 @@ const FileInput = ({ placeholder, value, onChange, slotProps, ...props }) => {
       />
       <TextField
         fullWidth
+        size="small"
         value={value?.name ?? ''}
         placeholder={placeholder || 'Pilih file...'}
         onClick={openPicker}
@@ -42,7 +44,10 @@ const FileInput = ({ placeholder, value, onChange, slotProps, ...props }) => {
               <InputAdornment position="start">
                 <UploadFileOutlinedIcon
                   fontSize="small"
-                  sx={{ color: value ? 'primary.main' : 'text.secondary' }}
+                  sx={{
+                    color: value ? '#1d4ed8' : 'text.secondary',
+                    transition: 'color 0.2s ease',
+                  }}
                 />
               </InputAdornment>
             ),
@@ -54,7 +59,10 @@ const FileInput = ({ placeholder, value, onChange, slotProps, ...props }) => {
                   onClick={handleClear}
                   sx={{
                     color: 'text.secondary',
-                    '&:hover': { color: 'error.main' },
+                    '&:hover': {
+                      color: 'error.main',
+                      backgroundColor: (theme) => alpha(theme.palette.error.main, 0.08),
+                    },
                   }}
                 >
                   <CloseIcon fontSize="small" />
@@ -63,19 +71,30 @@ const FileInput = ({ placeholder, value, onChange, slotProps, ...props }) => {
             ),
             sx: {
               cursor: 'pointer',
-              borderRadius: '10px',
-              backgroundColor: 'background.paper',
-              transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-              '&:hover': {
-                borderColor: 'primary.main',
+              borderRadius: '14px',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+              transition: 'all 0.2s ease',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: (theme) =>
+                  value
+                    ? '#1d4ed8'
+                    : theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.12)'
+                      : 'rgba(15, 23, 42, 0.12)',
               },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#1d4ed8',
+              },
+              boxShadow: value ? '0 0 0 3px rgba(29, 78, 216, 0.1)' : 'none',
             },
           },
           htmlInput: {
             sx: {
               cursor: 'pointer',
               textOverflow: 'ellipsis',
-              fontSize: '0.875rem',
+              fontSize: '0.86rem',
+              fontWeight: value ? 600 : 400,
             },
           },
         }}

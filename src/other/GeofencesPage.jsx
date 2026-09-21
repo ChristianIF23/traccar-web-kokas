@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Divider, Typography, IconButton, Toolbar, Paper, Box } from '@mui/material';
-import Tooltip from '@mui/material/Tooltip';
+import { Typography, IconButton, Toolbar, Paper, Box, Tooltip } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useNavigate } from 'react-router-dom';
@@ -42,11 +41,11 @@ const useStyles = makeStyles()((theme) => ({
     borderRight: `1px solid ${theme.palette.divider}`,
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
     [theme.breakpoints.up('sm')]: {
-      width: theme.dimensions.drawerWidthDesktop || 360,
+      width: theme.dimensions?.drawerWidthDesktop || 360,
       height: '100%',
     },
     [theme.breakpoints.down('sm')]: {
-      height: theme.dimensions.drawerHeightPhone || '45%',
+      height: theme.dimensions?.drawerHeightPhone || '45%',
       borderRight: 'none',
       borderTop: `1px solid ${theme.palette.divider}`,
       borderTopLeftRadius: '20px',
@@ -54,11 +53,10 @@ const useStyles = makeStyles()((theme) => ({
     },
   },
   toolbar: {
-    px: 2,
-    py: 1,
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
     minHeight: '64px !important',
-    backgroundColor:
-      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
     borderBottom: `1px solid ${theme.palette.divider}`,
   },
   mapContainer: {
@@ -80,24 +78,25 @@ const GeofencesPage = () => {
   const [selectedGeofenceId, setSelectedGeofenceId] = useState();
 
   const handleFile = (event) => {
-    const files = Array.from(event.target.files);
+    const files = Array.from(event.target.files || []);
     const [file] = files;
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const xml = new DOMParser().parseFromString(reader.result, 'text/xml');
-      const segment = xml.getElementsByTagName('trkseg')[0];
-      if (!segment) {
-        dispatch(errorsActions.push(t('sharedInvalidFileFormat') || 'Format GPX tidak valid'));
-        return;
-      }
-      const coordinates = Array.from(segment.getElementsByTagName('trkpt'))
-        .map((point) => `${point.getAttribute('lat')} ${point.getAttribute('lon')}`)
-        .join(', ');
-      const area = `LINESTRING (${coordinates})`;
-      const newItem = { name: t('sharedGeofence'), area };
       try {
+        const xml = new DOMParser().parseFromString(reader.result, 'text/xml');
+        const segment = xml.getElementsByTagName('trkseg')[0];
+        if (!segment) {
+          dispatch(errorsActions.push(t('sharedInvalidFileFormat') || 'Format GPX tidak valid'));
+          return;
+        }
+        const coordinates = Array.from(segment.getElementsByTagName('trkpt'))
+          .map((point) => `${point.getAttribute('lat')} ${point.getAttribute('lon')}`)
+          .join(', ');
+        const area = `LINESTRING (${coordinates})`;
+        const newItem = { name: t('sharedGeofence'), area };
+
         const response = await fetchOrThrow('/api/geofences', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -107,11 +106,17 @@ const GeofencesPage = () => {
         navigate(`/settings/geofence/${item.id}`);
       } catch (error) {
         dispatch(errorsActions.push(error.message));
+      } finally {
+        // Reset nilai input file agar pengguna bisa mengunggah berkas yang sama jika diperlukan
+        event.target.value = '';
       }
     };
+
     reader.onerror = (e) => {
-      dispatch(errorsActions.push(e.target.error));
+      dispatch(errorsActions.push(e.target?.error?.message || 'Gagal membaca berkas'));
+      event.target.value = '';
     };
+
     reader.readAsText(file);
   };
 
@@ -142,7 +147,7 @@ const GeofencesPage = () => {
                 className={classes.fileInput}
                 onChange={handleFile}
               />
-              <Tooltip title={t('sharedUpload')}>
+              <Tooltip title={t('sharedUpload') || 'Unggah GPX'}>
                 <IconButton
                   component="span"
                   sx={{

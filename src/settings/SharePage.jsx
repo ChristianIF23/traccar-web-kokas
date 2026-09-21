@@ -10,19 +10,26 @@ import {
   TextField,
   Button,
   Box,
+  InputAdornment,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
 import SettingsMenu from './components/SettingsMenu';
 import { useCatchCallback } from '../reactHelper';
-import useSettingsStyles from './common/useSettingsStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const SharePage = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
-  const { classes } = useSettingsStyles();
   const t = useTranslation();
+  const isDark = theme.palette.mode === 'dark';
 
   const { type, id } = useParams();
 
@@ -34,6 +41,7 @@ const SharePage = () => {
     dayjs().add(1, 'week').locale('en').format('YYYY-MM-DDTHH:mm'),
   );
   const [link, setLink] = useState();
+  const [copied, setCopied] = useState(false);
 
   const handleShare = useCatchCallback(async () => {
     const expirationTime = dayjs(expiration).toISOString();
@@ -45,151 +53,225 @@ const SharePage = () => {
     setLink(`${window.location.origin}?token=${token}`);
   }, [id, expiration, type, setLink]);
 
-  const accordionStyle = {
-    borderRadius: '16px !important',
-    border: (theme) => `1px solid ${theme.palette.divider}`,
-    overflow: 'hidden',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-    '&:before': { display: 'none' },
+  const handleCopy = () => {
+    if (link) {
+      navigator.clipboard?.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const inputStyle = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '10px',
+      borderRadius: '12px',
+      backgroundColor: isDark ? alpha('#0f172a', 0.8) : '#ffffff',
+      '& fieldset': {
+        borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#1d4ed8',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#1d4ed8',
+      },
     },
   };
 
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['sharedShare']}>
-      <Box
-        sx={{
-          width: '100%',
-          p: { xs: 2, sm: 3, md: 4 },
-          boxSizing: 'border-box',
-          overflowY: 'auto',
-        }}
-      >
-        <Box sx={{ maxWidth: 960, width: '100%', mx: 'auto' }}>
-          <Accordion
-            defaultExpanded
-            disableGutters
-            elevation={0}
-            sx={accordionStyle}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{
-                px: 3,
-                py: 0.5,
-                backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-              }}
-            >
-              <Typography variant="subtitle1" fontWeight={600}>
-                {t('sharedRequired')}
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
-            >
-              <TextField
-                size="small"
-                value={item?.name || ''}
-                label={t(type === 'group' ? 'groupDialog' : 'sharedDevice')}
-                disabled
-                fullWidth
-                sx={inputStyle}
-              />
-              <TextField
-                size="small"
-                label={t('userExpirationTime')}
-                type="datetime-local"
-                value={expiration}
-                onChange={(e) => setExpiration(e.target.value)}
-                fullWidth
-                sx={inputStyle}
-              />
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleShare}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  py: 1,
-                  px: 2.5,
-                  alignSelf: 'flex-start',
-                }}
-              >
-                {t('reportShow')}
-              </Button>
-              <TextField
-                size="small"
-                value={link || ''}
-                onChange={(e) => setLink(e.target.value)}
-                label={t('sharedLink')}
-                slotProps={{ input: { readOnly: true } }}
-                fullWidth
-                sx={inputStyle}
-              />
-            </AccordionDetails>
-          </Accordion>
-
-          <Box
-            className={classes.buttons}
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Accordion
+          defaultExpanded
+          disableGutters
+          elevation={0}
+          sx={{
+            borderRadius: '18px !important',
+            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+            backgroundColor: isDark ? '#162447' : '#ffffff',
+            boxShadow: isDark
+              ? '0 12px 30px rgba(0, 0, 0, 0.45)'
+              : '0 8px 24px rgba(15, 23, 42, 0.04)',
+            overflow: 'hidden',
+            mb: 2.5,
+            '&:before': { display: 'none' },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
             sx={{
-              display: 'flex',
-              gap: 1.5,
-              justifyContent: 'flex-end',
-              mt: 3,
-              pt: 2,
-              borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+              px: 3,
+              py: 1,
+              borderBottom: `1px solid ${
+                isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+              }`,
+              '& .MuiAccordionSummary-content': { my: 1 },
             }}
           >
+            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+              {t('sharedRequired')}
+            </Typography>
+          </AccordionSummary>
+
+          <AccordionDetails
+            sx={{
+              p: { xs: 2.5, sm: 3 },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2.5,
+              backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+            }}
+          >
+            <TextField
+              size="small"
+              value={item?.name || ''}
+              label={t(type === 'group' ? 'groupDialog' : 'sharedDevice')}
+              disabled
+              fullWidth
+              sx={inputStyle}
+            />
+
+            <TextField
+              size="small"
+              label={t('userExpirationTime')}
+              type="datetime-local"
+              value={expiration}
+              onChange={(e) => setExpiration(e.target.value)}
+              fullWidth
+              sx={inputStyle}
+            />
+
             <Button
-              type="button"
-              variant="outlined"
-              onClick={() => navigate(-1)}
-              sx={{
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1,
-                borderColor: 'divider',
-                color: 'text.secondary',
-                '&:hover': {
-                  borderColor: 'text.secondary',
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              {t('sharedCancel')}
-            </Button>
-            <Button
-              type="button"
-              color="primary"
               variant="contained"
-              onClick={() => navigator.clipboard?.writeText(link)}
-              disabled={!link}
+              onClick={handleShare}
+              startIcon={<ShareRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                borderRadius: '10px',
+                borderRadius: '12px',
                 textTransform: 'none',
-                fontWeight: 600,
-                px: 3.5,
-                py: 1,
-                boxShadow: 'none',
+                fontWeight: 700,
+                py: 1.1,
+                px: 3,
+                alignSelf: 'flex-start',
+                backgroundColor: '#1d4ed8',
+                color: '#ffffff',
+                boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
                 '&:hover': {
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  backgroundColor: '#1e40af',
+                  boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
                 },
               }}
             >
-              {t('sharedCopy')}
+              {t('reportShow')}
             </Button>
-          </Box>
+
+            {link && (
+              <TextField
+                size="small"
+                value={link}
+                label={t('sharedLink')}
+                fullWidth
+                slotProps={{
+                  input: {
+                    readOnly: true,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Tooltip title={copied ? 'Tersalin!' : t('sharedCopy')}>
+                          <IconButton
+                            size="small"
+                            onClick={handleCopy}
+                            sx={{
+                              color: copied ? '#10b981' : '#1d4ed8',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            {copied ? (
+                              <CheckRoundedIcon fontSize="small" />
+                            ) : (
+                              <ContentCopyRoundedIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                sx={{
+                  ...inputStyle,
+                  '& .MuiInputBase-input': {
+                    fontFamily: 'Consolas, Monaco, monospace',
+                    fontSize: '0.84rem',
+                    color: isDark ? '#38bdf8' : '#0369a1',
+                  },
+                }}
+              />
+            )}
+          </AccordionDetails>
+        </Accordion>
+
+        {/* Footer Tombol Aksi Bawah */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            justifyContent: 'flex-end',
+            pt: 1,
+            pb: 2,
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.14)',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: '#1d4ed8',
+                color: '#1d4ed8',
+                backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+              },
+            }}
+          >
+            {t('sharedCancel')}
+          </Button>
+
+          <Button
+            type="button"
+            variant="contained"
+            onClick={handleCopy}
+            disabled={!link}
+            startIcon={
+              copied ? (
+                <CheckRoundedIcon sx={{ fontSize: 18 }} />
+              ) : (
+                <ContentCopyRoundedIcon sx={{ fontSize: 18 }} />
+              )
+            }
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 3.5,
+              py: 1,
+              backgroundColor: copied ? '#10b981' : '#1d4ed8',
+              color: '#ffffff',
+              boxShadow: 'none',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: copied ? '#059669' : '#1e40af',
+                boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+              },
+              '&.Mui-disabled': {
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+              },
+            }}
+          >
+            {copied ? 'Tersalin' : t('sharedCopy')}
+          </Button>
         </Box>
       </Box>
     </PageLayout>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,14 +20,12 @@ import MapRuler from '../map/control/MapRuler';
 import MapNotification from '../map/control/MapNotification';
 import useFeatures from '../common/util/useFeatures';
 
-const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
+const MainMap = ({ filteredPositions = [], selectedPosition, onEventsClick }) => {
   const theme = useTheme();
   const dispatch = useDispatch();
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
-
-  const eventsAvailable = useSelector((state) => !!state.events.items.length);
-
+  const eventsAvailable = useSelector((state) => !!state.events?.items?.length);
   const features = useFeatures();
 
   const [rulerActive, setRulerActive] = useState(false);
@@ -39,13 +37,19 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
     [dispatch],
   );
 
+  const deviceIds = useMemo(() => filteredPositions.map((p) => p.deviceId), [filteredPositions]);
+
+  // Padding kamera peta disesuaikan agar armada fokus di viewport tengah tanpa tertabrak card mengambang
+  const mapStartPadding = useMemo(() => (desktop ? 120 : 0), [desktop]);
+  const mapBottomPadding = useMemo(() => (desktop ? 90 : 80), [desktop]);
+
   return (
     <>
       <MapView>
         <MapOverlay />
         <MapGeofence />
         <MapAccuracy positions={filteredPositions} />
-        <MapLiveRoutes deviceIds={filteredPositions.map((p) => p.deviceId)} />
+        <MapLiveRoutes deviceIds={deviceIds} />
         <MapPositionMarkers
           positions={filteredPositions}
           onMarkerClick={onMarkerClick}
@@ -61,16 +65,13 @@ const MainMap = ({ filteredPositions, selectedPosition, onEventsClick }) => {
           <MapNotification enabled={eventsAvailable} onClick={onEventsClick} />
         )}
       </MapView>
+
       <MapScale />
       <MapCurrentLocation />
       <MapGeocoder />
-      {desktop && (
-        <MapPadding
-          start={
-            parseInt(theme.dimensions.drawerWidthDesktop, 10) + parseInt(theme.spacing(3), 10)
-          }
-        />
-      )}
+
+      {/* Menjaga kamera terpusat dengan kompensasi card melayang */}
+      <MapPadding start={mapStartPadding} bottom={mapBottomPadding} />
     </>
   );
 };

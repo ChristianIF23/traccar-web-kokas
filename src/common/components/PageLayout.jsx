@@ -1,209 +1,228 @@
 import { useState } from 'react';
 import {
-  AppBar,
-  Breadcrumbs,
-  Divider,
-  Drawer,
-  IconButton,
-  Toolbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Box,
   Typography,
+  IconButton,
   useMediaQuery,
   useTheme,
-  alpha,
 } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import MenuIcon from '@mui/icons-material/Menu';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { alpha } from '@mui/material/styles';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from './LocalizationProvider';
-import BackIcon from './BackIcon';
-
-const useStyles = makeStyles()((theme, { miniVariant }) => ({
-  root: {
-    height: '100%',
-    display: 'flex',
-    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : '#f8fafc',
-    [theme.breakpoints.down('md')]: {
-      flexDirection: 'column',
-    },
-  },
-  desktopDrawer: {
-    width: miniVariant ? theme.spacing(8) : theme.dimensions.drawerWidthDesktop,
-    overflowX: 'hidden',
-    borderRight: `1px solid ${theme.palette.divider}`,
-    backgroundColor: theme.palette.background.paper,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-    ...(miniVariant && {
-      '& .MuiListItemButton-root': {
-        minHeight: 48,
-        justifyContent: 'center',
-        paddingLeft: 0,
-        paddingRight: 0,
-      },
-      '& .MuiListItemIcon-root': {
-        minWidth: 0,
-        margin: '0 auto',
-      },
-      '& .MuiListItemText-root': {
-        display: 'none',
-      },
-    }),
-    '@media print': {
-      display: 'none',
-    },
-  },
-  mobileDrawer: {
-    width: theme.dimensions.drawerWidthTablet,
-    borderRight: `1px solid ${theme.palette.divider}`,
-    '@media print': {
-      display: 'none',
-    },
-  },
-  toolbar: {
-    padding: theme.spacing(1, 2),
-    minHeight: '64px !important',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: miniVariant ? 'center' : 'space-between',
-  },
-  iconButton: {
-    borderRadius: '10px',
-    padding: theme.spacing(1),
-    transition: 'all 0.2s ease',
-    '&:hover': {
-      backgroundColor: alpha(theme.palette.primary.main, 0.08),
-      color: theme.palette.primary.main,
-    },
-  },
-  mobileToolbar: {
-    zIndex: 1,
-    borderBottom: `1px solid ${theme.palette.divider}`,
-    boxShadow: 'none',
-    backgroundColor: theme.palette.background.paper,
-    '@media print': {
-      display: 'none',
-    },
-  },
-  content: {
-    flexGrow: 1,
-    alignItems: 'stretch',
-    display: 'flex',
-    flexDirection: 'column',
-    overflowY: 'auto',
-  },
-}));
 
 const PageTitle = ({ breadcrumbs }) => {
-  const theme = useTheme();
   const t = useTranslation();
+  const location = useLocation();
+  const isReports = location.pathname.startsWith('/reports');
 
-  const desktop = useMediaQuery(theme.breakpoints.up('md'));
-
-  if (desktop) {
-    return (
-      <Typography variant="h6" fontWeight={700} noWrap sx={{ letterSpacing: '-0.01em', fontSize: '1.15rem' }}>
-        {t(breadcrumbs[0])}
-      </Typography>
-    );
-  }
   return (
-    <Breadcrumbs>
-      {breadcrumbs.slice(0, -1).map((breadcrumb) => (
-        <Typography variant="h6" color="inherit" key={breadcrumb} fontWeight={600}>
-          {t(breadcrumb)}
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+      <Box
+        sx={{
+          width: 32,
+          height: 32,
+          borderRadius: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? alpha('#1d4ed8', 0.2) : alpha('#1d4ed8', 0.1),
+          color: '#1d4ed8',
+        }}
+      >
+        {isReports ? (
+          <InsertDriveFileOutlinedIcon sx={{ fontSize: 18 }} />
+        ) : (
+          <SettingsOutlinedIcon sx={{ fontSize: 18 }} />
+        )}
+      </Box>
+      <Box>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 700,
+            fontSize: '0.92rem',
+            color: 'text.primary',
+            letterSpacing: '-0.01em',
+            lineHeight: 1.2,
+          }}
+        >
+          {breadcrumbs.map((b) => t(b)).join(' / ')}
         </Typography>
-      ))}
-      <Typography variant="h6" color="primary" fontWeight={700}>
-        {t(breadcrumbs[breadcrumbs.length - 1])}
-      </Typography>
-    </Breadcrumbs>
+      </Box>
+    </Box>
   );
 };
 
 const PageLayout = ({ menu, breadcrumbs, children }) => {
-  const [miniVariant, setMiniVariant] = useState(false);
-  const { classes } = useStyles({ miniVariant });
   const theme = useTheme();
   const navigate = useNavigate();
-
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
-  const [searchParams] = useSearchParams();
-  const [openDrawer, setOpenDrawer] = useState(!desktop && searchParams.has('menu'));
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const toggleDrawer = () => setMiniVariant(!miniVariant);
+  const handleClose = () => {
+    navigate('/');
+  };
 
   return (
-    <div className={classes.root}>
-      {desktop ? (
-        <Drawer
-          variant="permanent"
-          className={classes.desktopDrawer}
-          slotProps={{ paper: { className: classes.desktopDrawer } }}
-        >
-          <Toolbar className={classes.toolbar}>
-            {!miniVariant && (
-              <>
-                <IconButton
-                  color="inherit"
-                  edge="start"
-                  className={classes.iconButton}
-                  sx={{ mr: 1 }}
-                  onClick={() => navigate('/')}
-                >
-                  <BackIcon />
-                </IconButton>
-                <PageTitle breadcrumbs={breadcrumbs} />
-              </>
-            )}
+    <Dialog
+      open
+      onClose={handleClose}
+      fullWidth
+      maxWidth="lg" // Standar MUI kaku agar ukuran bingkai dialog terkunci stabil
+      slotProps={{
+        backdrop: {
+          sx: {
+            backgroundColor: (th) =>
+              th.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.55)' : 'rgba(15, 23, 42, 0.25)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          },
+        },
+      }}
+      PaperProps={{
+        elevation: 0,
+        sx: {
+          // Kunci ukuran fisik modal: tidak bisa molor atau ciut semaunya
+          width: { xs: '95vw', sm: '92vw', md: '1020px' },
+          minWidth: { md: '1020px' },
+          maxWidth: '1020px !important',
+          height: { xs: '90vh', sm: '82vh', md: '78vh' },
+          minHeight: { md: '640px' },
+          maxHeight: '760px',
+          borderRadius: '24px',
+          backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+          border: (th) =>
+            `1px solid ${
+              th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+            }`,
+          boxShadow: (th) =>
+            th.palette.mode === 'dark'
+              ? '0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 8px 24px rgba(0, 0, 0, 0.4)'
+              : '0 20px 50px -10px rgba(15, 23, 42, 0.12), 0 6px 16px rgba(15, 23, 42, 0.04)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          m: 'auto',
+        },
+      }}
+    >
+      {/* Header Dialog */}
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 3,
+          py: 1.75,
+          flexShrink: 0,
+          borderBottom: (th) =>
+            `1px solid ${
+              th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
+            }`,
+          backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {!desktop && menu && (
             <IconButton
-              color="inherit"
-              edge="start"
-              className={classes.iconButton}
-              sx={{ ml: miniVariant ? 0 : 'auto' }}
-              onClick={toggleDrawer}
+              size="small"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              sx={{ mr: 1, borderRadius: '10px' }}
             >
-              {miniVariant !== (theme.direction === 'rtl') ? (
-                <ChevronRightIcon />
-              ) : (
-                <ChevronLeftIcon />
-              )}
+              <MenuRoundedIcon fontSize="small" />
             </IconButton>
-          </Toolbar>
-          <Divider sx={{ opacity: 0.7 }} />
-          {menu}
-        </Drawer>
-      ) : (
-        <Drawer
-          variant="temporary"
-          open={openDrawer}
-          onClose={() => setOpenDrawer(false)}
-          slotProps={{ paper: { className: classes.mobileDrawer } }}
+          )}
+          <PageTitle breadcrumbs={breadcrumbs} />
+        </Box>
+
+        <IconButton
+          onClick={handleClose}
+          size="small"
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: '10px',
+            color: (th) => (th.palette.mode === 'dark' ? '#94a3b8' : '#64748b'),
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              color: '#ef4444',
+              backgroundColor: alpha('#ef4444', 0.1),
+            },
+          }}
+          title="Tutup"
         >
-          {menu}
-        </Drawer>
-      )}
-      {!desktop && (
-        <AppBar className={classes.mobileToolbar} position="static" color="inherit">
-          <Toolbar className={classes.toolbar}>
-            <IconButton
-              color="inherit"
-              edge="start"
-              className={classes.iconButton}
-              sx={{ mr: 2 }}
-              onClick={() => setOpenDrawer(true)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <PageTitle breadcrumbs={breadcrumbs} />
-          </Toolbar>
-        </AppBar>
-      )}
-      <div className={classes.content}>{children}</div>
-    </div>
+          <CloseRoundedIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+      </DialogTitle>
+
+      {/* Konten Utama Dialog */}
+      <DialogContent
+        sx={{
+          display: 'flex',
+          p: 0,
+          flexGrow: 1,
+          overflow: 'hidden',
+          backgroundColor: (th) => (th.palette.mode === 'dark' ? '#0f172a' : '#f8fafc'),
+          position: 'relative',
+        }}
+      >
+        {/* Sidebar Menu Samping (Terkunci 230px, tidak bisa diperas atau membesar) */}
+        {menu && (desktop || mobileMenuOpen) && (
+          <Box
+            sx={{
+              width: 230,
+              minWidth: 230,
+              maxWidth: 230,
+              flexShrink: 0,
+              borderRight: (th) =>
+                `1px solid ${
+                  th.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(15, 23, 42, 0.06)'
+                }`,
+              backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              py: 1.5,
+              ...(!desktop && {
+                position: 'absolute',
+                zIndex: 20,
+                height: '100%',
+                width: '100%',
+                maxWidth: '100%',
+              }),
+            }}
+          >
+            {menu}
+          </Box>
+        )}
+
+        {/* Kolom Konten Kanan (Terkunci minWidth: 0 agar tabel tidak mendesak modal) */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            width: 0, // KUNCI FLEXBOX: Mencegah tabel anak memaksa container melebar
+            minWidth: 0, // KUNCI FLEXBOX: Mengisolasi scroll horizontal hanya di dalam tabel
+            overflowY: 'auto',
+            p: { xs: 2, sm: 2.5, md: 3 },
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {children}
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 

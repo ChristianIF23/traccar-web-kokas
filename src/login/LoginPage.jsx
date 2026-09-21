@@ -12,6 +12,9 @@ import {
   Tooltip,
   Typography,
   Box,
+  Paper,
+  alpha,
+  CircularProgress,
 } from '@mui/material';
 import CountryFlag from 'react-country-flag';
 import { makeStyles } from 'tss-react/mui';
@@ -31,7 +34,6 @@ import {
   nativeEnvironment,
   nativePostMessage,
 } from '../common/components/NativeInterface';
-import LogoImage from './LogoImage';
 import { useCatch } from '../reactHelper';
 import QrCodeDialog from '../common/components/QrCodeDialog';
 import PasswordField from '../common/components/PasswordField';
@@ -39,85 +41,198 @@ import PasswordField from '../common/components/PasswordField';
 const useStyles = makeStyles()((theme) => ({
   options: {
     position: 'fixed',
-    top: theme.spacing(2),
-    right: theme.spacing(2),
+    top: theme.spacing(2.5),
+    right: theme.spacing(2.5),
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing(1.5),
-    zIndex: 10,
+    gap: theme.spacing(1),
+    zIndex: 20,
+    backgroundColor:
+      theme.palette.mode === 'dark' ? alpha('#1e293b', 0.85) : 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    padding: theme.spacing(0.5, 1),
+    borderRadius: '30px',
+    border: `1px solid ${
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)'
+    }`,
+    boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)',
+  },
+  optionButton: {
+    color: theme.palette.text.secondary,
+    width: 34,
+    height: 34,
+    borderRadius: '10px',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      color: '#162447',
+      backgroundColor: alpha('#162447', 0.08),
+    },
   },
   languageSelect: {
     '& .MuiSelect-select': {
-      paddingTop: theme.spacing(1),
-      paddingBottom: theme.spacing(1),
-      fontSize: '0.875rem',
+      paddingTop: theme.spacing(0.6),
+      paddingBottom: theme.spacing(0.6),
+      paddingLeft: theme.spacing(1),
+      paddingRight: `${theme.spacing(3)} !important`,
+      fontSize: '0.82rem',
+      fontWeight: 600,
+      color: theme.palette.text.primary,
+      display: 'flex',
+      alignItems: 'center',
     },
-    borderRadius: theme.spacing(1),
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'transparent',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'transparent',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'transparent',
+    },
+    borderRadius: '16px',
+  },
+  cardWrapper: {
+    width: '100%',
+    maxWidth: 390,
+    margin: '0 auto',
+    padding: theme.spacing(4.5, 4),
+    borderRadius: '28px',
+    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#ffffff',
+    border: `1px solid ${
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
+    }`,
+    boxShadow:
+      theme.palette.mode === 'dark'
+        ? '0 20px 45px -10px rgba(0, 0, 0, 0.5)'
+        : '0 16px 40px -10px rgba(15, 23, 42, 0.07)',
   },
   headerBox: {
-    marginBottom: theme.spacing(3),
+    marginBottom: theme.spacing(3.5),
     textAlign: 'center',
   },
   title: {
-    fontWeight: 700,
-    letterSpacing: '-0.02em',
-    color: theme.palette.text.primary,
+    fontWeight: 800,
+    letterSpacing: '-0.03em',
+    color: theme.palette.mode === 'dark' ? '#f8fafc' : '#0f172a',
+    fontSize: '1.65rem',
     marginBottom: theme.spacing(0.5),
   },
   subtitle: {
-    color: theme.palette.text.secondary,
+    color: theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
     fontSize: '0.875rem',
+    lineHeight: 1.45,
+    fontWeight: 400,
   },
-  container: {
+  formContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(2.5),
+    gap: theme.spacing(2.2),
     width: '100%',
-    maxWidth: 380,
-    margin: '0 auto',
+  },
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(0.6),
+  },
+  fieldLabel: {
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    color: theme.palette.mode === 'dark' ? '#cbd5e1' : '#334155',
+    marginLeft: theme.spacing(0.2),
   },
   inputField: {
     '& .MuiOutlinedInput-root': {
-      borderRadius: theme.spacing(1.2),
-      transition: 'all 0.2s ease-in-out',
-      '&:hover': {
-        borderColor: theme.palette.primary.main,
+      borderRadius: '12px',
+      backgroundColor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+      fontSize: '0.9rem',
+      fontWeight: 500,
+      '& fieldset': {
+        borderColor:
+          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.16)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#162447',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#162447',
+        borderWidth: '1.5px',
+      },
+      '&.Mui-focused': {
+        boxShadow: '0 0 0 3px rgba(22, 36, 71, 0.14)',
       },
     },
   },
   submitButton: {
-    borderRadius: theme.spacing(1.2),
-    paddingTop: theme.spacing(1.4),
-    paddingBottom: theme.spacing(1.4),
+    borderRadius: '12px',
+    paddingTop: theme.spacing(1.3),
+    paddingBottom: theme.spacing(1.3),
     fontWeight: 600,
     textTransform: 'none',
     fontSize: '0.95rem',
-    boxShadow: 'none',
+    backgroundColor: '#1d4ed8',
+    color: '#ffffff',
+    boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+    transition: 'all 0.2s ease',
+    marginTop: theme.spacing(1),
     '&:hover': {
-      boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+      backgroundColor: '#1e40af',
+      boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+      transform: 'translateY(-1px)',
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+    },
+    '&.Mui-disabled': {
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? alpha(theme.palette.action.disabledBackground, 0.2)
+          : '#e2e8f0',
+      color: theme.palette.mode === 'dark' ? '#475569' : '#94a3b8',
+      boxShadow: 'none',
+    },
+  },
+  openIdButton: {
+    borderRadius: '12px',
+    paddingTop: theme.spacing(1.2),
+    paddingBottom: theme.spacing(1.2),
+    fontWeight: 600,
+    textTransform: 'none',
+    fontSize: '0.9rem',
+    borderColor:
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.15)',
+    color: theme.palette.text.primary,
+    '&:hover': {
+      borderColor: '#162447',
+      backgroundColor: alpha('#162447', 0.04),
     },
   },
   extraContainer: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginTop: theme.spacing(1),
+    padding: theme.spacing(0, 0.5),
   },
   link: {
     cursor: 'pointer',
-    fontWeight: 500,
-    color: theme.palette.primary.main,
-    transition: 'opacity 0.2s',
+    fontWeight: 600,
+    color: '#1d4ed8',
+    textDecoration: 'none',
+    fontSize: '0.84rem',
     '&:hover': {
-      opacity: 0.8,
+      textDecoration: 'underline',
+      color: '#1e40af',
     },
   },
   flag: {
     marginRight: theme.spacing(1),
     display: 'inline-flex',
     alignItems: 'center',
+    borderRadius: '2px',
+    overflow: 'hidden',
   },
 }));
 
@@ -136,6 +251,7 @@ const LoginPage = () => {
   }));
 
   const [failed, setFailed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [email, setEmail] = usePersistedState('loginEmail', '');
   const [password, setPassword] = useState('');
@@ -143,7 +259,6 @@ const LoginPage = () => {
   const [showServerTooltip, setShowServerTooltip] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
-  const registrationEnabled = useSelector((state) => state.session.server.registration);
   const languageEnabled = useSelector((state) => {
     const attributes = state.session.server.attributes;
     return !attributes.language && !attributes['ui.disableLoginLanguage'];
@@ -162,6 +277,7 @@ const LoginPage = () => {
   const handlePasswordLogin = async (event) => {
     event.preventDefault();
     setFailed(false);
+    setLoading(true);
     try {
       const query = `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
       const response = await fetch('/api/session', {
@@ -183,6 +299,8 @@ const LoginPage = () => {
     } catch {
       setFailed(true);
       setPassword('');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -223,19 +341,28 @@ const LoginPage = () => {
     <LoginLayout>
       <div className={classes.options}>
         {nativeEnvironment && changeEnabled && (
-          <IconButton color="primary" onClick={() => navigate('/change-server')}>
+          <IconButton
+            className={classes.optionButton}
+            size="small"
+            onClick={() => navigate('/change-server')}
+          >
             <Tooltip
               title={`${t('settingsServer')}: ${window.location.hostname}`}
               open={showServerTooltip}
               arrow
             >
-              <VpnLockIcon />
+              <VpnLockIcon fontSize="small" />
             </Tooltip>
           </IconButton>
         )}
         {!nativeEnvironment && (
-          <IconButton color="primary" onClick={() => setShowQr(true)}>
-            <QrCode2Icon />
+          <IconButton
+            className={classes.optionButton}
+            size="small"
+            onClick={() => setShowQr(true)}
+            title="Scan QR Code"
+          >
+            <QrCode2Icon fontSize="small" />
           </IconButton>
         )}
         {languageEnabled && (
@@ -244,6 +371,7 @@ const LoginPage = () => {
               className={classes.languageSelect}
               value={language}
               onChange={(e) => setLocalLanguage(e.target.value)}
+              displayEmpty
             >
               {languageList.map((it) => (
                 <MenuItem key={it.code} value={it.code}>
@@ -258,112 +386,105 @@ const LoginPage = () => {
         )}
       </div>
 
-      <div className={classes.container}>
-        {useMediaQuery(theme.breakpoints.down('lg')) && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-            <LogoImage color={theme.palette.primary.main} />
-          </Box>
-        )}
-
+      <Paper elevation={0} className={classes.cardWrapper}>
         <Box className={classes.headerBox}>
           <Typography variant="h5" className={classes.title}>
-            {t('loginLogin')}
+            Login
           </Typography>
           <Typography variant="body2" className={classes.subtitle}>
-            Selamat datang kembali, silakan masuk ke akun Anda
+            Silakan masuk ke akun Anda
           </Typography>
         </Box>
 
-        {!openIdForced && (
-          <>
-            <TextField
-              required
-              fullWidth
-              className={classes.inputField}
-              error={failed}
-              label={t('userEmail')}
-              name="email"
-              value={email}
-              autoComplete="email"
-              autoFocus={!email}
-              onChange={(e) => setEmail(e.target.value)}
-              helperText={failed && 'Invalid username or password'}
-            />
-            <PasswordField
-              required
-              fullWidth
-              className={classes.inputField}
-              error={failed}
-              label={t('userPassword')}
-              name="password"
-              value={password}
-              autoComplete="current-password"
-              autoFocus={!!email}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {codeEnabled && (
-              <TextField
-                required
-                fullWidth
-                className={classes.inputField}
-                error={failed}
-                label={t('loginTotpCode')}
-                name="code"
-                value={code}
-                type="number"
-                onChange={(e) => setCode(e.target.value)}
-              />
-            )}
-            <Button
-              onClick={handlePasswordLogin}
-              type="submit"
-              variant="contained"
-              color="primary"
-              className={classes.submitButton}
-              disabled={!email || !password || (codeEnabled && !code)}
-            >
-              {t('loginLogin')}
-            </Button>
-          </>
-        )}
+        <form onSubmit={handlePasswordLogin} className={classes.formContainer}>
+          {!openIdForced && (
+            <>
+              {/* Field Email */}
+              <div className={classes.fieldGroup}>
+                <Typography className={classes.fieldLabel}>Email</Typography>
+                <TextField
+                  required
+                  fullWidth
+                  className={classes.inputField}
+                  error={failed}
+                  name="email"
+                  value={email}
+                  placeholder="nama@kokas.id"
+                  autoComplete="email"
+                  autoFocus={!email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  helperText={failed && 'Email atau sandi tidak sesuai'}
+                />
+              </div>
 
-        {openIdEnabled && (
-          <Button
-            onClick={() => handleOpenIdLogin()}
-            variant="outlined"
-            color="primary"
-            className={classes.submitButton}
-          >
-            {t('loginOpenId')}
-          </Button>
-        )}
+              {/* Field Password */}
+              <div className={classes.fieldGroup}>
+                <Typography className={classes.fieldLabel}>Password</Typography>
+                <PasswordField
+                  required
+                  fullWidth
+                  className={classes.inputField}
+                  error={failed}
+                  name="password"
+                  value={password}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  autoFocus={!!email}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
 
-        {!openIdForced && (
-          <div className={classes.extraContainer}>
-            {registrationEnabled ? (
-              <Link
-                onClick={() => navigate('/register')}
-                className={classes.link}
-                underline="hover"
-                variant="body2"
+              {codeEnabled && (
+                <div className={classes.fieldGroup}>
+                  <Typography className={classes.fieldLabel}>Kode TOTP</Typography>
+                  <TextField
+                    required
+                    fullWidth
+                    className={classes.inputField}
+                    error={failed}
+                    name="code"
+                    value={code}
+                    type="number"
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                variant="contained"
+                className={classes.submitButton}
+                disabled={!email || !password || (codeEnabled && !code) || loading}
               >
-                {t('loginRegister')}
-              </Link>
-            ) : <span />}
+                {loading ? <CircularProgress size={22} color="inherit" /> : 'Login'}
+              </Button>
+            </>
+          )}
 
-            {emailEnabled && (
+          {openIdEnabled && (
+            <Button
+              onClick={() => handleOpenIdLogin()}
+              variant="outlined"
+              className={classes.openIdButton}
+            >
+              {t('loginOpenId')}
+            </Button>
+          )}
+
+          {/* Bagian Bawah: Reset Password saja (Rata Kanan) */}
+          {!openIdForced && emailEnabled && (
+            <div className={classes.extraContainer}>
               <Link
                 onClick={() => navigate('/reset-password')}
                 className={classes.link}
-                underline="hover"
-                variant="body2"
+                underline="none"
               >
-                {t('loginReset')}
+                Reset Password
               </Link>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </form>
+      </Paper>
 
       <QrCodeDialog open={showQr} onClose={() => setShowQr(false)} />
       <Snackbar

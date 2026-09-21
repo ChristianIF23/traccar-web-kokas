@@ -1,65 +1,73 @@
 import { makeStyles } from 'tss-react/mui';
-import { ListItemButton, ListItemIcon, ListItemText, alpha } from '@mui/material';
+import { ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
 
-const useStyles = makeStyles()((theme) => ({
-  button: {
-    borderRadius: '10px',
-    margin: theme.spacing(0.5, 1.5),
-    padding: theme.spacing(0.9, 1.5),
-    position: 'relative',
-    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-    '&:hover': {
-      backgroundColor: alpha(theme.palette.primary.main, 0.06),
-      transform: 'translateX(3px)',
-      '& .MuiListItemIcon-root': {
-        color: theme.palette.primary.main,
-      },
-    },
-    '&.Mui-selected': {
-      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+const useStyles = makeStyles()((theme) => {
+  const isDark = theme.palette.mode === 'dark';
+
+  return {
+    button: {
+      borderRadius: 14,
+      margin: theme.spacing(0.5, 1),
+      padding: theme.spacing(1, 1.75),
+      position: 'relative',
+      transition: 'all 0.2s ease',
+      color: isDark ? '#94a3b8' : '#475569',
       '&:hover': {
-        backgroundColor: alpha(theme.palette.primary.main, 0.15),
+        color: '#1d4ed8',
+        backgroundColor: isDark ? alpha('#1d4ed8', 0.12) : 'rgba(29, 78, 216, 0.06)',
+        transform: 'translateX(3px)',
+        '& .MuiListItemIcon-root': {
+          color: '#1d4ed8',
+        },
       },
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        left: 0,
-        top: '20%',
-        bottom: '20%',
-        width: 3.5,
-        borderRadius: '0 4px 4px 0',
-        backgroundColor: theme.palette.primary.main,
+      '&.Mui-selected': {
+        color: '#1d4ed8',
+        backgroundColor: isDark ? alpha('#1d4ed8', 0.2) : 'rgba(29, 78, 216, 0.1)',
+        '&:hover': {
+          backgroundColor: isDark ? alpha('#1d4ed8', 0.28) : 'rgba(29, 78, 216, 0.15)',
+        },
+        '& .MuiListItemIcon-root': {
+          color: '#1d4ed8',
+        },
+        '& .MuiListItemText-primary': {
+          color: '#1d4ed8',
+          fontWeight: 700,
+        },
       },
-      '& .MuiListItemIcon-root': {
-        color: theme.palette.primary.main,
+    },
+    icon: {
+      minWidth: 36,
+      color: 'inherit',
+      transition: 'color 0.2s ease',
+      '& .MuiSvgIcon-root': {
+        fontSize: '1.25rem',
       },
+    },
+    menuItemText: {
+      whiteSpace: 'nowrap',
       '& .MuiListItemText-primary': {
-        color: theme.palette.primary.main,
-        fontWeight: 600,
+        fontSize: '0.86rem',
+        fontWeight: 500,
+        transition: 'color 0.2s ease, font-weight 0.2s ease',
       },
     },
-  },
-  icon: {
-    minWidth: 38,
-    color: theme.palette.text.secondary,
-    transition: 'color 0.2s ease',
-    '& .MuiSvgIcon-root': {
-      fontSize: '1.25rem',
+    activeIndicator: {
+      position: 'absolute',
+      left: 0,
+      top: '20%',
+      bottom: '20%',
+      width: 3.5,
+      borderRadius: '0 4px 4px 0',
+      backgroundColor: '#1d4ed8',
     },
-  },
-  menuItemText: {
-    whiteSpace: 'nowrap',
-    '& .MuiListItemText-primary': {
-      fontSize: '0.875rem',
-      fontWeight: 500,
-      transition: 'color 0.2s ease, font-weight 0.2s ease',
-    },
-  },
-}));
+  };
+});
 
 const MenuItem = ({ title, link, icon, selected }) => {
   const { classes } = useStyles();
+
   return (
     <ListItemButton
       key={link}
@@ -68,6 +76,7 @@ const MenuItem = ({ title, link, icon, selected }) => {
       selected={selected}
       className={classes.button}
     >
+      {selected && <div className={classes.activeIndicator} />}
       <ListItemIcon className={classes.icon}>{icon}</ListItemIcon>
       <ListItemText primary={title} className={classes.menuItemText} />
     </ListItemButton>

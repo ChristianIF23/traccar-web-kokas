@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { Link, Chip, Box, Tooltip, IconButton } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import LaunchIcon from '@mui/icons-material/Launch';
@@ -71,14 +72,16 @@ const PositionValue = ({ position, property, attribute }) => {
         return (
           <Chip
             size="small"
-            color="error"
-            icon={<ErrorOutlineIcon sx={{ '&&': { fontSize: 14 } }} />}
+            icon={<ErrorOutlineIcon sx={{ '&&': { fontSize: 14, color: '#ffffff' } }} />}
             label={formatAlarm(value, t)}
             sx={{
               height: 22,
               fontSize: '0.75rem',
-              fontWeight: 600,
-              borderRadius: '6px',
+              fontWeight: 700,
+              borderRadius: '8px',
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3)',
             }}
           />
         );
@@ -104,15 +107,25 @@ const PositionValue = ({ position, property, attribute }) => {
               return (
                 <Chip
                   size="small"
-                  variant="outlined"
-                  color={value ? 'success' : 'default'}
                   label={formatBoolean(value, t)}
                   sx={{
-                    height: 20,
-                    fontSize: '0.725rem',
-                    fontWeight: 500,
-                    borderRadius: '6px',
-                    borderColor: value ? undefined : (theme) => theme.palette.divider,
+                    height: 22,
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    borderRadius: '8px',
+                    backgroundColor: (theme) =>
+                      value
+                        ? alpha('#10b981', theme.palette.mode === 'dark' ? 0.2 : 0.1)
+                        : alpha('#64748b', theme.palette.mode === 'dark' ? 0.2 : 0.1),
+                    color: value ? '#10b981' : 'text.secondary',
+                    border: (theme) =>
+                      `1px solid ${
+                        value
+                          ? alpha('#10b981', 0.3)
+                          : theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : 'rgba(15, 23, 42, 0.1)'
+                      }`,
                   }}
                 />
               );
@@ -150,9 +163,12 @@ const PositionValue = ({ position, property, attribute }) => {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 0.5,
-            color: 'primary.main',
-            fontWeight: 500,
-            fontSize: '0.8125rem',
+            color: '#1d4ed8',
+            fontWeight: 600,
+            fontSize: '0.82rem',
+            '&:hover': {
+              color: '#1e40af',
+            },
           }}
         >
           {value}
@@ -162,7 +178,7 @@ const PositionValue = ({ position, property, attribute }) => {
     case 'totalDistance':
     case 'hours':
       return (
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
           <span>{formatValue()}</span>
           {!deviceReadonly && (
             <Tooltip title={t('sharedAccumulators') || 'Accumulators'} arrow>
@@ -171,9 +187,17 @@ const PositionValue = ({ position, property, attribute }) => {
                 to={`/settings/accumulators/${position.deviceId}`}
                 size="small"
                 sx={{
-                  p: 0.25,
+                  p: 0.3,
+                  borderRadius: '6px',
                   color: 'text.secondary',
-                  '&:hover': { color: 'primary.main' },
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    color: '#1d4ed8',
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? alpha('#1d4ed8', 0.15)
+                        : 'rgba(29, 78, 216, 0.08)',
+                  },
                 }}
               >
                 <SettingsOutlinedIcon sx={{ fontSize: 15 }} />
@@ -189,9 +213,12 @@ const PositionValue = ({ position, property, attribute }) => {
           to={`/network/${position.id}`}
           underline="hover"
           sx={{
-            color: 'primary.main',
-            fontWeight: 500,
-            fontSize: '0.8125rem',
+            color: '#1d4ed8',
+            fontWeight: 600,
+            fontSize: '0.82rem',
+            '&:hover': {
+              color: '#1e40af',
+            },
           }}
         >
           {t('sharedInfoTitle')}

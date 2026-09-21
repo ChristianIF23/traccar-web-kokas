@@ -7,12 +7,24 @@ const useStyles = makeStyles()((theme) => ({
   image: {
     alignSelf: 'center',
     maxWidth: '100%',
-    maxHeight: 48,
+    maxHeight: 52, // Disesuaikan agar proporsional di sidebar
     width: 'auto',
     height: 'auto',
     objectFit: 'contain',
+    [theme.breakpoints.down('md')]: {
+      maxHeight: 40,
+    },
+  },
+  svgLogo: {
+    alignSelf: 'center',
+    maxWidth: '100%',
+    maxHeight: 52, // Disesuaikan agar proporsional di sidebar
+    width: 'auto',
+    height: 'auto',
     display: 'block',
-    transition: 'transform 0.2s ease',
+    [theme.breakpoints.down('md')]: {
+      maxHeight: 40,
+    },
   },
 }));
 
@@ -20,18 +32,21 @@ const LogoImage = ({ color }) => {
   const theme = useTheme();
   const { classes } = useStyles();
 
-  const expanded = !useMediaQuery(theme.breakpoints.down('lg'));
+  const isDesktop = !useMediaQuery(theme.breakpoints.down('md'));
 
   const logo = useSelector((state) => state.session.server.attributes?.logo);
   const logoInverted = useSelector((state) => state.session.server.attributes?.logoInverted);
 
   if (logo) {
-    if (expanded && logoInverted) {
+    if (isDesktop && logoInverted) {
       return <img className={classes.image} src={logoInverted} alt="Logo" />;
     }
     return <img className={classes.image} src={logo} alt="Logo" />;
   }
-  return <Logo className={classes.image} style={{ color }} />;
+
+  const logoColor = color || (isDesktop ? '#ffffff' : theme.palette.primary.main);
+
+  return <Logo className={classes.svgLogo} style={{ color: logoColor }} />;
 };
 
 export default LogoImage;

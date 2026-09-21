@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { TextField, InputAdornment, IconButton, Box } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import { useTranslation } from '../../common/components/LocalizationProvider';
@@ -29,7 +30,7 @@ const SearchHeader = ({ keyword, setKeyword }) => {
       sx={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         width: '100%',
       }}
     >
@@ -42,19 +43,31 @@ const SearchHeader = ({ keyword, setKeyword }) => {
         sx={{
           width: { xs: '100%', sm: 380, md: 420 },
           '& .MuiOutlinedInput-root': {
-            borderRadius: '10px',
+            borderRadius: '12px',
             backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#ffffff',
+              theme.palette.mode === 'dark' ? alpha('#0f172a', 0.8) : '#ffffff',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             transition: 'all 0.2s ease-in-out',
-            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
+            boxShadow: (theme) =>
+              theme.palette.mode === 'dark'
+                ? '0 4px 12px rgba(0, 0, 0, 0.25)'
+                : '0 2px 8px rgba(15, 23, 42, 0.04)',
             '& fieldset': {
-              borderColor: (theme) => theme.palette.divider,
+              borderColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.12)'
+                  : 'rgba(15, 23, 42, 0.12)',
             },
             '&:hover fieldset': {
-              borderColor: (theme) => theme.palette.text.secondary,
+              borderColor: '#1d4ed8',
             },
-            '&.Mui-focused fieldset': {
-              borderColor: 'primary.main',
+            '&.Mui-focused': {
+              boxShadow: `0 0 0 3px ${alpha('#1d4ed8', 0.18)}`,
+              '& fieldset': {
+                borderColor: '#1d4ed8',
+                borderWidth: '1px',
+              },
             },
           },
           '& .MuiOutlinedInput-input': {
