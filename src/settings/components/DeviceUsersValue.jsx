@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Link, Chip, CircularProgress, Box, Typography } from '@mui/material';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutlined';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useCatch } from '../../reactHelper';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 import fetchOrThrow from '../../common/util/fetchOrThrow';
 
 const DeviceUsersValue = ({ deviceId }) => {
   const t = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const [users, setUsers] = useState();
   const [loading, setLoading] = useState(false);
@@ -26,7 +29,7 @@ const DeviceUsersValue = ({ deviceId }) => {
   if (loading) {
     return (
       <Box sx={{ display: 'inline-flex', alignItems: 'center', py: 0.25 }}>
-        <CircularProgress size={14} thickness={5} />
+        <CircularProgress size={16} thickness={4.5} sx={{ color: '#1d4ed8' }} />
       </Box>
     );
   }
@@ -34,7 +37,7 @@ const DeviceUsersValue = ({ deviceId }) => {
   if (users) {
     if (!users.length) {
       return (
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.disabled">
           —
         </Typography>
       );
@@ -48,15 +51,17 @@ const DeviceUsersValue = ({ deviceId }) => {
             icon={<PersonOutlineIcon sx={{ '&&': { fontSize: 14 } }} />}
             label={user.name}
             size="small"
-            variant="outlined"
             sx={{
               height: 24,
               fontSize: '0.75rem',
-              fontWeight: 500,
+              fontWeight: 600,
               borderRadius: '6px',
-              borderColor: (theme) => theme.palette.divider,
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f1f5f9',
+              border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+              backgroundColor: isDark ? '#0f172a' : '#f1f5f9',
+              color: 'text.primary',
+              '& .MuiChip-icon': {
+                color: 'text.secondary',
+              },
             }}
           />
         ))}
@@ -70,18 +75,19 @@ const DeviceUsersValue = ({ deviceId }) => {
       type="button"
       onClick={loadUsers}
       disabled={loading}
-      underline="hover"
+      underline="none"
       sx={{
-        color: 'primary.main',
-        fontWeight: 500,
+        color: '#1d4ed8',
+        fontWeight: 600,
         fontSize: '0.8125rem',
         cursor: 'pointer',
         border: 'none',
         background: 'none',
-        p: 0,
-        verticalAlign: 'baseline',
+        p: '2px 6px',
+        borderRadius: '6px',
+        transition: 'all 0.15s ease-in-out',
         '&:hover': {
-          color: 'primary.dark',
+          backgroundColor: isDark ? alpha('#1d4ed8', 0.15) : alpha('#1d4ed8', 0.08),
         },
       }}
     >

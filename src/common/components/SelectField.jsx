@@ -1,25 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Autocomplete, TextField, Chip, Paper, Typography } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
+import { alpha } from '@mui/material/styles';
 import { useAsyncTask } from '../../reactHelper';
 import fetchOrThrow from '../util/fetchOrThrow';
-
-const useStyles = makeStyles()(() => ({
-  autocompleteMultiple: {
-    '& .MuiAutocomplete-inputRoot': {
-      flexWrap: 'nowrap',
-      overflow: 'hidden',
-    },
-    '& .MuiAutocomplete-input': {
-      minWidth: '1px !important',
-    },
-    '& .MuiAutocomplete-tag .MuiChip-label': {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  },
-}));
 
 const SelectField = ({
   label,
@@ -40,14 +23,13 @@ const SelectField = ({
   sx,
   ...props
 }) => {
-  const { classes } = useStyles();
   const [items, setItems] = useState();
 
   const findOption = (option) => {
     if (typeof option === 'object') {
       return option;
     }
-    return items.find((obj) => keyGetter(obj) === option);
+    return items?.find((obj) => keyGetter(obj) === option);
   };
 
   const getOptionLabel = (option) => {
@@ -76,7 +58,6 @@ const SelectField = ({
       <Autocomplete
         size={singleLine ? 'small' : 'medium'}
         multiple={multiple}
-        className={multiple && singleLine ? classes.autocompleteMultiple : undefined}
         options={items}
         getOptionLabel={getOptionLabel}
         PaperComponent={(paperProps) => (
@@ -84,12 +65,21 @@ const SelectField = ({
             elevation={0}
             {...paperProps}
             sx={{
-              mt: 0.75,
-              borderRadius: '12px',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+              mt: 1,
+              borderRadius: '16px',
+              border: (theme) =>
+                `1px solid ${
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(15, 23, 42, 0.08)'
+                }`,
+              backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+              boxShadow: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? '0 16px 36px -4px rgba(0, 0, 0, 0.7)'
+                  : '0 16px 36px -4px rgba(15, 23, 42, 0.12)',
               overflow: 'hidden',
-              py: 0.5,
+              py: 0.75,
               ...paperProps.sx,
             }}
           />
@@ -98,9 +88,16 @@ const SelectField = ({
           <li
             key={keyGetter(option) || key}
             {...optionProps}
-            style={{ ...optionProps.style, fontSize: '0.85rem', padding: '8px 14px' }}
+            style={{
+              ...optionProps.style,
+              fontSize: '0.86rem',
+              padding: '9px 16px',
+              borderRadius: '8px',
+              margin: '2px 6px',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <Typography variant="body2" noWrap>
+            <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
               {titleGetter(option)}
             </Typography>
           </li>
@@ -126,46 +123,54 @@ const SelectField = ({
         renderValue={
           multiple && singleLine
             ? (tagValue, getItemProps) => {
-              if (!tagValue.length) {
-                return null;
-              }
-              return (
-                <>
-                  <Chip
-                    key={keyGetter(tagValue[0])}
-                    {...getItemProps({ index: 0 })}
-                    label={titleGetter(tagValue[0])}
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                      minWidth: 0,
-                      height: 24,
-                      borderRadius: '6px',
-                      fontWeight: 500,
-                      fontSize: '0.75rem',
-                      borderColor: (theme) => theme.palette.divider,
-                      backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
-                    }}
-                  />
-                  {tagValue.length > 1 && (
+                if (!tagValue.length) {
+                  return null;
+                }
+                return (
+                  <>
                     <Chip
-                      label={`+${tagValue.length - 1}`}
+                      key={keyGetter(tagValue[0])}
+                      {...getItemProps({ index: 0 })}
+                      label={titleGetter(tagValue[0])}
                       size="small"
-                      color="primary"
                       sx={{
-                        flexShrink: 0,
+                        minWidth: 0,
                         height: 24,
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         fontWeight: 600,
-                        fontSize: '0.725rem',
-                        px: 0.5,
+                        fontSize: '0.74rem',
+                        color: '#1d4ed8',
+                        backgroundColor: (theme) =>
+                          theme.palette.mode === 'dark'
+                            ? alpha('#1d4ed8', 0.2)
+                            : alpha('#1d4ed8', 0.08),
+                        border: (theme) =>
+                          `1px solid ${
+                            theme.palette.mode === 'dark'
+                              ? alpha('#1d4ed8', 0.35)
+                              : alpha('#1d4ed8', 0.18)
+                          }`,
                       }}
                     />
-                  )}
-                </>
-              );
-            }
+                    {tagValue.length > 1 && (
+                      <Chip
+                        label={`+${tagValue.length - 1}`}
+                        size="small"
+                        sx={{
+                          flexShrink: 0,
+                          height: 24,
+                          borderRadius: '8px',
+                          fontWeight: 700,
+                          fontSize: '0.72rem',
+                          backgroundColor: '#1d4ed8',
+                          color: '#ffffff',
+                          px: 0.5,
+                        }}
+                      />
+                    )}
+                  </>
+                );
+              }
             : undefined
         }
         fullWidth={fullWidth}
@@ -178,7 +183,26 @@ const SelectField = ({
             placeholder={multiple && !autocompleteValue.length ? placeholder : undefined}
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: '10px',
+                borderRadius: '14px',
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+                transition: 'all 0.2s ease',
+                '& fieldset': {
+                  borderColor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(255, 255, 255, 0.12)'
+                      : 'rgba(15, 23, 42, 0.12)',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#1d4ed8',
+                },
+                '&.Mui-focused': {
+                  boxShadow: '0 0 0 3px rgba(29, 78, 216, 0.12)',
+                  '& fieldset': {
+                    borderColor: '#1d4ed8',
+                    borderWidth: 1.5,
+                  },
+                },
               },
               ...sx,
             }}

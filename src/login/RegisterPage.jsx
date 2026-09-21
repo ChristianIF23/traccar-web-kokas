@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, TextField, Typography, Snackbar, IconButton, Box } from '@mui/material';
+import {
+  Button,
+  TextField,
+  Typography,
+  Snackbar,
+  IconButton,
+  Box,
+  Paper,
+  alpha,
+  CircularProgress,
+} from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useNavigate } from 'react-router-dom';
 import LoginLayout from './LoginLayout';
@@ -13,52 +23,125 @@ import PasswordField from '../common/components/PasswordField';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const useStyles = makeStyles()((theme) => ({
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(2.5),
+  cardWrapper: {
     width: '100%',
-    maxWidth: 380,
+    maxWidth: 390,
     margin: '0 auto',
+    padding: theme.spacing(4.5, 4),
+    borderRadius: '28px',
+    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#ffffff',
+    border: `1px solid ${
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
+    }`,
+    boxShadow:
+      theme.palette.mode === 'dark'
+        ? '0 20px 45px -10px rgba(0, 0, 0, 0.5)'
+        : '0 16px 40px -10px rgba(15, 23, 42, 0.07)',
+  },
+  headerBox: {
+    marginBottom: theme.spacing(3.5),
   },
   header: {
     display: 'flex',
     alignItems: 'center',
-    marginBottom: theme.spacing(1),
+    gap: theme.spacing(1),
+    marginBottom: theme.spacing(0.5),
   },
   backButton: {
-    marginRight: theme.spacing(1),
-    padding: theme.spacing(0.5),
+    width: 34,
+    height: 34,
+    borderRadius: '10px',
+    border: `1px solid ${
+      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)'
+    }`,
+    backgroundColor: alpha(theme.palette.background.paper, 0.6),
+    color: theme.palette.text.secondary,
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      color: '#1d4ed8',
+      borderColor: '#1d4ed8',
+      backgroundColor: alpha('#1d4ed8', 0.08),
+      transform: 'translateX(-2px)',
+    },
   },
   title: {
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    letterSpacing: '-0.02em',
-    color: theme.palette.text.primary,
+    fontSize: '1.65rem',
+    fontWeight: 800,
+    letterSpacing: '-0.03em',
+    color: theme.palette.mode === 'dark' ? '#f8fafc' : '#0f172a',
   },
   subtitle: {
-    color: theme.palette.text.secondary,
+    color: theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
     fontSize: '0.875rem',
-    marginTop: theme.spacing(-1.5),
-    marginBottom: theme.spacing(1),
+    lineHeight: 1.45,
+    fontWeight: 400,
+  },
+  formContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(2.2),
+    width: '100%',
+  },
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(0.6),
+  },
+  fieldLabel: {
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    color: theme.palette.mode === 'dark' ? '#cbd5e1' : '#334155',
+    marginLeft: theme.spacing(0.2),
   },
   inputField: {
     '& .MuiOutlinedInput-root': {
-      borderRadius: theme.spacing(1.2),
-      transition: 'all 0.2s ease-in-out',
+      borderRadius: '12px',
+      backgroundColor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+      fontSize: '0.9rem',
+      fontWeight: 500,
+      '& fieldset': {
+        borderColor:
+          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.16)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#1d4ed8',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#1d4ed8',
+        borderWidth: '1.5px',
+      },
+      '&.Mui-focused': {
+        boxShadow: '0 0 0 3px rgba(29, 78, 216, 0.14)',
+      },
     },
   },
   submitButton: {
-    borderRadius: theme.spacing(1.2),
-    paddingTop: theme.spacing(1.4),
-    paddingBottom: theme.spacing(1.4),
+    borderRadius: '12px',
+    paddingTop: theme.spacing(1.3),
+    paddingBottom: theme.spacing(1.3),
     fontWeight: 600,
     textTransform: 'none',
     fontSize: '0.95rem',
+    backgroundColor: '#1d4ed8',
+    color: '#ffffff',
+    boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+    transition: 'all 0.2s ease',
     marginTop: theme.spacing(1),
-    boxShadow: 'none',
     '&:hover': {
-      boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+      backgroundColor: '#1e40af',
+      boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+      transform: 'translateY(-1px)',
+    },
+    '&:active': {
+      transform: 'translateY(0)',
+    },
+    '&.Mui-disabled': {
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? alpha(theme.palette.action.disabledBackground, 0.2)
+          : '#e2e8f0',
+      color: theme.palette.mode === 'dark' ? '#475569' : '#94a3b8',
+      boxShadow: 'none',
     },
   },
 }));
@@ -70,13 +153,14 @@ const RegisterPage = () => {
   const t = useTranslation();
 
   const server = useSelector((state) => state.session.server);
-  const totpForce = useSelector((state) => state.session.server.attributes.totpForce);
+  const totpForce = useSelector((state) => state.session.server.attributes?.totpForce);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totpKey, setTotpKey] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useAsyncTask(
     async ({ signal }) => {
@@ -90,89 +174,121 @@ const RegisterPage = () => {
 
   const handleSubmit = useCatch(async (event) => {
     event.preventDefault();
-    await fetchOrThrow('/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, totpKey }),
-    });
-    setSnackbarOpen(true);
+    setLoading(true);
+    try {
+      await fetchOrThrow('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, totpKey }),
+      });
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
+    }
   });
 
   return (
     <LoginLayout>
-      <div className={classes.container}>
-        <div className={classes.header}>
-          {!server.newServer && (
-            <IconButton className={classes.backButton} color="primary" onClick={() => navigate('/login')}>
-              <BackIcon />
-            </IconButton>
-          )}
-          <Typography className={classes.title}>
-            {t('loginRegister')}
+      <Paper elevation={0} className={classes.cardWrapper}>
+        <Box className={classes.headerBox}>
+          <div className={classes.header}>
+            {!server.newServer && (
+              <IconButton
+                className={classes.backButton}
+                onClick={() => navigate('/login')}
+                size="small"
+              >
+                <BackIcon />
+              </IconButton>
+            )}
+            <Typography variant="h5" className={classes.title}>
+              {t('loginRegister')}
+            </Typography>
+          </div>
+
+          <Typography variant="body2" className={classes.subtitle}>
+            Buat akun baru untuk mulai memantau unit armada
           </Typography>
-        </div>
+        </Box>
 
-        <Typography className={classes.subtitle}>
-          Buat akun baru untuk mulai memantau unit
-        </Typography>
+        <form onSubmit={handleSubmit} className={classes.formContainer}>
+          <div className={classes.fieldGroup}>
+            <Typography className={classes.fieldLabel}>{t('sharedName')}</Typography>
+            <TextField
+              required
+              fullWidth
+              className={classes.inputField}
+              name="name"
+              value={name}
+              placeholder="Nama lengkap"
+              autoComplete="name"
+              autoFocus
+              onChange={(event) => setName(event.target.value)}
+            />
+          </div>
 
-        <TextField
-          required
-          fullWidth
-          className={classes.inputField}
-          label={t('sharedName')}
-          name="name"
-          value={name}
-          autoComplete="name"
-          autoFocus
-          onChange={(event) => setName(event.target.value)}
-        />
-        <TextField
-          required
-          fullWidth
-          type="email"
-          className={classes.inputField}
-          label={t('userEmail')}
-          name="email"
-          value={email}
-          autoComplete="email"
-          onChange={(event) => setEmail(event.target.value)}
-        />
-        <PasswordField
-          required
-          fullWidth
-          className={classes.inputField}
-          label={t('userPassword')}
-          name="password"
-          value={password}
-          autoComplete="current-password"
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        {totpForce && (
-          <TextField
-            required
+          <div className={classes.fieldGroup}>
+            <Typography className={classes.fieldLabel}>{t('userEmail')}</Typography>
+            <TextField
+              required
+              fullWidth
+              type="email"
+              className={classes.inputField}
+              name="email"
+              value={email}
+              placeholder="nama@kokas.id"
+              autoComplete="email"
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
+
+          <div className={classes.fieldGroup}>
+            <Typography className={classes.fieldLabel}>{t('userPassword')}</Typography>
+            <PasswordField
+              required
+              fullWidth
+              className={classes.inputField}
+              name="password"
+              value={password}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
+
+          {totpForce && (
+            <div className={classes.fieldGroup}>
+              <Typography className={classes.fieldLabel}>{t('loginTotpKey')}</Typography>
+              <TextField
+                required
+                fullWidth
+                className={classes.inputField}
+                name="totpKey"
+                value={totpKey || ''}
+                slotProps={{
+                  input: { readOnly: true },
+                }}
+              />
+            </div>
+          )}
+
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={
+              !name ||
+              !password ||
+              !(server.newServer || /(.+)@(.+)\.(.{2,})/.test(email)) ||
+              loading
+            }
             fullWidth
-            className={classes.inputField}
-            label={t('loginTotpKey')}
-            name="totpKey"
-            value={totpKey || ''}
-            slotProps={{
-              input: { readOnly: true },
-            }}
-          />
-        )}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          type="submit"
-          disabled={!name || !password || !(server.newServer || /(.+)@(.+)\.(.{2,})/.test(email))}
-          fullWidth
-          className={classes.submitButton}
-        >
-          {t('loginRegister')}
-        </Button>
-      </div>
+            className={classes.submitButton}
+          >
+            {loading ? <CircularProgress size={22} color="inherit" /> : t('loginRegister')}
+          </Button>
+        </form>
+      </Paper>
+
       <Snackbar
         open={snackbarOpen}
         onClose={() => {

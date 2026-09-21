@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   FormControl,
@@ -23,7 +23,14 @@ export const updateReportParams = (searchParams, setSearchParams, key, values) =
   newParams.delete(key);
   newParams.delete('from');
   newParams.delete('to');
-  values.forEach((value) => newParams.append(key, value));
+
+  const valueList = Array.isArray(values) ? values : [values];
+  valueList.forEach((value) => {
+    if (value !== undefined && value !== null && value !== '') {
+      newParams.append(key, value);
+    }
+  });
+
   setSearchParams(newParams, { replace: true });
 };
 
@@ -32,11 +39,11 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
   const t = useTranslation();
 
   const [searchParams, setSearchParams] = useSearchParams();
-
   const readonly = useRestriction('readonly');
 
   const devices = useSelector((state) => state.devices.items, deviceEquality(['id', 'name']));
   const groups = useSelector((state) => state.groups.items);
+
   const deviceList = useMemo(
     () => [
       { id: 'all', name: t('notificationAlways') },
@@ -44,6 +51,7 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
     ],
     [devices, t],
   );
+
   const groupList = useMemo(
     () => Object.values(groups).sort((a, b) => a.name.localeCompare(b.name)),
     [groups],
@@ -53,9 +61,12 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
     () => searchParams.getAll('deviceId').map((it) => (it === 'all' ? it : Number(it))),
     [searchParams],
   );
+
   const groupIds = useMemo(() => searchParams.getAll('groupId').map(Number), [searchParams]);
+
   const from = searchParams.get('from');
   const to = searchParams.get('to');
+
   const [period, setPeriod] = useState('today');
   const [customFrom, setCustomFrom] = useState(() =>
     dayjs().subtract(1, 'hour').locale('en').format('YYYY-MM-DDTHH:mm'),
@@ -63,10 +74,10 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
   const [customTo, setCustomTo] = useState(() => dayjs().locale('en').format('YYYY-MM-DDTHH:mm'));
   const [selectedOption, setSelectedOption] = useState('json');
 
-  const [description, setDescription] = useState();
+  const [description, setDescription] = useState('');
   const [calendarId, setCalendarId] = useState();
 
-  const evaluateDisabled = () => {
+  const evaluateDisabled = useCallback(() => {
     if (deviceType === 'single' && !deviceIds.length) {
       return true;
     }
@@ -77,15 +88,24 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
       return true;
     }
     return loading;
-  };
-  const disabled = evaluateDisabled();
-  const loaded = from && to && !loading;
+  }, [
+    deviceType,
+    deviceIds.length,
+    groupIds.length,
+    selectedOption,
+    description,
+    calendarId,
+    loading,
+  ]);
 
-  const evaluateOptions = () => {
+  const disabled = evaluateDisabled();
+  const loaded = Boolean(from && to && !loading);
+
+  const evaluateOptions = useCallback(() => {
     const result = {
       json: t('reportShow'),
     };
-    if (onExport && loaded) {
+    if (onExport && loaded && formats) {
       formats.forEach((format) => {
         result[format] = `${t('reportExport')} (${format.toUpperCase()})`;
       });
@@ -95,14 +115,20 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
       result.schedule = t('reportSchedule');
     }
     return result;
-  };
+  }, [t, onExport, loaded, formats, onSchedule, readonly]);
+
   const options = evaluateOptions();
+
+  const serializedDeviceIds = JSON.stringify(deviceIds);
+  const serializedGroupIds = JSON.stringify(groupIds);
 
   useEffect(() => {
     if (from && to) {
-      onShow({ deviceIds: deviceIds.filter((it) => it !== 'all'), groupIds, from, to });
+      const filteredDeviceIds = deviceIds.filter((it) => it !== 'all');
+      onShow({ deviceIds: filteredDeviceIds, groupIds, from, to });
     }
-  }, [deviceIds, groupIds, from, to, onShow]);
+    // eslint-disable-next-deps
+  }, [serializedDeviceIds, serializedGroupIds, from, to]);
 
   const showReport = () => {
     let selectedFrom;
@@ -151,13 +177,15 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
       case 'gpx':
       case 'kml':
       case 'kmz':
-        onExport({
-          deviceIds: deviceIds.filter((it) => it !== 'all'),
-          groupIds,
-          from,
-          to,
-          format: type,
-        });
+        if (onExport) {
+          onExport({
+            deviceIds: deviceIds.filter((it) => it !== 'all'),
+            groupIds,
+            from,
+            to,
+            format: type,
+          });
+        }
         break;
       case 'print':
         window.print();
@@ -171,15 +199,17 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
   const onClick = (type) => {
     switch (type) {
       case 'schedule':
-        onSchedule(
-          deviceIds.filter((it) => it !== 'all'),
-          groupIds,
-          {
-            description,
-            calendarId,
-            attributes: {},
-          },
-        );
+        if (onSchedule) {
+          onSchedule(
+            deviceIds.filter((it) => it !== 'all'),
+            groupIds,
+            {
+              description,
+              calendarId,
+              attributes: {},
+            },
+          );
+        }
         break;
       case 'json':
       default:
@@ -188,20 +218,63 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
     }
   };
 
+  // Style tombol Dark Navy yang tegas dan pas tinggi-lebarnya
+  const buttonStyle = {
+    height: 40,
+    borderRadius: '10px',
+    boxShadow: 'none',
+    backgroundColor: '#1a2b4c',
+    color: '#ffffff !important',
+    textTransform: 'none',
+    fontWeight: 700,
+    px: 2,
+    '&:hover': {
+      backgroundColor: '#121e36',
+      boxShadow: 'none',
+    },
+    '& .MuiButton-root': {
+      height: '100%',
+      backgroundColor: '#1a2b4c',
+      color: '#ffffff !important',
+      fontWeight: 700,
+      boxShadow: 'none',
+      border: 'none',
+      '&:hover': {
+        backgroundColor: '#121e36',
+        boxShadow: 'none',
+      },
+    },
+    '& .MuiButtonGroup-grouped:not(:last-of-type)': {
+      borderRight: '1px solid rgba(255, 255, 255, 0.2)',
+    },
+    '& .MuiSvgIcon-root': {
+      color: '#ffffff',
+    },
+  };
+
   return (
-    <div className={classes.filter}>
+    <div
+      className={classes.filter}
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: '12px',
+        marginBottom: '16px',
+      }}
+    >
       {deviceType !== 'none' && (
-        <div className={classes.filterItem}>
+        <div className={classes.filterItem} style={{ minWidth: 160, flex: 1 }}>
           <SelectField
             label={t(deviceType === 'multiple' ? 'deviceTitle' : 'reportDevice')}
             data={
               deviceType === 'multiple' ? deviceList : deviceList.filter((it) => it.id !== 'all')
             }
-            value={deviceType === 'multiple' ? deviceIds : deviceIds.find(() => true)}
+            value={deviceType === 'multiple' ? deviceIds : (deviceIds[0] ?? '')}
             allValue="all"
             onChange={(e) => {
               const values =
-                deviceType === 'multiple' ? e.target.value : [e.target.value].filter((id) => id);
+                deviceType === 'multiple' ? e.target.value : [e.target.value].filter(Boolean);
               updateReportParams(searchParams, setSearchParams, 'deviceId', values);
             }}
             multiple={deviceType === 'multiple'}
@@ -211,7 +284,7 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
         </div>
       )}
       {deviceType === 'multiple' && (
-        <div className={classes.filterItem}>
+        <div className={classes.filterItem} style={{ minWidth: 160, flex: 1 }}>
           <SelectField
             label={t('settingsGroups')}
             data={groupList}
@@ -228,14 +301,14 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
       )}
       {selectedOption !== 'schedule' ? (
         <>
-          <div className={classes.filterItem}>
+          <div className={classes.filterItem} style={{ minWidth: 140, flex: 1 }}>
             <FormControl fullWidth size="small">
               <InputLabel>{t('reportPeriod')}</InputLabel>
               <Select
                 label={t('reportPeriod')}
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
-                sx={{ borderRadius: '10px' }}
+                sx={{ borderRadius: '10px', height: 40 }}
               >
                 <MenuItem value="today">{t('reportToday')}</MenuItem>
                 <MenuItem value="yesterday">{t('reportYesterday')}</MenuItem>
@@ -248,7 +321,7 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
             </FormControl>
           </div>
           {period === 'custom' && (
-            <div className={classes.filterItem}>
+            <div className={classes.filterItem} style={{ minWidth: 180, flex: 1 }}>
               <TextField
                 label={t('reportFrom')}
                 type="datetime-local"
@@ -256,12 +329,13 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
                 fullWidth
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                InputLabelProps={{ shrink: true }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 40 } }}
               />
             </div>
           )}
           {period === 'custom' && (
-            <div className={classes.filterItem}>
+            <div className={classes.filterItem} style={{ minWidth: 180, flex: 1 }}>
               <TextField
                 label={t('reportTo')}
                 type="datetime-local"
@@ -269,26 +343,27 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
                 value={customTo}
                 onChange={(e) => setCustomTo(e.target.value)}
                 fullWidth
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                InputLabelProps={{ shrink: true }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 40 } }}
               />
             </div>
           )}
         </>
       ) : (
         <>
-          <div className={classes.filterItem}>
+          <div className={classes.filterItem} style={{ minWidth: 180, flex: 1 }}>
             <TextField
-              value={description || ''}
+              value={description}
               onChange={(event) => setDescription(event.target.value)}
               label={t('sharedDescription')}
               size="small"
               fullWidth
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', height: 40 } }}
             />
           </div>
-          <div className={classes.filterItem}>
+          <div className={classes.filterItem} style={{ minWidth: 180, flex: 1 }}>
             <SelectField
-              value={calendarId}
+              value={calendarId ?? ''}
               onChange={(event) => setCalendarId(Number(event.target.value))}
               endpoint="/api/calendars"
               label={t('sharedCalendar')}
@@ -298,37 +373,29 @@ const ReportFilter = ({ children, onShow, onExport, onSchedule, deviceType, load
         </>
       )}
       {children}
-      <div className={classes.filterItem}>
+
+      {/* Tombol Show sejajar di ujung kanan baris filter */}
+      <div style={{ display: 'flex', alignItems: 'center', height: 40 }}>
         {Object.keys(options).length === 1 ? (
           <Button
-            fullWidth
             variant="contained"
-            color="primary"
             disabled={disabled}
-            onClick={onClick}
-            sx={{
-              borderRadius: '10px',
-              height: 40,
-              boxShadow: 'none',
-              textTransform: 'none',
-              fontWeight: 600,
-            }}
+            onClick={() => onClick(selectedOption)}
+            sx={{ ...buttonStyle, minWidth: '130px' }}
           >
-            <Typography variant="button" noWrap>
+            <Typography variant="button" noWrap sx={{ color: '#ffffff', fontWeight: 700 }}>
               {t(loading ? 'sharedLoading' : 'reportShow')}
             </Typography>
           </Button>
         ) : (
           <SplitButton
-            fullWidth
             variant="contained"
-            color="primary"
             disabled={disabled}
             onClick={onClick}
             selected={selectedOption}
             setSelected={onSelected}
             options={options}
-            sx={{ borderRadius: '10px', height: 40 }}
+            sx={{ ...buttonStyle, minWidth: '150px' }}
           />
         )}
       </div>

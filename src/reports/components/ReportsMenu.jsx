@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Divider, List, Box } from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
 import TimelineIcon from '@mui/icons-material/Timeline';
@@ -24,26 +25,34 @@ const ReportsMenu = () => {
   const admin = useAdministrator();
   const readonly = useRestriction('readonly');
 
-  const buildLink = (path) => {
-    const sourceParams = new URLSearchParams(location.search);
-    const deviceIds = sourceParams.getAll('deviceId');
-    const groupIds = sourceParams.getAll('groupId');
-    if (!deviceIds.length && !groupIds.length) {
-      return path;
-    }
-    const params = new URLSearchParams();
-    if (path === '/reports/chart' || path === '/reports/route' || path === '/replay') {
-      const [firstDeviceId] = deviceIds;
-      if (firstDeviceId != null) {
-        params.append('deviceId', firstDeviceId);
+  const buildLink = useCallback(
+    (path) => {
+      const sourceParams = new URLSearchParams(location.search);
+      const deviceIds = sourceParams.getAll('deviceId');
+      const groupIds = sourceParams.getAll('groupId');
+
+      if (!deviceIds.length && !groupIds.length) {
+        return path;
       }
-    } else {
-      deviceIds.forEach((deviceId) => params.append('deviceId', deviceId));
-      groupIds.forEach((groupId) => params.append('groupId', groupId));
-    }
-    const search = params.toString();
-    return search ? `${path}?${search}` : path;
-  };
+
+      const params = new URLSearchParams();
+
+      // Rute-rute ini hanya menerima 1 deviceId utama
+      if (path === '/reports/chart' || path === '/reports/route' || path === '/replay') {
+        const [firstDeviceId] = deviceIds;
+        if (firstDeviceId != null) {
+          params.append('deviceId', firstDeviceId);
+        }
+      } else {
+        deviceIds.forEach((deviceId) => params.append('deviceId', deviceId));
+        groupIds.forEach((groupId) => params.append('groupId', groupId));
+      }
+
+      const search = params.toString();
+      return search ? `${path}?${search}` : path;
+    },
+    [location.search],
+  );
 
   return (
     <Box sx={{ py: 1 }}>
@@ -94,6 +103,7 @@ const ReportsMenu = () => {
           title={t('reportReplay')}
           link={buildLink('/replay')}
           icon={<RouteIcon fontSize="small" />}
+          selected={location.pathname === '/replay'}
         />
         <MenuItem
           title={t('reportPositions')}

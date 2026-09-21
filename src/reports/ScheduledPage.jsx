@@ -26,12 +26,12 @@ import fetchOrThrow from '../common/util/fetchOrThrow';
 const ScheduledPage = () => {
   const t = useTranslation();
 
-  const calendars = useSelector((state) => state.calendars.items);
+  const calendars = useSelector((state) => state.calendars?.items || {});
 
   const [reloadKey, reload] = useReducer((k) => k + 1, 0);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [removingId, setRemovingId] = useState();
+  const [removingId, setRemovingId] = useState(null);
 
   useAsyncTask(
     async ({ signal }) => {
@@ -40,6 +40,8 @@ const ScheduledPage = () => {
       try {
         const response = await fetchOrThrow('/api/reports', { signal });
         setItems(await response.json());
+      } catch (error) {
+        // Tangani penanganan error jika koneksi gagal
       } finally {
         setLoading(false);
       }
@@ -143,7 +145,7 @@ const ScheduledPage = () => {
                           {item.description || '—'}
                         </TableCell>
                         <TableCell sx={{ color: 'text.secondary' }}>
-                          {calendars[item.calendarId]?.name || item.calendarId}
+                          {calendars[item.calendarId]?.name || item.calendarId || '—'}
                         </TableCell>
                         <TableCell sx={{ width: 48, paddingRight: 2 }} padding="none" align="right">
                           <Tooltip title={t('sharedRemove')} arrow>
@@ -172,13 +174,17 @@ const ScheduledPage = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 1,
+                          }}
+                        >
                           <EventRepeatIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
                           <Typography variant="body2" color="text.secondary">
                             {t('sharedNoData')}
-                          </Typography>
-                          <Typography variant="caption" color="text.disabled">
-                            Belum ada jadwal laporan otomatis yang dikonfigurasi.
                           </Typography>
                         </Box>
                       </TableCell>
@@ -194,7 +200,6 @@ const ScheduledPage = () => {
       </Box>
 
       <RemoveDialog
-        style={{ transform: 'none' }}
         open={Boolean(removingId)}
         endpoint="reports"
         itemId={removingId}

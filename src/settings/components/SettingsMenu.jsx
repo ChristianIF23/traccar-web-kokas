@@ -1,4 +1,5 @@
-import { Divider, List } from '@mui/material';
+import { Divider, List, Box } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import EditLocationAltOutlinedIcon from '@mui/icons-material/EditLocationAltOutlined';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
@@ -36,8 +37,24 @@ const SettingsMenu = () => {
   const features = useFeatures();
 
   return (
-    <>
-      <List sx={{ py: 1.5, px: 1.5 }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100%',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        '&::-webkit-scrollbar': { width: 5 },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? alpha('#ffffff', 0.12) : alpha('#0f172a', 0.12),
+          borderRadius: 3,
+          '&:hover': {
+            backgroundColor: '#1d4ed8',
+          },
+        },
+      }}
+    >
+      <List sx={{ py: 1.5, px: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <MenuItem
           title={t('sharedPreferences')}
           link="/settings/preferences"
@@ -66,7 +83,7 @@ const SettingsMenu = () => {
             />
             <MenuItem
               title={t('sharedGeofences')}
-              link="/geofences"
+              link="/settings/geofences"
               icon={<EditLocationAltOutlinedIcon />}
               selected={location.pathname.startsWith('/settings/geofence')}
             />
@@ -124,14 +141,27 @@ const SettingsMenu = () => {
           <MenuItem title={t('userBilling')} link={billingLink} icon={<PaymentOutlinedIcon />} />
         )}
         {supportLink && (
-          <MenuItem title={t('settingsSupport')} link={supportLink} icon={<HelpOutlineOutlinedIcon />} />
+          <MenuItem
+            title={t('settingsSupport')}
+            link={supportLink}
+            icon={<HelpOutlineOutlinedIcon />}
+          />
         )}
       </List>
 
       {manager && (
         <>
-          <Divider sx={{ my: 1, mx: 2, borderColor: 'divider' }} />
-          <List sx={{ py: 1, px: 1.5 }}>
+          <Divider
+            sx={{
+              my: 1,
+              mx: 2,
+              borderColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(15, 23, 42, 0.08)',
+            }}
+          />
+          <List sx={{ py: 1, px: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <MenuItem
               title={t('serverAnnouncement')}
               link="/settings/announcement"
@@ -158,7 +188,7 @@ const SettingsMenu = () => {
           </List>
         </>
       )}
-    </>
+    </Box>
   );
 };
 

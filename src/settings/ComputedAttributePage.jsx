@@ -13,8 +13,11 @@ import {
   Autocomplete,
   Button,
   Snackbar,
+  Box,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import EditItemView from './components/EditItemView';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import usePositionAttributes from '../common/attributes/usePositionAttributes';
@@ -22,7 +25,6 @@ import SettingsMenu from './components/SettingsMenu';
 import SelectField from '../common/components/SelectField';
 import { useCatch } from '../reactHelper';
 import { snackBarDurationLongMs } from '../common/util/duration';
-import useSettingsStyles from './common/useSettingsStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const allowedProperties = [
@@ -37,8 +39,9 @@ const allowedProperties = [
 ];
 
 const ComputedAttributePage = () => {
-  const { classes } = useSettingsStyles();
   const t = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const positionAttributes = usePositionAttributes(t);
 
@@ -69,20 +72,38 @@ const ComputedAttributePage = () => {
     setResult(await response.text());
   });
 
-  const validate = () => item && item.description && item.expression;
+  const validate = () => Boolean(item && item.description && item.expression);
 
-  const accordionStyle = {
-    borderRadius: '16px !important',
-    border: (theme) => `1px solid ${theme.palette.divider}`,
+  const accordionCardStyle = {
+    borderRadius: '18px !important',
+    border: (th) =>
+      `1px solid ${
+        th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+      }`,
+    backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+    boxShadow: (th) =>
+      th.palette.mode === 'dark'
+        ? '0 12px 30px rgba(0, 0, 0, 0.45)'
+        : '0 8px 24px rgba(15, 23, 42, 0.04)',
     overflow: 'hidden',
-    mb: 2.5,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    mb: 2,
     '&:before': { display: 'none' },
   };
 
   const inputStyle = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '10px',
+      borderRadius: '12px',
+      backgroundColor: (th) => (th.palette.mode === 'dark' ? alpha('#0f172a', 0.8) : '#ffffff'),
+      '& fieldset': {
+        borderColor: (th) =>
+          th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#1d4ed8',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#1d4ed8',
+      },
     },
   };
 
@@ -96,16 +117,32 @@ const ComputedAttributePage = () => {
       breadcrumbs={['settingsTitle', 'sharedComputedAttribute']}
     >
       {item && (
-        <>
-          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          {/* 1. Pengaturan Wajib Atribut */}
+          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
                 {t('sharedRequired')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <TextField
                 fullWidth
@@ -130,11 +167,11 @@ const ComputedAttributePage = () => {
                     setItem({ ...item, attribute });
                   }
                 }}
-                filterOptions={(options, params) => {
-                  const filtered = filter(options, params);
+                filterOptions={(opts, params) => {
+                  const filtered = filter(opts, params);
                   if (
                     params.inputValue &&
-                    !options.some((x) => (typeof x === 'object' ? x.key : x) === params.inputValue)
+                    !opts.some((x) => (typeof x === 'object' ? x.key : x) === params.inputValue)
                   ) {
                     filtered.push({
                       inputValue: params.inputValue,
@@ -160,9 +197,21 @@ const ComputedAttributePage = () => {
                 label={t('sharedExpression')}
                 multiline
                 rows={4}
-                sx={inputStyle}
+                sx={{
+                  ...inputStyle,
+                  '& .MuiInputBase-input': {
+                    fontFamily: 'Consolas, Monaco, monospace',
+                    fontSize: '0.86rem',
+                    lineHeight: 1.5,
+                  },
+                }}
               />
-              <FormControl fullWidth size="small" disabled={item.attribute in positionAttributes} sx={inputStyle}>
+              <FormControl
+                fullWidth
+                size="small"
+                disabled={item.attribute in positionAttributes}
+                sx={inputStyle}
+              >
                 <InputLabel>{t('sharedType')}</InputLabel>
                 <Select
                   label={t('sharedType')}
@@ -177,15 +226,31 @@ const ComputedAttributePage = () => {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>
+          {/* 2. Pengaturan Ekstra */}
+          <Accordion elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
                 {t('sharedExtra')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <TextField
                 fullWidth
@@ -199,15 +264,31 @@ const ComputedAttributePage = () => {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>
+          {/* 3. Pengujian Formula / Expression */}
+          <Accordion elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
                 {t('sharedTest')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <SelectField
                 fullWidth
@@ -220,29 +301,35 @@ const ComputedAttributePage = () => {
               />
               <Button
                 variant="outlined"
-                color="primary"
                 onClick={testAttribute}
                 disabled={!deviceId}
+                startIcon={<PlayArrowRoundedIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   borderRadius: '10px',
                   textTransform: 'none',
                   fontWeight: 600,
-                  py: 1,
+                  py: 0.9,
                   px: 2.5,
                   alignSelf: 'flex-start',
+                  borderColor: '#1d4ed8',
+                  color: '#1d4ed8',
+                  '&:hover': {
+                    borderColor: '#1e40af',
+                    backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+                  },
                 }}
               >
                 {t('sharedTestExpression')}
               </Button>
               <Snackbar
-                open={!!result}
+                open={Boolean(result)}
                 onClose={() => setResult(null)}
                 autoHideDuration={snackBarDurationLongMs}
                 message={result}
               />
             </AccordionDetails>
           </Accordion>
-        </>
+        </Box>
       )}
     </EditItemView>
   );

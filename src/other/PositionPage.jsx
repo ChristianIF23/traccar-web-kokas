@@ -47,7 +47,7 @@ const PositionPage = () => {
   const positionAttributes = usePositionAttributes(t);
   const { id } = useParams();
 
-  const [item, setItem] = useState();
+  const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useAsyncTask(
@@ -57,8 +57,15 @@ const PositionPage = () => {
         try {
           const response = await fetchOrThrow(`/api/positions?id=${id}`, { signal });
           const positions = await response.json();
-          if (positions.length > 0) {
+          if (positions && positions.length > 0) {
             setItem(positions[0]);
+          } else {
+            setItem(null);
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            // Log atau handle error visual jika diperlukan
+            console.error('Failed to fetch position:', error);
           }
         } finally {
           setLoading(false);
@@ -69,8 +76,8 @@ const PositionPage = () => {
   );
 
   const deviceName = useSelector((state) => {
-    if (item) {
-      const device = state.devices.items[item.deviceId];
+    if (item && item.deviceId) {
+      const device = state.devices?.items?.[item.deviceId];
       if (device) {
         return device.name;
       }
@@ -162,63 +169,67 @@ const PositionPage = () => {
               <TableBody>
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
                     </TableRow>
                   ))
-                ) : (
+                ) : item ? (
                   <>
-                    {item &&
-                      Object.getOwnPropertyNames(item)
-                        .filter((it) => it !== 'attributes')
-                        .map((property) => (
-                          <TableRow
-                            key={property}
-                            hover
+                    {Object.getOwnPropertyNames(item)
+                      .filter((it) => it !== 'attributes')
+                      .map((property) => (
+                        <TableRow
+                          key={`prop-${property}`}
+                          hover
+                          sx={{
+                            '&:last-child td, &:last-child th': { border: 0 },
+                            transition: 'background-color 0.15s ease',
+                          }}
+                        >
+                          <TableCell
                             sx={{
-                              '&:last-child td, &:last-child th': { border: 0 },
-                              transition: 'background-color 0.15s ease',
+                              fontFamily: 'monospace',
+                              fontSize: '0.8rem',
+                              color: 'text.secondary',
+                              py: 1.25,
                             }}
                           >
-                            <TableCell
-                              sx={{
-                                fontFamily: 'monospace',
-                                fontSize: '0.8rem',
-                                color: 'text.secondary',
-                                py: 1.25,
-                              }}
-                            >
-                              {property}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: '0.85rem',
-                                fontWeight: 500,
-                                color: 'text.primary',
-                                py: 1.25,
-                              }}
-                            >
-                              {positionAttributes[property]?.name || '-'}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: '0.85rem',
-                                color: 'text.primary',
-                                py: 1.25,
-                              }}
-                            >
-                              <PositionValue position={item} property={property} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                            {property}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
+                              color: 'text.primary',
+                              py: 1.25,
+                            }}
+                          >
+                            {positionAttributes[property]?.name || '-'}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontSize: '0.85rem',
+                              color: 'text.primary',
+                              py: 1.25,
+                            }}
+                          >
+                            <PositionValue position={item} property={property} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
 
-                    {item &&
-                      item.attributes &&
+                    {item.attributes &&
                       Object.getOwnPropertyNames(item.attributes).map((attribute) => (
                         <TableRow
-                          key={attribute}
+                          key={`attr-${attribute}`}
                           hover
                           sx={{
                             '&:last-child td, &:last-child th': { border: 0 },
@@ -257,6 +268,12 @@ const PositionPage = () => {
                         </TableRow>
                       ))}
                   </>
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                      {t('sharedNoData') || 'Data tidak ditemukan'}
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>

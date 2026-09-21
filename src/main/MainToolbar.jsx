@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Toolbar,
   IconButton,
-  OutlinedInput,
-  InputAdornment,
+  InputBase,
   Popover,
   FormControl,
   InputLabel,
@@ -18,76 +17,130 @@ import {
   ListItemButton,
   ListItemText,
   Tooltip,
+  Box,
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
-import { useTheme } from '@mui/material/styles';
-import MapIcon from '@mui/icons-material/Map';
-import DnsIcon from '@mui/icons-material/Dns';
-import AddIcon from '@mui/icons-material/Add';
-import TuneIcon from '@mui/icons-material/Tune';
-import SearchIcon from '@mui/icons-material/Search';
+import { useTheme, alpha } from '@mui/material/styles';
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import { useDeviceReadonly } from '../common/util/permissions';
 import DeviceRow from './DeviceRow';
 
-const useStyles = makeStyles()((theme) => ({
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing(1),
-    padding: theme.spacing(1, 1.5),
-    minHeight: '64px !important',
-    backgroundColor: theme.palette.background.paper,
-  },
-  searchInput: {
-    borderRadius: theme.spacing(1.2),
-    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
-    transition: 'all 0.2s ease',
-    '&:hover': {
-      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f1f5f9',
+const useStyles = makeStyles()((theme) => {
+  const isDark = theme.palette.mode === 'dark';
+
+  return {
+    toolbar: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      padding: '8px 10px 8px 10px !important',
+      minHeight: '56px !important',
+      height: 56,
+      backgroundColor: 'transparent',
+      boxSizing: 'border-box',
     },
-    '& .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.divider,
+    menuButton: {
+      width: 38,
+      height: 38,
+      minWidth: 38,
+      borderRadius: 14,
+      padding: 0,
+      marginLeft: 2,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#1d4ed8',
+      backgroundColor: isDark ? 'rgba(29, 78, 216, 0.15)' : 'rgba(29, 78, 216, 0.08)',
+      border: `1px solid ${isDark ? 'rgba(29, 78, 216, 0.3)' : 'rgba(29, 78, 216, 0.14)'}`,
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        backgroundColor: isDark ? 'rgba(29, 78, 216, 0.25)' : 'rgba(29, 78, 216, 0.14)',
+        borderColor: '#1d4ed8',
+        transform: 'translateY(-1px)',
+      },
+      '&:active': {
+        transform: 'translateY(0)',
+      },
     },
-    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-      borderColor: theme.palette.primary.main,
+    searchContainer: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      height: 38,
+      padding: '0 10px',
+      borderRadius: 14,
+      backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#ffffff',
+      border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.1)'}`,
+      boxSizing: 'border-box',
+      transition: 'all 0.2s ease',
     },
-  },
-  actionButton: {
-    borderRadius: theme.spacing(1),
-    padding: theme.spacing(0.8),
-    color: theme.palette.text.secondary,
-    transition: 'all 0.2s ease',
-    '&:hover': {
-      color: theme.palette.primary.main,
-      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : '#f1f5f9',
+    searchInput: {
+      flex: 1,
+      fontSize: '0.84rem',
+      fontWeight: 500,
+      color: theme.palette.text.primary,
+      marginLeft: 6,
     },
-  },
-  addButton: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    borderRadius: theme.spacing(1),
-    padding: theme.spacing(0.8),
-    transition: 'all 0.2s ease',
-    '&:hover': {
-      backgroundColor: theme.palette.primary.dark || '#0f172a',
+    filterIconBtn: {
+      padding: 4,
+      color: isDark ? '#94a3b8' : '#64748b',
+      transition: 'color 0.2s ease',
+      '&:hover': {
+        color: '#1d4ed8',
+      },
     },
-  },
-  filterPanel: {
-    display: 'flex',
-    flexDirection: 'column',
-    padding: theme.spacing(2.5),
-    gap: theme.spacing(2.5),
-    width: theme.dimensions.drawerWidthTablet,
-  },
-  popoverPaper: {
-    borderRadius: theme.spacing(2),
-    border: `1px solid ${theme.palette.divider}`,
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 12px 32px rgba(0,0,0,0.5)'
-      : '0 12px 32px rgba(15,23,42,0.12)',
-  },
-}));
+    addButton: {
+      backgroundColor: '#1d4ed8',
+      color: '#ffffff',
+      borderRadius: 14,
+      width: 38,
+      height: 38,
+      minWidth: 38,
+      padding: 0,
+      marginRight: 2,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 4px 12px rgba(29, 78, 216, 0.35)',
+      transition: 'all 0.2s ease',
+      '&:hover': {
+        backgroundColor: '#1e40af',
+        boxShadow: '0 6px 16px rgba(29, 78, 216, 0.45)',
+        transform: 'translateY(-1px)',
+      },
+      '&:active': {
+        transform: 'translateY(0)',
+      },
+      '&.Mui-disabled': {
+        backgroundColor: isDark ? alpha(theme.palette.common.white, 0.1) : '#e2e8f0',
+        color: isDark ? '#475569' : '#94a3b8',
+        boxShadow: 'none',
+      },
+    },
+    filterPanel: {
+      display: 'flex',
+      flexDirection: 'column',
+      padding: theme.spacing(2.5),
+      gap: theme.spacing(2),
+      width: 320,
+    },
+    popoverPaper: {
+      borderRadius: 16,
+      border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      boxShadow: isDark
+        ? '0 16px 36px -4px rgba(0, 0, 0, 0.7)'
+        : '0 16px 36px -4px rgba(15, 23, 42, 0.12)',
+      marginTop: theme.spacing(1),
+    },
+  };
+});
 
 const MainToolbar = ({
   filteredDevices,
@@ -115,69 +168,95 @@ const MainToolbar = ({
   const geofences = useSelector((state) => state.geofences.items);
 
   const toolbarRef = useRef();
-  const inputRef = useRef();
+  const searchContainerRef = useRef();
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [devicesAnchorEl, setDevicesAnchorEl] = useState(null);
 
   const deviceStatusCount = (status) =>
     Object.values(devices).filter((d) => d.status === status).length;
 
+  const hasActiveFilter =
+    Boolean(filter.statuses?.length) ||
+    Boolean(filter.groups?.length) ||
+    Boolean(filter.geofences?.length);
+
   return (
     <Toolbar ref={toolbarRef} className={classes.toolbar}>
+      {/* Tombol Garis Tiga (Sudut dan ukuran sama dengan tombol +) */}
       <IconButton
         edge="start"
-        className={classes.actionButton}
+        className={classes.menuButton}
         onClick={() => setDevicesOpen(!devicesOpen)}
-        title={devicesOpen ? 'Show Map' : 'Show Devices'}
+        title={devicesOpen ? 'Sembunyikan Daftar Unit' : 'Tampilkan Daftar Unit'}
       >
-        {devicesOpen ? <MapIcon fontSize="small" /> : <DnsIcon fontSize="small" />}
+        <MenuRoundedIcon sx={{ fontSize: 20 }} />
       </IconButton>
 
-      <OutlinedInput
-        ref={inputRef}
-        placeholder={t('sharedSearchDevices')}
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
-        onBlur={() => setDevicesAnchorEl(null)}
-        startAdornment={
-          <InputAdornment position="start">
-            <SearchIcon fontSize="small" sx={{ color: 'text.secondary', ml: 0.5 }} />
-          </InputAdornment>
-        }
-        endAdornment={
-          <InputAdornment position="end">
-            <IconButton size="small" edge="end" onClick={() => setFilterAnchorEl(inputRef.current)}>
-              <Badge
-                color="secondary"
-                variant="dot"
-                invisible={
-                  !filter.statuses.length && !filter.groups.length && !filter.geofences.length
-                }
-              >
-                <TuneIcon fontSize="small" />
-              </Badge>
-            </IconButton>
-          </InputAdornment>
-        }
-        size="small"
-        fullWidth
-        className={classes.searchInput}
-      />
+      {/* Kolom Pencarian */}
+      <Box
+        ref={searchContainerRef}
+        className={classes.searchContainer}
+        sx={{
+          '&:focus-within': {
+            borderColor: '#1d4ed8',
+            boxShadow: '0 0 0 2.5px rgba(29, 78, 216, 0.12)',
+          },
+        }}
+      >
+        <SearchRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+        <InputBase
+          placeholder={t('sharedSearchDevices') || 'Search Devices'}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
+          onBlur={() => setDevicesAnchorEl(null)}
+          className={classes.searchInput}
+          inputProps={{
+            style: { padding: 0 },
+          }}
+        />
+        <IconButton
+          size="small"
+          onClick={() => setFilterAnchorEl(searchContainerRef.current)}
+          className={classes.filterIconBtn}
+          title="Filter"
+        >
+          <Badge color="primary" variant="dot" invisible={!hasActiveFilter}>
+            <FilterListRoundedIcon sx={{ fontSize: 18 }} />
+          </Badge>
+        </IconButton>
+      </Box>
 
+      {/* Tombol Tambah (+) Biru KOKAS */}
+      <IconButton
+        className={classes.addButton}
+        onClick={() => navigate('/settings/device')}
+        disabled={deviceReadonly}
+        title="Tambah Unit"
+      >
+        <Tooltip
+          open={!deviceReadonly && devicesLoaded && Object.keys(devices).length === 0}
+          title={t('deviceRegisterFirst')}
+          arrow
+        >
+          <AddRoundedIcon sx={{ fontSize: 20 }} />
+        </Tooltip>
+      </IconButton>
+
+      {/* Quick Search Popover */}
       <Popover
-        open={!!devicesAnchorEl && !devicesOpen}
+        open={Boolean(devicesAnchorEl) && !devicesOpen}
         anchorEl={devicesAnchorEl}
         onClose={() => setDevicesAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: Number(theme.spacing(2).slice(0, -2)),
-        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
         marginThreshold={0}
         slotProps={{
           paper: {
             className: classes.popoverPaper,
-            style: { width: `calc(${toolbarRef.current?.clientWidth}px - ${theme.spacing(4)})` },
+            style: {
+              width: toolbarRef.current ? `${toolbarRef.current.clientWidth - 16}px` : 320,
+            },
           },
         }}
         elevation={0}
@@ -189,28 +268,29 @@ const MainToolbar = ({
         ))}
         {filteredDevices.length > 3 && (
           <ListItemButton alignItems="center" onClick={() => setDevicesOpen(true)}>
-            <ListItemText primary={t('notificationAlways')} style={{ textAlign: 'center' }} />
+            <ListItemText
+              primary={t('notificationAlways')}
+              primaryTypographyProps={{ variant: 'body2', fontWeight: 600, color: 'primary.main' }}
+              style={{ textAlign: 'center' }}
+            />
           </ListItemButton>
         )}
       </Popover>
 
+      {/* Filter Popover */}
       <Popover
-        open={!!filterAnchorEl}
+        open={Boolean(filterAnchorEl)}
         anchorEl={filterAnchorEl}
         onClose={() => setFilterAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{
-          paper: {
-            className: classes.popoverPaper,
-          },
+          paper: { className: classes.popoverPaper },
         }}
         elevation={0}
       >
         <div className={classes.filterPanel}>
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>{t('deviceStatus')}</InputLabel>
             <Select
               label={t('deviceStatus')}
@@ -224,7 +304,7 @@ const MainToolbar = ({
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>{t('settingsGroups')}</InputLabel>
             <Select
               label={t('settingsGroups')}
@@ -242,7 +322,7 @@ const MainToolbar = ({
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>{t('sharedGeofences')}</InputLabel>
             <Select
               label={t('sharedGeofences')}
@@ -260,7 +340,7 @@ const MainToolbar = ({
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>{t('sharedSortBy')}</InputLabel>
             <Select
               label={t('sharedSortBy')}
@@ -276,28 +356,17 @@ const MainToolbar = ({
           <FormGroup>
             <FormControlLabel
               control={
-                <Checkbox checked={filterMap} onChange={(e) => setFilterMap(e.target.checked)} />
+                <Checkbox
+                  size="small"
+                  checked={filterMap}
+                  onChange={(e) => setFilterMap(e.target.checked)}
+                />
               }
               label={t('sharedFilterMap')}
             />
           </FormGroup>
         </div>
       </Popover>
-
-      <IconButton
-        edge="end"
-        className={classes.addButton}
-        onClick={() => navigate('/settings/device')}
-        disabled={deviceReadonly}
-      >
-        <Tooltip
-          open={!deviceReadonly && devicesLoaded && Object.keys(devices).length === 0}
-          title={t('deviceRegisterFirst')}
-          arrow
-        >
-          <AddIcon fontSize="small" />
-        </Tooltip>
-      </IconButton>
     </Toolbar>
   );
 };

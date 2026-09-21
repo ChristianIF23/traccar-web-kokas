@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
@@ -56,6 +56,27 @@ const GeofenceReportPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Formatting nilai sel dengan useCallback untuk menjaga performa
+  const formatValue = useCallback(
+    (item, key) => {
+      switch (key) {
+        case 'geofenceId':
+          return geofences[item.geofenceId]?.name || item.geofenceId;
+        case 'startTime':
+        case 'endTime':
+          return item[key] ? formatTime(item[key], 'minutes') : '';
+        case 'duration': {
+          if (!item.startTime || !item.endTime) return '';
+          const durationMs = Date.parse(item.endTime) - Date.parse(item.startTime);
+          return !Number.isNaN(durationMs) ? formatNumericHours(durationMs, t) : '';
+        }
+        default:
+          return item[key];
+      }
+    },
+    [geofences, t],
+  );
+
   const onShow = useCatchCallback(
     async ({ deviceIds, groupIds, from, to }) => {
       const query = new URLSearchParams({ from, to });
@@ -91,20 +112,6 @@ const GeofenceReportPage = () => {
     });
     await exportExcel(t('sharedGeofences'), 'geofences.xlsx', sheets, theme);
   });
-
-  const formatValue = (item, key) => {
-    switch (key) {
-      case 'geofenceId':
-        return geofences[item.geofenceId]?.name || item.geofenceId;
-      case 'startTime':
-      case 'endTime':
-        return formatTime(item[key], 'minutes');
-      case 'duration':
-        return formatNumericHours(Date.parse(item.endTime) - Date.parse(item.startTime), t);
-      default:
-        return item[key];
-    }
-  };
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'sharedGeofences']}>
@@ -179,34 +186,48 @@ const GeofenceReportPage = () => {
             <TableBody>
               {!loading ? (
                 items.length > 0 ? (
-                  items.map((item) => (
-                    <TableRow
-                      key={`${item.deviceId}_${item.geofenceId}_${item.startTime}_${item.endTime}`}
-                      hover
-                      sx={{
-                        transition: 'background-color 0.15s ease',
-                        '& .MuiTableCell-root': {
-                          py: 1.5,
-                          px: 2.5,
-                          fontSize: '0.875rem',
-                          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-                        },
-                      }}
-                    >
-                      <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
-                        {devices[item.deviceId]?.name || item.deviceId}
-                      </TableCell>
-                      {columns.map((key) => (
-                        <TableCell key={key} sx={{ color: 'text.primary' }}>
-                          {formatValue(item, key)}
+                  items.map((item, index) => {
+                    const rowKey = `${item.deviceId}_${item.geofenceId}_${item.startTime}_${index}`;
+                    return (
+                      <TableRow
+                        key={rowKey}
+                        hover
+                        sx={{
+                          transition: 'background-color 0.15s ease',
+                          '& .MuiTableCell-root': {
+                            py: 1.5,
+                            px: 2.5,
+                            fontSize: '0.875rem',
+                            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                          },
+                        }}
+                      >
+                        <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          {devices[item.deviceId]?.name || item.deviceId}
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
+                        {columns.map((key) => (
+                          <TableCell key={key} sx={{ color: 'text.primary' }}>
+                            {formatValue(item, key)}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <TableCell
+                      colSpan={columns.length + 1}
+                      align="center"
+                      sx={{ py: 6, borderBottom: 'none' }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <FenceOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
                         <Typography variant="body2" color="text.secondary">
                           {t('sharedNoData')}

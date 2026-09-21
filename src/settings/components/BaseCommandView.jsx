@@ -8,6 +8,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 import { useRestriction } from '../../common/util/permissions';
 import { useAsyncTask } from '../../reactHelper';
@@ -105,10 +106,33 @@ const BaseCommandView = ({
         size="small"
         fullWidth
         options={options}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '12px',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? alpha(theme.palette.background.paper, 0.9)
+                  : alpha(theme.palette.background.paper, 0.96),
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: (theme) =>
+                `1px solid ${
+                  theme.palette.mode === 'dark'
+                    ? alpha(theme.palette.common.white, 0.08)
+                    : alpha(theme.palette.common.black, 0.06)
+                }`,
+              boxShadow: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.5)'
+                  : '0 8px 32px rgba(15, 23, 42, 0.08)',
+            },
+          },
+        }}
         groupBy={
           includeSaved
             ? (option) =>
-              option.optionType === 'saved' ? t('sharedSavedCommands') : t('sharedType')
+                option.optionType === 'saved' ? t('sharedSavedCommands') : t('sharedType')
             : null
         }
         getOptionLabel={(option) =>
@@ -116,29 +140,26 @@ const BaseCommandView = ({
             ? option.description
             : t(prefixString('command', option.type))
         }
-        renderOption={(props, option) => (
-          <li key={option.key} {...props}>
-            <Typography variant="body2">
-              {option.optionType === 'saved'
-                ? option.description
-                : t(prefixString('command', option.type))}
-            </Typography>
-          </li>
-        )}
-        isOptionEqualToValue={(option, value) => option.key === value.key}
+        renderOption={(props, option) => {
+          const { key, ...optionProps } = props;
+          return (
+            <li key={key || option.key} {...optionProps}>
+              <Typography variant="body2" fontWeight={500}>
+                {option.optionType === 'saved'
+                  ? option.description
+                  : t(prefixString('command', option.type))}
+              </Typography>
+            </li>
+          );
+        }}
+        isOptionEqualToValue={(option, value) => option.key === value?.key}
         value={
           savedId
             ? options.find((it) => it.optionType === 'saved' && it.id === savedId) || null
             : options.find((it) => it.optionType === 'type' && it.type === item.type) || null
         }
         onChange={handleSelect}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={t('sharedType')}
-            sx={inputStyle}
-          />
-        )}
+        renderInput={(params) => <TextField {...params} label={t('sharedType')} sx={inputStyle} />}
       />
 
       {(!includeSaved || !savedId) &&
@@ -150,12 +171,19 @@ const BaseCommandView = ({
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  py: 0.5,
-                  px: 1.5,
+                  py: 0.75,
+                  px: 2,
                   borderRadius: '10px',
-                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  border: (theme) =>
+                    `1px solid ${
+                      theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.common.white, 0.08)
+                        : alpha(theme.palette.common.black, 0.06)
+                    }`,
                   backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
+                    theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.white, 0.03)
+                      : alpha(theme.palette.common.black, 0.02),
                 }}
               >
                 <FormControlLabel
@@ -170,7 +198,11 @@ const BaseCommandView = ({
                       }}
                     />
                   }
-                  label={<Typography variant="body2">{name}</Typography>}
+                  label={
+                    <Typography variant="body2" fontWeight={500}>
+                      {name}
+                    </Typography>
+                  }
                   sx={{ m: 0 }}
                 />
               </Box>
@@ -184,8 +216,9 @@ const BaseCommandView = ({
               value={item.attributes?.[key] ?? ''}
               onChange={(e) => {
                 const updateItem = { ...item, attributes: { ...item.attributes } };
+                const val = e.target.value;
                 updateItem.attributes[key] =
-                  type === 'number' ? Number(e.target.value) : e.target.value;
+                  type === 'number' ? (val === '' ? '' : Number(val)) : val;
                 setItem(updateItem);
               }}
               label={name}
@@ -196,7 +229,7 @@ const BaseCommandView = ({
         })}
 
       {(textEnabled || !item.textChannel) && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pt: 0.5 }}>
           {textEnabled && (
             <FormControlLabel
               control={
@@ -206,7 +239,11 @@ const BaseCommandView = ({
                   onChange={(e) => setItem({ ...item, textChannel: e.target.checked })}
                 />
               }
-              label={<Typography variant="body2">{t('commandSendSms')}</Typography>}
+              label={
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  {t('commandSendSms')}
+                </Typography>
+              }
             />
           )}
 
@@ -224,7 +261,11 @@ const BaseCommandView = ({
                   }
                 />
               }
-              label={<Typography variant="body2">{t('commandNoQueue')}</Typography>}
+              label={
+                <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  {t('commandNoQueue')}
+                </Typography>
+              }
             />
           )}
         </Box>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
@@ -89,18 +89,21 @@ const TripReportPage = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [route, setRoute] = useState(null);
 
-  const markers = selectedItem && [
-    {
-      latitude: selectedItem.startLat,
-      longitude: selectedItem.startLon,
-      image: 'start-success',
-    },
-    {
-      latitude: selectedItem.endLat,
-      longitude: selectedItem.endLon,
-      image: 'finish-error',
-    },
-  ];
+  const markers = useMemo(() => {
+    if (!selectedItem) return null;
+    return [
+      {
+        latitude: selectedItem.startLat,
+        longitude: selectedItem.startLon,
+        image: 'start-success',
+      },
+      {
+        latitude: selectedItem.endLat,
+        longitude: selectedItem.endLon,
+        image: 'finish-error',
+      },
+    ];
+  }, [selectedItem]);
 
   useAsyncTask(
     async ({ signal }) => {
@@ -137,6 +140,45 @@ const TripReportPage = () => {
       setLoading(false);
     }
   }, []);
+
+  const formatValue = useCallback(
+    (item, key) => {
+      const value = item[key];
+      switch (key) {
+        case 'deviceId':
+          return devices[value]?.name || value;
+        case 'startTime':
+        case 'endTime':
+          return formatTime(value, 'minutes');
+        case 'startOdometer':
+        case 'endOdometer':
+        case 'distance':
+          return formatDistance(value, distanceUnit, t);
+        case 'averageSpeed':
+        case 'maxSpeed':
+          return value > 0 ? formatSpeed(value, speedUnit, t) : null;
+        case 'duration':
+          return formatNumericHours(value, t);
+        case 'spentFuel':
+          return value > 0 ? formatVolume(value, volumeUnit, t) : null;
+        case 'startAddress':
+          return (
+            <AddressValue
+              latitude={item.startLat}
+              longitude={item.startLon}
+              originalAddress={value}
+            />
+          );
+        case 'endAddress':
+          return (
+            <AddressValue latitude={item.endLat} longitude={item.endLon} originalAddress={value} />
+          );
+        default:
+          return value;
+      }
+    },
+    [devices, distanceUnit, speedUnit, volumeUnit, t],
+  );
 
   const onExport = useCatch(async () => {
     const sheets = new Map();
@@ -190,42 +232,6 @@ const TripReportPage = () => {
         deviceId: item.deviceId,
       }).toString(),
     });
-  };
-
-  const formatValue = (item, key) => {
-    const value = item[key];
-    switch (key) {
-      case 'deviceId':
-        return devices[value]?.name || value;
-      case 'startTime':
-      case 'endTime':
-        return formatTime(value, 'minutes');
-      case 'startOdometer':
-      case 'endOdometer':
-      case 'distance':
-        return formatDistance(value, distanceUnit, t);
-      case 'averageSpeed':
-      case 'maxSpeed':
-        return value > 0 ? formatSpeed(value, speedUnit, t) : null;
-      case 'duration':
-        return formatNumericHours(value, t);
-      case 'spentFuel':
-        return value > 0 ? formatVolume(value, volumeUnit, t) : null;
-      case 'startAddress':
-        return (
-          <AddressValue
-            latitude={item.startLat}
-            longitude={item.startLon}
-            originalAddress={value}
-          />
-        );
-      case 'endAddress':
-        return (
-          <AddressValue latitude={item.endLat} longitude={item.endLon} originalAddress={value} />
-        );
-      default:
-        return value;
-    }
   };
 
   return (
@@ -321,11 +327,11 @@ const TripReportPage = () => {
                 <TableBody>
                   {!loading ? (
                     items.length > 0 ? (
-                      items.map((item) => {
+                      items.map((item, idx) => {
                         const isSelected = selectedItem === item;
                         return (
                           <TableRow
-                            key={item.startPositionId}
+                            key={item.startPositionId || idx}
                             hover
                             selected={isSelected}
                             sx={{
@@ -339,12 +345,16 @@ const TripReportPage = () => {
                               ...(isSelected && {
                                 backgroundColor: (th) =>
                                   th.palette.mode === 'dark'
-                                    ? 'rgba(25, 118, 210, 0.16) !important'
-                                    : 'rgba(25, 118, 210, 0.08) !important',
+                                    ? 'rgba(29, 78, 216, 0.16) !important'
+                                    : 'rgba(29, 78, 216, 0.08) !important',
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
+                            <TableCell
+                              className={classes.columnAction}
+                              padding="none"
+                              sx={{ pl: 1.5 }}
+                            >
                               <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
                                 {isSelected ? (
                                   <Tooltip title={t('sharedHideOnMap')} arrow>
@@ -402,7 +412,11 @@ const TripReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                        <TableCell
+                          colSpan={columns.length + 2}
+                          align="center"
+                          sx={{ py: 6, borderBottom: 'none' }}
+                        >
                           <Typography variant="body2" color="text.secondary">
                             {t('sharedNoData')}
                           </Typography>

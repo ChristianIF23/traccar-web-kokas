@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { default as Hls, Events } from 'hls.js/light';
+import Hls from 'hls.js/light';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
@@ -30,8 +30,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   toolbar: {
     zIndex: 2,
-    backgroundColor:
-      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
     borderBottom: `1px solid ${theme.palette.divider}`,
   },
   content: {
@@ -95,32 +94,58 @@ const StreamPage = () => {
   );
 
   useEffect(() => {
-    if (activeChannel !== null) {
+    let hls;
+    const currentChannel = activeChannel;
+
+    if (currentChannel !== null && deviceId) {
       setLoading(true);
       setError(false);
-      sendCommand('videoStart', { index: activeChannel });
+      sendCommand('videoStart', { index: currentChannel });
 
-      const hls = new Hls();
-      hls.loadSource(`/api/stream/${deviceId}/${activeChannel}/live.m3u8`);
-      hls.attachMedia(videoRef.current);
+      const streamUrl = `/api/stream/${deviceId}/${currentChannel}/live.m3u8`;
 
-      hls.on(Events.MANIFEST_PARSED, () => {
-        setLoading(false);
-        videoRef.current?.play();
-      });
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          liveSyncDurationCount: 3,
+          enableWorker: true,
+        });
 
-      hls.on(Events.ERROR, (_, data) => {
-        if (data.fatal) {
+        hls.loadSource(streamUrl);
+        hls.attachMedia(videoRef.current);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setLoading(false);
+          videoRef.current?.play().catch(() => {});
+        });
+
+        hls.on(Hls.Events.ERROR, (_, data) => {
+          if (data.fatal) {
+            setLoading(false);
+            setError(true);
+          }
+        });
+      } else if (videoRef.current?.canPlayType('application/vnd.apple.mpegurl')) {
+        // Native HLS fallback (Safari / iOS)
+        videoRef.current.src = streamUrl;
+        videoRef.current.addEventListener('loadedmetadata', () => {
+          setLoading(false);
+          videoRef.current?.play().catch(() => {});
+        });
+        videoRef.current.addEventListener('error', () => {
           setLoading(false);
           setError(true);
-        }
-      });
-
-      return () => {
-        hls.destroy();
-        sendCommand('videoStop', { index: activeChannel });
-      };
+        });
+      }
     }
+
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+      if (currentChannel !== null && deviceId) {
+        sendCommand('videoStop', { index: currentChannel });
+      }
+    };
   }, [deviceId, activeChannel, sendCommand]);
 
   return (
@@ -189,14 +214,12 @@ const StreamPage = () => {
             </Alert>
           )}
 
-          {loading && !error && (
-            <CircularProgress sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />
-          )}
+          {loading && !error && <CircularProgress sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />}
 
           {!playing && !error && (
             <Box sx={{ textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
               <VideocamOffIcon sx={{ fontSize: 56, mb: 1, opacity: 0.6 }} />
-              <Typography variant="body2">{t('sharedNoData') || 'Stream belum dimulai'}</Typography>
+              <Typography variant="body2">{t('sharedNoData')}</Typography>
             </Box>
           )}
 
@@ -207,6 +230,7 @@ const StreamPage = () => {
             autoPlay
             muted
             controls
+            playsInline
           />
         </Box>
       </div>

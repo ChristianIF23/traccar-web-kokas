@@ -50,7 +50,7 @@ const useStyles = makeStyles()((theme) => ({
 }));
 
 const getRssiColor = (rssi) => {
-  if (!rssi) return 'default';
+  if (rssi === undefined || rssi === null) return 'default';
   if (rssi >= -65) return 'success';
   if (rssi >= -80) return 'warning';
   return 'error';
@@ -75,6 +75,10 @@ const NetworkPage = () => {
           if (positions.length > 0) {
             setItem(positions[0]);
           }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Failed to fetch position data:', error);
+          }
         } finally {
           setLoading(false);
         }
@@ -85,10 +89,7 @@ const NetworkPage = () => {
 
   const deviceName = useSelector((state) => {
     if (item?.deviceId) {
-      const device = state.devices.items[item.deviceId];
-      if (device) {
-        return device.name;
-      }
+      return state.devices?.items?.[item.deviceId]?.name || null;
     }
     return null;
   });
@@ -182,10 +183,18 @@ const NetworkPage = () => {
                 {loading ? (
                   Array.from({ length: 2 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : cellTowers.length > 0 ? (
@@ -288,8 +297,12 @@ const NetworkPage = () => {
                 {loading ? (
                   Array.from({ length: 2 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Skeleton /></TableCell>
-                      <TableCell><Skeleton /></TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : wifiPoints.length > 0 ? (
@@ -316,7 +329,12 @@ const NetworkPage = () => {
                           label={`${wifi.signalStrength} dBm`}
                           color={getRssiColor(wifi.signalStrength)}
                           variant="outlined"
-                          sx={{ fontWeight: 500, fontFamily: 'monospace', height: 22, fontSize: '0.75rem' }}
+                          sx={{
+                            fontWeight: 500,
+                            fontFamily: 'monospace',
+                            height: 22,
+                            fontSize: '0.75rem',
+                          }}
                         />
                       </TableCell>
                     </TableRow>

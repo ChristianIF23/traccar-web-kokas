@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Table,
@@ -117,6 +117,55 @@ const EventReportPage = () => {
     ]);
   }, []);
 
+  // Format cell value dengan useCallback untuk efisiensi
+  const formatValue = useCallback(
+    (item, key) => {
+      const value = item[key];
+      switch (key) {
+        case 'deviceId':
+          return devices[value]?.name || value;
+        case 'eventTime':
+          return formatTime(value, 'seconds');
+        case 'type':
+          return t(prefixString('event', value));
+        case 'geofenceId':
+          if (value > 0) {
+            const geofence = geofences[value];
+            return geofence?.name || null;
+          }
+          return null;
+        case 'maintenanceId':
+          if (value > 0) {
+            const maintenance = maintenances[value];
+            return maintenance?.name || null;
+          }
+          return null;
+        case 'address': {
+          const pos = positions[item.positionId];
+          if (pos) {
+            return (
+              <AddressValue
+                latitude={pos.latitude}
+                longitude={pos.longitude}
+                originalAddress={pos.address}
+              />
+            );
+          }
+          return '';
+        }
+        case 'attributes':
+          return formatEventData(item, {
+            deviceUniqueId: devices[item.deviceId]?.uniqueId,
+            speedUnit,
+            t,
+          });
+        default:
+          return value;
+      }
+    },
+    [devices, geofences, maintenances, positions, speedUnit, t],
+  );
+
   const onShow = useCatchCallback(
     async ({ deviceIds, groupIds, from, to }) => {
       const query = new URLSearchParams({ from, to });
@@ -159,7 +208,7 @@ const EventReportPage = () => {
   const onExport = useCatch(async () => {
     const sheets = new Map();
     items.forEach((item) => {
-      const deviceName = devices[item.deviceId].name;
+      const deviceName = devices[item.deviceId]?.name || item.deviceId;
       if (!sheets.has(deviceName)) {
         sheets.set(deviceName, []);
       }
@@ -167,7 +216,7 @@ const EventReportPage = () => {
       columns.forEach((key) => {
         const header = t(columnsMap.get(key));
         if (key === 'attributes' && item.type === 'media') {
-          row[header] = item.attributes.file;
+          row[header] = item.attributes?.file || '';
         } else if (key === 'address') {
           const pos = positions[item.positionId];
           row[header] = pos ? formatAddress(pos, coordinateFormat) : '';
@@ -188,51 +237,6 @@ const EventReportPage = () => {
     await scheduleReport(deviceIds, groupIds, report);
     navigate('/reports/scheduled');
   });
-
-  const formatValue = (item, key) => {
-    const value = item[key];
-    switch (key) {
-      case 'deviceId':
-        return devices[value]?.name;
-      case 'eventTime':
-        return formatTime(value, 'seconds');
-      case 'type':
-        return t(prefixString('event', value));
-      case 'geofenceId':
-        if (value > 0) {
-          const geofence = geofences[value];
-          return geofence && geofence.name;
-        }
-        return null;
-      case 'maintenanceId':
-        if (value > 0) {
-          const maintenance = maintenances[value];
-          return maintenance && maintenance.name;
-        }
-        return null;
-      case 'address': {
-        const pos = positions[item.positionId];
-        if (pos) {
-          return (
-            <AddressValue
-              latitude={pos.latitude}
-              longitude={pos.longitude}
-              originalAddress={pos.address}
-            />
-          );
-        }
-        return '';
-      }
-      case 'attributes':
-        return formatEventData(item, {
-          deviceUniqueId: devices[item.deviceId]?.uniqueId,
-          speedUnit,
-          t,
-        });
-      default:
-        return value;
-    }
-  };
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportEvents']}>
@@ -368,7 +372,7 @@ const EventReportPage = () => {
                   {!loading ? (
                     items.length > 0 ? (
                       items.map((item) => {
-                        const isSelected = selectedItem === item;
+                        const isSelected = selectedItem?.id === item.id;
                         return (
                           <TableRow
                             key={item.id}
@@ -390,7 +394,11 @@ const EventReportPage = () => {
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
+                            <TableCell
+                              className={classes.columnAction}
+                              padding="none"
+                              sx={{ pl: 1.5 }}
+                            >
                               {item.positionId ? (
                                 isSelected ? (
                                   <Tooltip title={t('sharedHideOnMap')} arrow>
@@ -424,14 +432,16 @@ const EventReportPage = () => {
                               )}
                             </TableCell>
                             <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
-                              {devices[item.deviceId]?.name}
+                              {devices[item.deviceId]?.name || item.deviceId}
                             </TableCell>
                             {columns.map((key) => (
                               <TableCell
                                 key={key}
                                 sx={{
                                   color: 'text.primary',
-                                  ...(key === 'eventTime' && { fontVariantNumeric: 'tabular-nums' }),
+                                  ...(key === 'eventTime' && {
+                                    fontVariantNumeric: 'tabular-nums',
+                                  }),
                                 }}
                               >
                                 {formatValue(item, key)}
@@ -442,9 +452,22 @@ const EventReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                            <NotificationsActiveOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
+                        <TableCell
+                          colSpan={columns.length + 2}
+                          align="center"
+                          sx={{ py: 6, borderBottom: 'none' }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            <NotificationsActiveOutlinedIcon
+                              sx={{ fontSize: 44, color: 'text.disabled' }}
+                            />
                             <Typography variant="body2" color="text.secondary">
                               {t('sharedNoData')}
                             </Typography>

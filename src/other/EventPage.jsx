@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { Typography, AppBar, Toolbar, IconButton, Box } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { makeStyles } from 'tss-react/mui';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAsyncTask } from '../reactHelper';
@@ -24,8 +23,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   toolbar: {
     zIndex: 2,
-    backgroundColor:
-      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
     borderBottom: `1px solid ${theme.palette.divider}`,
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
   },
@@ -38,36 +36,39 @@ const useStyles = makeStyles()((theme) => ({
 
 const EventPage = () => {
   const { classes } = useStyles();
-  const theme = useTheme();
   const navigate = useNavigate();
   const t = useTranslation();
 
   const { id } = useParams();
 
-  const [event, setEvent] = useState();
-  const [position, setPosition] = useState();
+  const [event, setEvent] = useState(null);
+  const [position, setPosition] = useState(null);
   const [showCard, setShowCard] = useState(false);
 
   const formatType = (eventItem) =>
     formatNotificationTitle(t, {
       type: eventItem.type,
       attributes: {
-        alarms: eventItem.attributes?.alarm,
+        alarm: eventItem.attributes?.alarm,
       },
     });
 
-  const onMarkerClick = useCallback(
-    (positionId) => {
-      setShowCard(Boolean(positionId));
-    },
-    [setShowCard],
-  );
+  const onMarkerClick = useCallback((positionId) => {
+    setShowCard(Boolean(positionId));
+  }, []);
 
   useAsyncTask(
     async ({ signal }) => {
       if (id) {
-        const response = await fetchOrThrow(`/api/events/${id}`, { signal });
-        setEvent(await response.json());
+        try {
+          const response = await fetchOrThrow(`/api/events/${id}`, { signal });
+          const data = await response.json();
+          setEvent(data);
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Gagal mengambil data event:', error);
+          }
+        }
       }
     },
     [id],
@@ -75,11 +76,17 @@ const EventPage = () => {
 
   useAsyncTask(
     async ({ signal }) => {
-      if (event && event.positionId) {
-        const response = await fetchOrThrow(`/api/positions?id=${event.positionId}`, { signal });
-        const positions = await response.json();
-        if (positions.length > 0) {
-          setPosition(positions[0]);
+      if (event?.positionId) {
+        try {
+          const response = await fetchOrThrow(`/api/positions?id=${event.positionId}`, { signal });
+          const positions = await response.json();
+          if (positions && positions.length > 0) {
+            setPosition(positions[0]);
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Gagal mengambil data posisi:', error);
+          }
         }
       }
     },

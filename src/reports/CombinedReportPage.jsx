@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   IconButton,
@@ -70,20 +70,30 @@ const CombinedReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
 
+  // Lookup map untuk devices agar aman & efisien
+  const deviceMap = useMemo(() => {
+    if (Array.isArray(devices)) {
+      return new Map(devices.map((d) => [d.id, d]));
+    }
+    return new Map(Object.entries(devices).map(([id, d]) => [Number(id), d]));
+  }, [devices]);
+
   const itemsCoordinates = useMemo(() => items.flatMap((item) => item.route), [items]);
 
   const selectedPosition = selected && eventPosition(selected.item, selected.event);
 
-  const markers = items.flatMap((item) =>
-    item.events
-      .map((event) => ({ event, position: eventPosition(item, event) }))
-      .filter(({ position }) => position != null)
-      .map(({ event, position }) => ({
-        latitude: position.latitude,
-        longitude: position.longitude,
-        image: eventIconKey(event.type),
-      })),
-  );
+  const markers = useMemo(() => {
+    return items.flatMap((item) =>
+      item.events
+        .map((event) => ({ event, position: eventPosition(item, event) }))
+        .filter(({ position }) => position != null)
+        .map(({ event, position }) => ({
+          latitude: position.latitude,
+          longitude: position.longitude,
+          image: eventIconKey(event.type),
+        })),
+    );
+  }, [items]);
 
   const onShow = useCatchCallback(async ({ deviceIds, groupIds, from, to }) => {
     const query = new URLSearchParams({ from, to });
@@ -99,36 +109,39 @@ const CombinedReportPage = () => {
     }
   }, []);
 
-  const formatValue = (item, event, key) => {
-    const value = event[key];
-    switch (key) {
-      case 'eventTime':
-        return formatTime(value, 'seconds');
-      case 'type':
-        return t(prefixString('event', value));
-      case 'address': {
-        const position = eventPosition(item, event);
-        if (position) {
-          return (
-            <AddressValue
-              latitude={position.latitude}
-              longitude={position.longitude}
-              originalAddress={position.address}
-            />
-          );
+  const formatValue = useCallback(
+    (item, event, key) => {
+      const value = event[key];
+      switch (key) {
+        case 'eventTime':
+          return formatTime(value, 'seconds');
+        case 'type':
+          return t(prefixString('event', value));
+        case 'address': {
+          const position = eventPosition(item, event);
+          if (position) {
+            return (
+              <AddressValue
+                latitude={position.latitude}
+                longitude={position.longitude}
+                originalAddress={position.address}
+              />
+            );
+          }
+          return '';
         }
-        return '';
+        case 'attributes':
+          return formatEventData(event, {
+            deviceUniqueId: deviceMap.get(item.deviceId)?.uniqueId,
+            speedUnit,
+            t,
+          });
+        default:
+          return value;
       }
-      case 'attributes':
-        return formatEventData(event, {
-          deviceUniqueId: devices[item.deviceId]?.uniqueId,
-          speedUnit,
-          t,
-        });
-      default:
-        return value;
-    }
-  };
+    },
+    [t, speedUnit, deviceMap],
+  );
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportCombined']}>
@@ -151,7 +164,7 @@ const CombinedReportPage = () => {
                 {items.map((item) => (
                   <MapRouteCoordinates
                     key={item.deviceId}
-                    name={devices[item.deviceId]?.name}
+                    name={deviceMap.get(item.deviceId)?.name}
                     coordinates={item.route}
                     deviceId={item.deviceId}
                   />
@@ -229,6 +242,7 @@ const CombinedReportPage = () => {
                       items.flatMap((item) =>
                         item.events.map((event, index) => {
                           const isSelected = selected?.event === event;
+                          const deviceName = deviceMap.get(item.deviceId)?.name;
                           return (
                             <TableRow
                               key={event.id}
@@ -250,7 +264,11 @@ const CombinedReportPage = () => {
                                 }),
                               }}
                             >
-                              <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
+                              <TableCell
+                                className={classes.columnAction}
+                                padding="none"
+                                sx={{ pl: 1.5 }}
+                              >
                                 {event.positionId ? (
                                   isSelected ? (
                                     <Tooltip title={t('sharedHideOnMap')} arrow>
@@ -279,19 +297,19 @@ const CombinedReportPage = () => {
                                       </IconButton>
                                     </Tooltip>
                                   )
-                                ) : (
-                                  ''
-                                )}
+                                ) : null}
                               </TableCell>
                               <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                {index ? '' : devices[item.deviceId]?.name}
+                                {index ? '' : deviceName}
                               </TableCell>
                               {columns.map((key) => (
                                 <TableCell
                                   key={key}
                                   sx={{
                                     color: 'text.primary',
-                                    ...(key === 'eventTime' && { fontVariantNumeric: 'tabular-nums' }),
+                                    ...(key === 'eventTime' && {
+                                      fontVariantNumeric: 'tabular-nums',
+                                    }),
                                   }}
                                 >
                                   {formatValue(item, event, key)}
@@ -303,14 +321,26 @@ const CombinedReportPage = () => {
                       )
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <TableCell
+                          colSpan={columns.length + 2}
+                          align="center"
+                          sx={{ py: 6, borderBottom: 'none' }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
                             <MergeTypeOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
                             <Typography variant="body2" color="text.secondary">
                               {t('sharedNoData')}
                             </Typography>
                             <Typography variant="caption" color="text.disabled">
-                              Pilih perangkat untuk menampilkan laporan rute gabungan beserta kejadiannya.
+                              Pilih perangkat untuk menampilkan laporan rute gabungan beserta
+                              kejadiannya.
                             </Typography>
                           </Box>
                         </TableCell>

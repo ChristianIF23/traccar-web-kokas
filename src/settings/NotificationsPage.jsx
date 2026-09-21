@@ -9,7 +9,7 @@ import {
   Typography,
   Chip,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useAsyncTask, useScrollToLoad, pageSize } from '../reactHelper';
 import { prefixString } from '../common/util/stringUtils';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -19,29 +19,34 @@ import CollectionFab from './components/CollectionFab';
 import CollectionActions from './components/CollectionActions';
 import TableShimmer from '../common/components/TableShimmer';
 import SearchHeader from './components/SearchHeader';
-import useSettingsStyles from './common/useSettingsStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const NotificationsPage = () => {
-  const { classes } = useSettingsStyles();
   const theme = useTheme();
   const t = useTranslation();
+  const isDark = theme.palette.mode === 'dark';
 
   const [reloadKey, reload] = useReducer((k) => k + 1, 0);
   const [items, setItems] = useState([]);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const loadItems = useCallback(
     async (offset, signal) => {
-      const query = new URLSearchParams({ limit: pageSize, offset });
-      if (searchKeyword) {
-        query.append('keyword', searchKeyword);
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({ limit: pageSize, offset });
+        if (searchKeyword) {
+          query.append('keyword', searchKeyword);
+        }
+        const response = await fetchOrThrow(`/api/notifications?${query.toString()}`, { signal });
+        const data = await response.json();
+        setItems((previous) => (offset ? [...previous, ...data] : data));
+        setHasMore(data.length >= pageSize);
+      } finally {
+        setLoading(false);
       }
-      const response = await fetchOrThrow(`/api/notifications?${query.toString()}`, { signal });
-      const data = await response.json();
-      setItems((previous) => (offset ? [...previous, ...data] : data));
-      setHasMore(data.length >= pageSize);
     },
     [searchKeyword],
   );
@@ -57,141 +62,175 @@ const NotificationsPage = () => {
     [reloadKey, loadItems],
   );
 
-  const formatList = (prefix, value) => {
-    if (value) {
-      return value
-        .split(/[, ]+/)
-        .filter(Boolean)
-        .map((it) => t(prefixString(prefix, it)))
-        .join(', ');
-    }
-    return '—';
+  const renderChips = (prefix, value) => {
+    if (!value)
+      return (
+        <Typography variant="body2" color="text.disabled">
+          —
+        </Typography>
+      );
+    const list = value.split(/[, ]+/).filter(Boolean);
+    if (!list.length)
+      return (
+        <Typography variant="body2" color="text.disabled">
+          —
+        </Typography>
+      );
+
+    return (
+      <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap' }}>
+        {list.map((it) => (
+          <Chip
+            key={it}
+            label={t(prefixString(prefix, it))}
+            size="small"
+            sx={{
+              fontSize: '0.72rem',
+              height: 22,
+              fontWeight: 500,
+              backgroundColor: isDark ? alpha('#0f172a', 0.8) : alpha('#f1f5f9', 0.9),
+              border: `1px solid ${
+                isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+              }`,
+              color: 'text.secondary',
+              borderRadius: '6px',
+            }}
+          />
+        ))}
+      </Box>
+    );
   };
 
   return (
     <PageLayout menu={<SettingsMenu />} breadcrumbs={['settingsTitle', 'sharedNotifications']}>
-      <Box
-        sx={{
-          width: '100%',
-          p: { xs: 2, sm: 3, md: 4 },
-          boxSizing: 'border-box',
-          overflowY: 'auto',
-        }}
-      >
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ mb: 2.5 }}>
-            <SearchHeader keyword={searchKeyword} setKeyword={setSearchKeyword} />
-          </Box>
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <SearchHeader keyword={searchKeyword} setKeyword={setSearchKeyword} />
 
-          <Box
-            sx={{
-              backgroundColor: 'background.paper',
-              borderRadius: '16px',
-              border: `1px solid ${theme.palette.divider}`,
-              overflow: 'hidden',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-              mb: 4,
-              width: '100%',
-            }}
-          >
-            <Box sx={{ width: '100%', overflowX: 'auto' }}>
-              <Table
-                className={classes.table}
-                sx={{
-                  minWidth: 750,
-                  borderCollapse: 'separate',
-                  borderSpacing: 0,
-                  '& .MuiTableHead-root .MuiTableCell-root': {
-                    backgroundColor:
-                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-                    color: 'text.secondary',
-                    fontWeight: 600,
-                    fontSize: '0.78rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    py: 1.8,
-                    px: 2.5,
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    whiteSpace: 'nowrap',
+        <Box
+          sx={{
+            backgroundColor: isDark ? '#162447' : '#ffffff',
+            borderRadius: '18px',
+            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+            overflow: 'hidden',
+            boxShadow: isDark
+              ? '0 12px 30px rgba(0, 0, 0, 0.45)'
+              : '0 8px 24px rgba(15, 23, 42, 0.04)',
+            width: '100%',
+          }}
+        >
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            <Table
+              sx={{
+                minWidth: 720,
+                borderCollapse: 'separate',
+                borderSpacing: 0,
+                '& .MuiTableHead-root .MuiTableCell-root': {
+                  backgroundColor: isDark ? alpha('#0f172a', 0.6) : alpha('#f8fafc', 0.9),
+                  color: isDark ? '#94a3b8' : '#64748b',
+                  fontWeight: 700,
+                  fontSize: '0.74rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  py: 1.5,
+                  px: 2.5,
+                  borderBottom: `1px solid ${
+                    isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
+                  }`,
+                  whiteSpace: 'nowrap',
+                },
+                '& .MuiTableBody-root .MuiTableRow-root': {
+                  transition: 'background-color 0.15s ease',
+                  '&:hover': {
+                    backgroundColor: isDark ? alpha('#1d4ed8', 0.08) : alpha('#1d4ed8', 0.03),
                   },
-                  '& .MuiTableBody-root .MuiTableRow-root': {
-                    transition: 'background-color 0.15s ease',
-                    '&:hover': {
-                      backgroundColor:
-                        theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-                    },
+                  '&:last-child .MuiTableCell-root': {
+                    borderBottom: hasMore ? undefined : 'none',
                   },
-                  '& .MuiTableBody-root .MuiTableCell-root': {
-                    py: 1.8,
-                    px: 2.5,
-                    fontSize: '0.875rem',
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                  },
-                }}
-              >
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{t('sharedDescription')}</TableCell>
-                    <TableCell>{t('notificationType')}</TableCell>
-                    <TableCell>{t('notificationAlways')}</TableCell>
-                    <TableCell>{t('sharedAlarms')}</TableCell>
-                    <TableCell>{t('notificationNotificators')}</TableCell>
-                    <TableCell className={classes.columnAction} align="right" />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight={600} color="text.primary">
-                          {item.description || '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                        {t(prefixString('event', item.type))}
-                      </TableCell>
-                      <TableCell>
-                        {item.always ? (
-                          <Chip
-                            label="Aktif"
-                            size="small"
-                            sx={{
-                              fontWeight: 600,
-                              fontSize: '0.75rem',
-                              height: 24,
-                              backgroundColor: 'rgba(34, 197, 94, 0.12)',
-                              color: '#16a34a',
-                              borderRadius: '6px',
-                            }}
-                          />
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            —
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary', maxWidth: 220 }}>
-                        {formatList('alarm', item.attributes.alarms)}
-                      </TableCell>
-                      <TableCell sx={{ color: 'text.secondary' }}>
-                        {formatList('notificator', item.notificators)}
-                      </TableCell>
-                      <TableCell className={classes.columnAction} padding="none" align="right">
-                        <CollectionActions
-                          itemId={item.id}
-                          editPath="/settings/notification"
-                          endpoint="notifications"
-                          onReload={reload}
+                },
+                '& .MuiTableBody-root .MuiTableCell-root': {
+                  py: 1.4,
+                  px: 2.5,
+                  fontSize: '0.86rem',
+                  borderBottom: `1px solid ${
+                    isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.05)'
+                  }`,
+                },
+              }}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('sharedDescription')}</TableCell>
+                  <TableCell>{t('notificationType')}</TableCell>
+                  <TableCell>{t('notificationAlways')}</TableCell>
+                  <TableCell>{t('sharedAlarms')}</TableCell>
+                  <TableCell>{t('notificationNotificators')}</TableCell>
+                  <TableCell align="right" sx={{ width: 90, pr: 2 }} />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600} color="text.primary">
+                        {item.description || '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                      {t(prefixString('event', item.type))}
+                    </TableCell>
+                    <TableCell>
+                      {item.always ? (
+                        <Chip
+                          label={t('sharedYes')}
+                          size="small"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            height: 22,
+                            backgroundColor: alpha('#1d4ed8', 0.15),
+                            color: '#3b82f6',
+                            borderRadius: '8px',
+                            border: `1px solid ${alpha('#1d4ed8', 0.25)}`,
+                          }}
                         />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {hasMore && (
-                    <TableShimmer ref={items.length > 0 ? sentinelRef : null} columns={5} endAction />
-                  )}
-                </TableBody>
-              </Table>
-            </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.disabled">
+                          —
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ minWidth: 160 }}>
+                      {renderChips('alarm', item.attributes?.alarms)}
+                    </TableCell>
+                    <TableCell sx={{ minWidth: 160 }}>
+                      {renderChips('notificator', item.notificators)}
+                    </TableCell>
+                    <TableCell padding="none" align="right" sx={{ pr: 2 }}>
+                      <CollectionActions
+                        itemId={item.id}
+                        editPath="/settings/notification"
+                        endpoint="notifications"
+                        onReload={reload}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {!loading && items.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('sharedNoData')}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+
+                {hasMore && (
+                  <TableShimmer ref={items.length > 0 ? sentinelRef : null} columns={6} endAction />
+                )}
+              </TableBody>
+            </Table>
           </Box>
         </Box>
       </Box>

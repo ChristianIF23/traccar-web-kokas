@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   IconButton,
@@ -12,6 +12,7 @@ import {
   Box,
   Typography,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
@@ -43,11 +44,10 @@ const PositionsReportPage = () => {
   const navigate = useNavigate();
   const { classes } = useReportStyles();
   const t = useTranslation();
+  const theme = useTheme();
 
   const [searchParams, setSearchParams] = useSearchParams();
-
   const positionAttributes = usePositionAttributes(t);
-
   const readonly = useRestriction('readonly');
 
   const [available, setAvailable] = useState([]);
@@ -59,19 +59,32 @@ const PositionsReportPage = () => {
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const selectedRef = useRef();
+  const selectedRef = useRef(null);
 
+  // Auto-scroll ke baris tabel saat item dipilih dari peta
   useEffect(() => {
-    if (selectedRef.current) {
+    if (selectedItem && selectedRef.current) {
       selectedRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
   }, [selectedItem]);
 
+  // Optimasi Performa Peta: Membagi posisi berdasarkan Device ID menggunakan useMemo
+  const devicePositionsMap = useMemo(() => {
+    const map = new Map();
+    items.forEach((item) => {
+      if (!map.has(item.deviceId)) {
+        map.set(item.deviceId, []);
+      }
+      map.get(item.deviceId).push(item);
+    });
+    return Array.from(map.entries());
+  }, [items]);
+
   const onMapPointClick = useCallback(
     (positionId) => {
-      setSelectedItem(items.find((it) => it.id === positionId));
+      setSelectedItem(items.find((it) => it.id === positionId) || null);
     },
-    [items, setSelectedItem],
+    [items],
   );
 
   const onShow = useCatchCallback(
@@ -91,7 +104,9 @@ const PositionsReportPage = () => {
         const keyList = [];
         data.forEach((position) => {
           Object.keys(position).forEach((it) => keySet.add(it));
-          Object.keys(position.attributes).forEach((it) => keySet.add(it));
+          if (position.attributes) {
+            Object.keys(position.attributes).forEach((it) => keySet.add(it));
+          }
         });
         ['id', 'deviceId', 'outdated', 'network', 'attributes'].forEach((key) =>
           keySet.delete(key),
@@ -106,6 +121,7 @@ const PositionsReportPage = () => {
           [...keyList, ...keySet].map((key) => [key, positionAttributes[key]?.name || key]),
         );
         setItems(data);
+        setSelectedItem(null); // Reset seleksi saat data baru dimuat
       } finally {
         setLoading(false);
       }
@@ -138,23 +154,21 @@ const PositionsReportPage = () => {
               sx={{
                 borderRadius: '16px',
                 overflow: 'hidden',
-                border: (theme) => `1px solid ${theme.palette.divider}`,
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+                border: `1px solid ${theme.palette.divider}`,
+                boxShadow:
+                  theme.palette.mode === 'dark' ? 'none' : '0 4px 20px rgba(0, 0, 0, 0.05)',
                 m: { xs: 1, sm: 2 },
                 mb: 0,
               }}
             >
               <MapView>
                 <MapGeofence />
-                {[...new Set(items.map((it) => it.deviceId))].map((deviceId) => {
-                  const positions = items.filter((pos) => pos.deviceId === deviceId);
-                  return (
-                    <Fragment key={deviceId}>
-                      <MapRoutePath positions={positions} />
-                      <MapRoutePoints positions={positions} onClick={onMapPointClick} />
-                    </Fragment>
-                  );
-                })}
+                {devicePositionsMap.map(([deviceId, positions]) => (
+                  <Fragment key={deviceId}>
+                    <MapRoutePath positions={positions} />
+                    <MapRoutePoints positions={positions} onClick={onMapPointClick} />
+                  </Fragment>
+                ))}
                 <MapPositionMarkers positions={[selectedItem]} titleField="fixTime" />
               </MapView>
               <MapScale />
@@ -202,8 +216,9 @@ const PositionsReportPage = () => {
               elevation={0}
               sx={{
                 borderRadius: '16px',
-                border: (theme) => `1px solid ${theme.palette.divider}`,
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                border: `1px solid ${theme.palette.divider}`,
+                boxShadow:
+                  theme.palette.mode === 'dark' ? 'none' : '0 4px 20px rgba(0, 0, 0, 0.03)',
                 overflow: 'hidden',
               }}
             >
@@ -219,8 +234,10 @@ const PositionsReportPage = () => {
                   <TableRow
                     sx={{
                       '& .MuiTableCell-root': {
-                        backgroundColor: (theme) =>
-                          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
+                        backgroundColor:
+                          theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.03)'
+                            : theme.palette.action.hover,
                         color: 'text.secondary',
                         fontWeight: 600,
                         fontSize: '0.78rem',
@@ -228,16 +245,14 @@ const PositionsReportPage = () => {
                         letterSpacing: '0.04em',
                         py: 1.8,
                         px: 2,
-                        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                        borderBottom: `1px solid ${theme.palette.divider}`,
                         whiteSpace: 'nowrap',
                       },
                     }}
                   >
                     <TableCell className={classes.columnAction} sx={{ width: 48, px: 1.5 }} />
                     {columns.map((key) => (
-                      <TableCell key={key}>
-                        {positionAttributes[key]?.name || key}
-                      </TableCell>
+                      <TableCell key={key}>{positionAttributes[key]?.name || key}</TableCell>
                     ))}
                     <TableCell className={classes.columnAction} sx={{ width: 48, px: 1.5 }} />
                   </TableRow>
@@ -246,10 +261,11 @@ const PositionsReportPage = () => {
                   {!loading ? (
                     items.length > 0 ? (
                       items.slice(0, 4000).map((item) => {
-                        const isSelected = selectedItem === item;
+                        const isSelected = selectedItem?.id === item.id;
                         return (
                           <TableRow
                             key={item.id}
+                            ref={isSelected ? selectedRef : null}
                             hover
                             selected={isSelected}
                             sx={{
@@ -258,24 +274,27 @@ const PositionsReportPage = () => {
                                 py: 1.5,
                                 px: 2,
                                 fontSize: '0.875rem',
-                                borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+                                borderBottom: `1px solid ${theme.palette.divider}`,
                               },
                               ...(isSelected && {
-                                backgroundColor: (theme) =>
+                                backgroundColor:
                                   theme.palette.mode === 'dark'
-                                    ? 'rgba(25, 118, 210, 0.16) !important'
-                                    : 'rgba(25, 118, 210, 0.08) !important',
+                                    ? `${theme.palette.primary.main}25 !important`
+                                    : `${theme.palette.primary.main}12 !important`,
                               }),
                             }}
                           >
-                            <TableCell className={classes.columnAction} padding="none" sx={{ pl: 1.5 }}>
+                            <TableCell
+                              className={classes.columnAction}
+                              padding="none"
+                              sx={{ pl: 1.5 }}
+                            >
                               {isSelected ? (
                                 <Tooltip title={t('sharedHideOnMap')} arrow>
                                   <IconButton
                                     size="small"
                                     color="primary"
                                     onClick={() => setSelectedItem(null)}
-                                    ref={selectedRef}
                                     sx={{ borderRadius: '8px', p: 0.75 }}
                                   >
                                     <GpsFixedIcon fontSize="small" />
@@ -308,8 +327,12 @@ const PositionsReportPage = () => {
                               >
                                 <PositionValue
                                   position={item}
-                                  property={Object.prototype.hasOwnProperty.call(item, key) ? key : null}
-                                  attribute={Object.prototype.hasOwnProperty.call(item, key) ? null : key}
+                                  property={
+                                    Object.prototype.hasOwnProperty.call(item, key) ? key : null
+                                  }
+                                  attribute={
+                                    Object.prototype.hasOwnProperty.call(item, key) ? null : key
+                                  }
                                 />
                               </TableCell>
                             ))}
@@ -320,6 +343,9 @@ const PositionsReportPage = () => {
                                 readonly={readonly}
                                 onReload={() => {
                                   setItems(items.filter((pos) => pos.id !== item.id));
+                                  if (selectedItem?.id === item.id) {
+                                    setSelectedItem(null);
+                                  }
                                 }}
                               />
                             </TableCell>
@@ -328,7 +354,11 @@ const PositionsReportPage = () => {
                       })
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length + 2} align="center" sx={{ py: 6, borderBottom: 'none' }}>
+                        <TableCell
+                          colSpan={columns.length + 2}
+                          align="center"
+                          sx={{ py: 6, borderBottom: 'none' }}
+                        >
                           <Typography variant="body2" color="text.secondary">
                             {t('sharedNoData')}
                           </Typography>

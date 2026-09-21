@@ -9,20 +9,23 @@ import {
   FormGroup,
   Button,
   TextField,
+  Box,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SendToMobileRoundedIcon from '@mui/icons-material/SendToMobileRounded';
 import { useTranslation, useTranslationKeys } from '../common/components/LocalizationProvider';
 import EditItemView from './components/EditItemView';
 import { prefixString, unprefixString } from '../common/util/stringUtils';
 import SelectField from '../common/components/SelectField';
 import SettingsMenu from './components/SettingsMenu';
 import { useCatch } from '../reactHelper';
-import useSettingsStyles from './common/useSettingsStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 
 const NotificationPage = () => {
-  const { classes } = useSettingsStyles();
   const t = useTranslation();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const [item, setItem] = useState();
 
@@ -44,23 +47,43 @@ const NotificationPage = () => {
   });
 
   const validate = () =>
-    item &&
-    item.type &&
-    item.notificators &&
-    (!item.notificators?.includes('command') || item.commandId);
+    Boolean(
+      item &&
+      item.type &&
+      item.notificators &&
+      (!item.notificators?.includes('command') || item.commandId),
+    );
 
-  const accordionStyle = {
-    borderRadius: '16px !important',
-    border: (theme) => `1px solid ${theme.palette.divider}`,
+  const accordionCardStyle = {
+    borderRadius: '18px !important',
+    border: (th) =>
+      `1px solid ${
+        th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+      }`,
+    backgroundColor: (th) => (th.palette.mode === 'dark' ? '#162447' : '#ffffff'),
+    boxShadow: (th) =>
+      th.palette.mode === 'dark'
+        ? '0 12px 30px rgba(0, 0, 0, 0.45)'
+        : '0 8px 24px rgba(15, 23, 42, 0.04)',
     overflow: 'hidden',
     mb: 2.5,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
     '&:before': { display: 'none' },
   };
 
   const inputStyle = {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '10px',
+      borderRadius: '12px',
+      backgroundColor: (th) => (th.palette.mode === 'dark' ? alpha('#0f172a', 0.8) : '#ffffff'),
+      '& fieldset': {
+        borderColor: (th) =>
+          th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+      },
+      '&:hover fieldset': {
+        borderColor: '#1d4ed8',
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: '#1d4ed8',
+      },
     },
   };
 
@@ -74,14 +97,32 @@ const NotificationPage = () => {
       breadcrumbs={['settingsTitle', 'sharedNotification']}
     >
       {item && (
-        <>
-          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>{t('sharedRequired')}</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          {/* 1. Pengaturan Wajib Notifikasi */}
+          <Accordion defaultExpanded elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                {t('sharedRequired')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <SelectField
                 fullWidth
@@ -99,6 +140,7 @@ const NotificationPage = () => {
                 }
                 sx={inputStyle}
               />
+
               {item.type === 'alarm' && (
                 <SelectField
                   fullWidth
@@ -121,6 +163,7 @@ const NotificationPage = () => {
                   sx={inputStyle}
                 />
               )}
+
               <SelectField
                 fullWidth
                 multiple
@@ -133,6 +176,7 @@ const NotificationPage = () => {
                 label={t('notificationNotificators')}
                 sx={inputStyle}
               />
+
               {item.notificators?.includes('command') && (
                 <SelectField
                   fullWidth
@@ -145,28 +189,37 @@ const NotificationPage = () => {
                   sx={inputStyle}
                 />
               )}
+
               <Button
                 variant="outlined"
                 color="primary"
                 onClick={testNotificators}
                 disabled={!item.notificators}
+                startIcon={<SendToMobileRoundedIcon sx={{ fontSize: 18 }} />}
                 sx={{
                   borderRadius: '10px',
                   textTransform: 'none',
                   fontWeight: 600,
-                  py: 1,
-                  alignSelf: 'flex-start',
+                  py: 0.9,
                   px: 2.5,
+                  alignSelf: 'flex-start',
+                  borderColor: '#1d4ed8',
+                  color: '#1d4ed8',
+                  '&:hover': {
+                    borderColor: '#1e40af',
+                    backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+                  },
                 }}
               >
                 {t('sharedTestNotificators')}
               </Button>
+
               <FormGroup sx={{ pt: 0.5 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
                       size="small"
-                      checked={item.always}
+                      checked={Boolean(item.always)}
                       onChange={(e) => setItem({ ...item, always: e.target.checked })}
                     />
                   }
@@ -176,13 +229,31 @@ const NotificationPage = () => {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion elevation={0} disableGutters sx={accordionStyle}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>{t('sharedExtra')}</Typography>
+          {/* 2. Pengaturan Tambahan */}
+          <Accordion elevation={0} disableGutters sx={accordionCardStyle}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: isDark ? '#94a3b8' : '#64748b' }} />}
+              sx={{
+                px: 3,
+                py: 1,
+                borderBottom: `1px solid ${
+                  isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'
+                }`,
+                '& .MuiAccordionSummary-content': { my: 1 },
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary">
+                {t('sharedExtra')}
+              </Typography>
             </AccordionSummary>
             <AccordionDetails
-              className={classes.details}
-              sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.5) : '#f8fafc',
+              }}
             >
               <TextField
                 fullWidth
@@ -192,6 +263,7 @@ const NotificationPage = () => {
                 label={t('sharedDescription')}
                 sx={inputStyle}
               />
+
               <SelectField
                 fullWidth
                 size="small"
@@ -201,11 +273,12 @@ const NotificationPage = () => {
                 label={t('sharedCalendar')}
                 sx={inputStyle}
               />
+
               {['geofenceEnter', 'geofenceExit', 'geofenceCrossed'].includes(item.type) && (
                 <SelectField
                   fullWidth
-                  multiple
                   size="small"
+                  multiple
                   value={item.attributes?.geofenceIds ? item.attributes.geofenceIds.split(',') : []}
                   onChange={(e) => {
                     const geofenceIds = e.target.value.join();
@@ -223,12 +296,13 @@ const NotificationPage = () => {
                   sx={inputStyle}
                 />
               )}
+
               <FormGroup sx={{ pt: 0.5 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
                       size="small"
-                      checked={item.attributes && item.attributes.priority}
+                      checked={Boolean(item.attributes && item.attributes.priority)}
                       onChange={(e) =>
                         setItem({
                           ...item,
@@ -242,7 +316,7 @@ const NotificationPage = () => {
               </FormGroup>
             </AccordionDetails>
           </Accordion>
-        </>
+        </Box>
       )}
     </EditItemView>
   );

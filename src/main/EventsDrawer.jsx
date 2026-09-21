@@ -12,8 +12,9 @@ import {
   Tooltip,
   Chip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
-import CloseIcon from '@mui/icons-material/Close';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import { formatNotificationTitle, formatTime } from '../common/util/formatter';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -40,40 +41,75 @@ const EventsDrawer = ({ open, onClose }) => {
       anchor="right"
       open={open}
       onClose={onClose}
+      slotProps={{
+        backdrop: {
+          sx: {
+            backgroundColor: (theme) =>
+              theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.65)' : 'rgba(15, 23, 42, 0.3)',
+            backdropFilter: 'blur(4px)',
+          },
+        },
+      }}
       PaperProps={{
         elevation: 0,
         sx: {
-          width: (theme) => theme.dimensions?.eventsDrawerWidth || 360,
-          borderLeft: (theme) => `1px solid ${theme.palette.divider}`,
-          borderTopLeftRadius: { xs: 0, sm: '16px' },
-          borderBottomLeftRadius: { xs: 0, sm: '16px' },
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+          width: (theme) => theme.dimensions?.eventsDrawerWidth || 380,
+          maxWidth: '88vw',
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? alpha('#162447', 0.96) : 'rgba(255, 255, 255, 0.97)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderLeft: (theme) =>
+            `1px solid ${
+              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+            }`,
+          borderTopLeftRadius: { xs: 0, sm: 24 },
+          borderBottomLeftRadius: { xs: 0, sm: 24 },
+          boxShadow: (theme) =>
+            theme.palette.mode === 'dark'
+              ? '-16px 0 45px rgba(0, 0, 0, 0.75)'
+              : '-16px 0 45px rgba(22, 36, 71, 0.1)',
         },
       }}
     >
+      {/* Header Toolbar Drawer */}
       <Toolbar
         sx={{
-          px: 2,
-          py: 1,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          px: 2.5,
+          py: 1.5,
+          minHeight: '68px !important',
+          borderBottom: (theme) =>
+            `1px solid ${
+              theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
+            }`,
           display: 'flex',
           alignItems: 'center',
-          gap: 1,
+          gap: 1.2,
         }}
         disableGutters
       >
-        <Typography variant="h6" fontWeight={600} sx={{ flexGrow: 1 }}>
-          {t('reportEvents')}
-        </Typography>
-
-        {events.length > 0 && (
-          <Chip
-            size="small"
-            label={events.length}
-            color="primary"
-            sx={{ height: 22, fontSize: '0.75rem', fontWeight: 600 }}
-          />
-        )}
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 800, letterSpacing: -0.3, fontSize: '1.05rem' }}
+          >
+            {t('reportEvents')}
+          </Typography>
+          {events.length > 0 && (
+            <Chip
+              size="small"
+              label={events.length}
+              sx={{
+                height: 22,
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                borderRadius: '8px',
+                backgroundColor: '#1d4ed8',
+                color: '#ffffff',
+              }}
+            />
+          )}
+        </Box>
 
         {events.length > 0 && (
           <Tooltip title={t('sharedRemoveAll') || t('sharedRemove')}>
@@ -81,8 +117,13 @@ const EventsDrawer = ({ open, onClose }) => {
               size="small"
               onClick={() => dispatch(eventsActions.deleteAll())}
               sx={{
+                borderRadius: '10px',
                 color: 'text.secondary',
-                '&:hover': { color: 'error.main' },
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  color: '#ef4444',
+                  backgroundColor: alpha('#ef4444', 0.1),
+                },
               }}
             >
               <DeleteOutlineIcon fontSize="small" />
@@ -90,14 +131,30 @@ const EventsDrawer = ({ open, onClose }) => {
           </Tooltip>
         )}
 
-        <IconButton size="small" onClick={onClose} sx={{ color: 'text.secondary' }}>
-          <CloseIcon fontSize="small" />
+        <IconButton
+          size="small"
+          onClick={onClose}
+          sx={{
+            borderRadius: '10px',
+            color: 'text.secondary',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              color: 'text.primary',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'rgba(255, 255, 255, 0.08)'
+                  : 'rgba(15, 23, 42, 0.06)',
+            },
+          }}
+        >
+          <CloseRoundedIcon fontSize="small" />
         </IconButton>
       </Toolbar>
 
-      <Box sx={{ overflowY: 'auto', p: 1.5, height: '100%' }}>
+      {/* Konten Daftar Event Notifikasi */}
+      <Box sx={{ overflowY: 'auto', p: 2, height: '100%' }}>
         {events.length > 0 ? (
-          <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
             {events.map((event) => (
               <ListItemButton
                 key={event.id}
@@ -107,34 +164,58 @@ const EventsDrawer = ({ open, onClose }) => {
                 }}
                 disabled={!event.id}
                 sx={{
-                  borderRadius: '10px',
-                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  borderRadius: '14px',
+                  border: (theme) =>
+                    `1px solid ${
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.06)'
+                        : 'rgba(15, 23, 42, 0.06)'
+                    }`,
                   backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#ffffff',
-                  p: 1.5,
-                  transition: 'all 0.15s ease',
+                    theme.palette.mode === 'dark' ? alpha('#0f172a', 0.5) : '#ffffff',
+                  p: 1.6,
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                   '&:hover': {
                     backgroundColor: (theme) =>
-                      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : '#f8fafc',
-                    borderColor: 'primary.main',
+                      theme.palette.mode === 'dark' ? alpha('#0f172a', 0.8) : '#ffffff',
+                    borderColor: '#1d4ed8',
+                    transform: 'translateX(-2px)',
+                    boxShadow: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? '0 6px 16px rgba(0, 0, 0, 0.4)'
+                        : '0 6px 16px rgba(29, 78, 216, 0.08)',
                   },
                 }}
               >
                 <ListItemText
                   primary={
-                    <Typography variant="body2" fontWeight={600} color="text.primary" noWrap>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.88rem' }}
+                      noWrap
+                    >
                       {devices[event.deviceId]?.name || event.deviceId}
                     </Typography>
                   }
                   secondary={
-                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, mt: 0.5 }}>
-                      <Typography variant="caption" color="text.secondary" noWrap>
+                    <Box
+                      component="span"
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 0.4, mt: 0.5 }}
+                    >
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.78rem' }}
+                        noWrap
+                      >
                         {formatType(event)}
                       </Typography>
                       <Typography
                         variant="caption"
-                        color="text.disabled"
-                        sx={{ fontVariantNumeric: 'tabular-nums' }}
+                        sx={{
+                          color: 'text.disabled',
+                          fontVariantNumeric: 'tabular-nums',
+                          fontSize: '0.7rem',
+                        }}
                       >
                         {formatTime(event.eventTime, 'seconds')}
                       </Typography>
@@ -150,7 +231,12 @@ const EventsDrawer = ({ open, onClose }) => {
                   }}
                   sx={{
                     color: 'text.disabled',
-                    '&:hover': { color: 'error.main' },
+                    borderRadius: '8px',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      color: '#ef4444',
+                      backgroundColor: alpha('#ef4444', 0.1),
+                    },
                     ml: 1,
                   }}
                 >
@@ -168,13 +254,34 @@ const EventsDrawer = ({ open, onClose }) => {
               justifyContent: 'center',
               height: '70%',
               gap: 1.5,
+              px: 3,
             }}
           >
-            <NotificationsNoneOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-            <Typography variant="body2" color="text.secondary">
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? alpha(theme.palette.common.white, 0.04)
+                    : alpha('#162447', 0.04),
+                color: 'text.disabled',
+                mb: 0.5,
+              }}
+            >
+              <NotificationsNoneOutlinedIcon sx={{ fontSize: 30 }} />
+            </Box>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
               {t('sharedNoData')}
             </Typography>
-            <Typography variant="caption" color="text.disabled" align="center">
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.disabled', textAlign: 'center', maxWidth: 220 }}
+            >
               Belum ada notifikasi atau event baru yang tercatat.
             </Typography>
           </Box>

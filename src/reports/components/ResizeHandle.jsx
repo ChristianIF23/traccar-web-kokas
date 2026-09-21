@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { makeStyles } from 'tss-react/mui';
 
 const useStyles = makeStyles()((theme) => ({
@@ -14,7 +14,7 @@ const useStyles = makeStyles()((theme) => ({
     userSelect: 'none',
     touchAction: 'none',
     transition: 'background-color 0.2s ease',
-    '&:hover': {
+    '&:hover, &.Mui-active': {
       backgroundColor:
         theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
     },
@@ -37,6 +37,7 @@ const useStyles = makeStyles()((theme) => ({
     backgroundColor: theme.palette.text.disabled,
     zIndex: 2,
     transition: 'background-color 0.2s ease, width 0.2s ease',
+    // Perbaikan selector CSS agar efisien dan terbaca
     '.Mui-active &, div:hover > &': {
       backgroundColor: theme.palette.primary.main,
       width: 44,
@@ -47,16 +48,28 @@ const useStyles = makeStyles()((theme) => ({
 const ResizeHandle = () => {
   const { classes } = useStyles();
   const [isDragging, setIsDragging] = useState(false);
+  const animationFrameRef = useRef(null);
 
   const onPointerDown = (event) => {
     event.preventDefault();
     setIsDragging(true);
-    const containerRectangle = event.currentTarget.parentElement.getBoundingClientRect();
+
+    const container = event.currentTarget.parentElement;
+    if (!container) return;
+
+    const containerRectangle = container.getBoundingClientRect();
 
     const onMove = (moveEvent) => {
-      const offset = moveEvent.clientY - containerRectangle.top;
-      const percentage = Math.max(10, Math.min(90, (offset / containerRectangle.height) * 100));
-      document.documentElement.style.setProperty('--report-map-height', `${percentage}%`);
+      // Menggunakan requestAnimationFrame agar penggeseran terasa smooth
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const offset = moveEvent.clientY - containerRectangle.top;
+        const percentage = Math.max(10, Math.min(90, (offset / containerRectangle.height) * 100));
+        document.documentElement.style.setProperty('--report-map-height', `${percentage}%`);
+      });
     };
 
     const onUp = () => {
@@ -68,6 +81,15 @@ const ResizeHandle = () => {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
   };
+
+  // Cleanup jika komponen ter-unmount saat dragging
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div

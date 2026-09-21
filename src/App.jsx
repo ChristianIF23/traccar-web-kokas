@@ -1,8 +1,7 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMediaQuery, useTheme } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
-import BottomMenu from './common/components/BottomMenu';
+import MainPage from './main/MainPage';
 import SocketController from './SocketController';
 import CachingController from './CachingController';
 import { useCatch, useAsyncTask } from './reactHelper';
@@ -14,25 +13,31 @@ import Loader from './common/components/Loader';
 import fetchOrThrow from './common/util/fetchOrThrow';
 
 const useStyles = makeStyles()(() => ({
-  page: {
-    flexGrow: 1,
-    overflow: 'auto',
+  root: {
+    height: '100%',
+    width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  menu: {
-    zIndex: 4,
-    '@media print': {
-      display: 'none',
+  modalContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 1300,
+    pointerEvents: 'none',
+    '& > *': {
+      pointerEvents: 'auto',
     },
   },
 }));
 
 const App = () => {
   const { classes } = useStyles();
-  const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const desktop = useMediaQuery(theme.breakpoints.up('md'));
+  const location = useLocation();
 
   const newServer = useSelector((state) => state.session.server.newServer);
   const termsUrl = useSelector((state) => state.session.server.attributes.termsUrl);
@@ -72,21 +77,27 @@ const App = () => {
   if (termsUrl && !user.attributes.termsAccepted) {
     return <TermsDialog open onCancel={() => navigate('/login')} onAccept={() => acceptTerms()} />;
   }
+
+  // Cek apakah user sedang membuka modal (pengaturan, laporan, replay, dll.)
+  const isSubPage = location.pathname !== '/';
+
   return (
-    <>
+    <div className={classes.root}>
       <SocketController />
       <CachingController />
       <UpdateController />
       <MotionController />
-      <div className={classes.page}>
-        <Outlet />
-      </div>
-      {!desktop && (
-        <div className={classes.menu}>
-          <BottomMenu />
+
+      {/* Peta Utama selalu hidup di latar belakang */}
+      <MainPage />
+
+      {/* Halaman Pengaturan / Laporan melayang di atas peta */}
+      {isSubPage && (
+        <div className={classes.modalContainer}>
+          <Outlet />
         </div>
       )}
-    </>
+    </div>
   );
 };
 

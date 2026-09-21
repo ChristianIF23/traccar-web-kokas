@@ -7,6 +7,7 @@ import {
   ListSubheader,
   ListItemButton,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Link, useLocation } from 'react-router-dom';
 
 const SideNav = ({ routes }) => {
@@ -17,7 +18,15 @@ const SideNav = ({ routes }) => {
       {routes.map((route) =>
         route.subheader ? (
           <Fragment key={route.subheader}>
-            <Divider sx={{ my: 1.5, opacity: 0.6 }} />
+            <Divider
+              sx={{
+                my: 1.5,
+                borderColor: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.08)'
+                    : 'rgba(15, 23, 42, 0.06)',
+              }}
+            />
             <ListSubheader
               disableSticky
               sx={{
@@ -26,7 +35,7 @@ const SideNav = ({ routes }) => {
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
                 lineHeight: '28px',
-                color: 'text.secondary',
+                color: (theme) => (theme.palette.mode === 'dark' ? '#64748b' : '#94a3b8'),
                 px: 2.5,
                 backgroundColor: 'transparent',
               }}
@@ -41,43 +50,44 @@ const SideNav = ({ routes }) => {
             to={route.href}
             selected={location.pathname.match(route.match || route.href) !== null}
             sx={{
-              mx: 1.5,
-              my: 0.3,
-              px: 1.5,
-              py: 0.9,
-              borderRadius: '10px',
-              transition: 'all 0.15s ease-in-out',
-              color: 'text.secondary',
+              mx: 1.25,
+              my: 0.4,
+              px: 1.75,
+              py: 1,
+              borderRadius: '14px',
+              transition: 'all 0.2s ease',
+              color: (theme) => (theme.palette.mode === 'dark' ? '#94a3b8' : '#475569'),
               '& .MuiListItemIcon-root': {
-                color: 'text.secondary',
-                minWidth: 38,
-                transition: 'color 0.15s ease-in-out',
+                color: 'inherit',
+                minWidth: 36,
+                transition: 'color 0.2s ease',
+                '& .MuiSvgIcon-root': {
+                  fontSize: '1.25rem',
+                },
               },
               '&:hover': {
                 backgroundColor: (theme) =>
                   theme.palette.mode === 'dark'
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(0, 0, 0, 0.04)',
-                color: 'text.primary',
+                    ? alpha('#1d4ed8', 0.12)
+                    : 'rgba(29, 78, 216, 0.06)',
+                color: '#1d4ed8',
+                transform: 'translateX(3px)',
                 '& .MuiListItemIcon-root': {
-                  color: 'text.primary',
+                  color: '#1d4ed8',
                 },
               },
               '&.Mui-selected': {
                 backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'rgba(59, 130, 246, 0.16)'
-                    : 'rgba(25, 118, 210, 0.08)',
-                color: 'primary.main',
-                fontWeight: 600,
+                  theme.palette.mode === 'dark' ? alpha('#1d4ed8', 0.2) : 'rgba(29, 78, 216, 0.1)',
+                color: '#1d4ed8',
                 '& .MuiListItemIcon-root': {
-                  color: 'primary.main',
+                  color: '#1d4ed8',
                 },
                 '&:hover': {
                   backgroundColor: (theme) =>
                     theme.palette.mode === 'dark'
-                      ? 'rgba(59, 130, 246, 0.22)'
-                      : 'rgba(25, 118, 210, 0.12)',
+                      ? alpha('#1d4ed8', 0.28)
+                      : 'rgba(29, 78, 216, 0.15)',
                 },
               },
             }}
@@ -86,8 +96,9 @@ const SideNav = ({ routes }) => {
             <ListItemText
               primary={route.name}
               primaryTypographyProps={{
-                fontSize: '0.875rem',
-                fontWeight: location.pathname.match(route.match || route.href) !== null ? 600 : 500,
+                fontSize: '0.86rem',
+                fontWeight: location.pathname.match(route.match || route.href) !== null ? 700 : 500,
+                letterSpacing: '-0.01em',
               }}
             />
           </ListItemButton>

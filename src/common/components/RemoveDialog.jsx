@@ -1,39 +1,12 @@
 import Button from '@mui/material/Button';
-import { Snackbar } from '@mui/material';
-import { makeStyles } from 'tss-react/mui';
+import { Snackbar, Box } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useTranslation } from './LocalizationProvider';
 import { useCatch } from '../../reactHelper';
 import { snackBarDurationLongMs } from '../util/duration';
 import fetchOrThrow from '../util/fetchOrThrow';
 
-const useStyles = makeStyles()((theme) => ({
-  root: {
-    [theme.breakpoints.down('md')]: {
-      bottom: `calc(${theme.dimensions.bottomBarHeight}px + ${theme.spacing(1.5)})`,
-    },
-    '& .MuiSnackbarContent-root': {
-      borderRadius: '12px',
-      backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#0f172a',
-      color: '#f8fafc',
-      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
-      padding: theme.spacing(1, 2),
-      fontSize: '0.9rem',
-    },
-  },
-  button: {
-    borderRadius: '8px',
-    textTransform: 'none',
-    fontWeight: 600,
-    padding: '4px 12px',
-    color: '#f87171',
-    '&:hover': {
-      backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    },
-  },
-}));
-
 const RemoveDialog = ({ open, endpoint, itemId, onResult }) => {
-  const { classes } = useStyles();
   const t = useTranslation();
 
   const handleRemove = useCatch(async () => {
@@ -43,19 +16,78 @@ const RemoveDialog = ({ open, endpoint, itemId, onResult }) => {
 
   return (
     <Snackbar
-      className={classes.root}
       open={open}
       autoHideDuration={snackBarDurationLongMs}
       onClose={() => onResult(false)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      sx={{
+        bottom: {
+          xs: (theme) => `calc(${theme.dimensions?.bottomBarHeight || 56}px + 16px)`,
+          md: 28,
+        },
+      }}
+      slotProps={{
+        content: {
+          sx: {
+            borderRadius: '16px',
+            backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#162447' : '#0f172a'),
+            color: '#f8fafc',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 16px 36px -6px rgba(0, 0, 0, 0.5)',
+            px: 2.5,
+            py: 1.25,
+            fontSize: '0.88rem',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          },
+        },
+      }}
       message={t('sharedRemoveConfirm')}
       action={
-        <Button
-          size="small"
-          className={classes.button}
-          onClick={handleRemove}
-        >
-          {t('sharedRemove')}
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Button
+            size="small"
+            onClick={() => onResult(false)}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.82rem',
+              color: '#94a3b8',
+              px: 1.5,
+              py: 0.5,
+              '&:hover': {
+                color: '#ffffff',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              },
+            }}
+          >
+            {t('sharedCancel')}
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={handleRemove}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+              px: 1.75,
+              py: 0.5,
+              '&:hover': {
+                backgroundColor: '#dc2626',
+              },
+            }}
+          >
+            {t('sharedRemove')}
+          </Button>
+        </Box>
       }
     />
   );

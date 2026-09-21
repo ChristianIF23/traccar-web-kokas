@@ -13,6 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import { alpha } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import RemoveDialog from '../../common/components/RemoveDialog';
 import { useTranslation } from '../../common/components/LocalizationProvider';
@@ -21,6 +22,7 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
   const theme = useTheme();
   const navigate = useNavigate();
   const t = useTranslation();
+  const isDark = theme.palette.mode === 'dark';
 
   const phone = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -60,16 +62,20 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
             sx={{
               color: 'text.secondary',
               borderRadius: '8px',
+              p: 0.75,
+              transition: 'all 0.15s ease',
               '&:hover': {
-                backgroundColor: (th) =>
-                  th.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+                color: 'text.primary',
+                backgroundColor: isDark
+                  ? alpha(theme.palette.common.white, 0.08)
+                  : alpha(theme.palette.common.black, 0.05),
               },
             }}
           >
             <MoreVertIcon fontSize="small" />
           </IconButton>
           <Menu
-            open={!!menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
             anchorEl={menuAnchorEl}
             onClose={() => setMenuAnchorEl(null)}
             slotProps={{
@@ -77,64 +83,74 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                 elevation: 0,
                 sx: {
                   borderRadius: '12px',
-                  border: (th) => `1px solid ${th.palette.divider}`,
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-                  minWidth: 150,
+                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                  border: `1px solid ${
+                    isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'
+                  }`,
+                  boxShadow: isDark
+                    ? '0 10px 30px rgba(0, 0, 0, 0.5)'
+                    : '0 8px 30px rgba(15, 23, 42, 0.08)',
+                  minWidth: 160,
                   py: 0.5,
+                  '& .MuiMenuItem-root': {
+                    px: 1.75,
+                    py: 1,
+                    gap: 1.25,
+                    transition: 'background-color 0.15s ease',
+                    '&:hover': {
+                      backgroundColor: isDark
+                        ? alpha(theme.palette.common.white, 0.06)
+                        : alpha(theme.palette.common.black, 0.04),
+                    },
+                  },
                 },
               },
             }}
           >
             {customActions &&
               customActions.map((action) => (
-                <MenuItem
-                  onClick={() => handleCustom(action)}
-                  key={action.key}
-                  sx={{ py: 1 }}
-                >
+                <MenuItem onClick={() => handleCustom(action)} key={action.key}>
                   {action.icon && (
-                    <ListItemIcon sx={{ minWidth: 28, color: 'inherit' }}>
+                    <ListItemIcon sx={{ minWidth: 24, color: 'text.secondary' }}>
                       {action.icon}
                     </ListItemIcon>
                   )}
                   <ListItemText
                     primary={action.title}
-                    primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 500 }}
+                    primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 600 }}
                   />
                 </MenuItem>
               ))}
             {!readonly && (
               <>
                 {editPath && (
-                  <MenuItem onClick={handleEdit} sx={{ py: 1 }}>
-                    <ListItemIcon sx={{ minWidth: 28, color: 'inherit' }}>
+                  <MenuItem onClick={handleEdit}>
+                    <ListItemIcon sx={{ minWidth: 24, color: 'text.secondary' }}>
                       <EditOutlinedIcon fontSize="small" />
                     </ListItemIcon>
                     <ListItemText
                       primary={t('sharedEdit')}
-                      primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 500 }}
+                      primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 600 }}
                     />
                   </MenuItem>
                 )}
                 <MenuItem
                   onClick={handleRemove}
                   sx={{
-                    py: 1,
                     color: 'error.main',
                     '&:hover': {
-                      backgroundColor: (th) =>
-                        th.palette.mode === 'dark'
-                          ? 'rgba(211, 47, 47, 0.15)'
-                          : 'rgba(211, 47, 47, 0.08)',
+                      backgroundColor: isDark
+                        ? alpha(theme.palette.error.main, 0.15)
+                        : alpha(theme.palette.error.main, 0.08),
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 28, color: 'error.main' }}>
+                  <ListItemIcon sx={{ minWidth: 24, color: 'error.main' }}>
                     <DeleteOutlineIcon fontSize="small" />
                   </ListItemIcon>
                   <ListItemText
                     primary={t('sharedRemove')}
-                    primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 500 }}
+                    primaryTypographyProps={{ fontSize: '0.8125rem', fontWeight: 600 }}
                   />
                 </MenuItem>
               </>
@@ -142,7 +158,14 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
           </Menu>
         </>
       ) : (
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 0.5,
+          }}
+        >
           {customActions &&
             customActions.map((action) => (
               <Tooltip title={action.title} key={action.key} arrow>
@@ -156,11 +179,8 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                     p: 0.75,
                     transition: 'all 0.15s ease',
                     '&:hover': {
-                      color: 'primary.main',
-                      backgroundColor: (th) =>
-                        th.palette.mode === 'dark'
-                          ? 'rgba(255, 255, 255, 0.06)'
-                          : 'rgba(0, 0, 0, 0.04)',
+                      color: '#1d4ed8',
+                      backgroundColor: isDark ? alpha('#1d4ed8', 0.12) : alpha('#1d4ed8', 0.08),
                     },
                   }}
                 >
@@ -182,11 +202,8 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                       p: 0.75,
                       transition: 'all 0.15s ease',
                       '&:hover': {
-                        color: 'primary.main',
-                        backgroundColor: (th) =>
-                          th.palette.mode === 'dark'
-                            ? 'rgba(255, 255, 255, 0.06)'
-                            : 'rgba(0, 0, 0, 0.04)',
+                        color: '#1d4ed8',
+                        backgroundColor: isDark ? alpha('#1d4ed8', 0.12) : alpha('#1d4ed8', 0.08),
                       },
                     }}
                   >
@@ -206,10 +223,9 @@ const CollectionActions = ({ itemId, editPath, endpoint, onReload, customActions
                     transition: 'all 0.15s ease',
                     '&:hover': {
                       color: 'error.main',
-                      backgroundColor: (th) =>
-                        th.palette.mode === 'dark'
-                          ? 'rgba(211, 47, 47, 0.15)'
-                          : 'rgba(211, 47, 47, 0.08)',
+                      backgroundColor: isDark
+                        ? alpha(theme.palette.error.main, 0.15)
+                        : alpha(theme.palette.error.main, 0.08),
                     },
                   }}
                 >

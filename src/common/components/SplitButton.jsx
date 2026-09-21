@@ -1,120 +1,119 @@
-import { useRef, useState } from 'react';
-import { Button, ButtonGroup, Menu, MenuItem, Typography } from '@mui/material';
+import { useState, useRef } from 'react';
+import {
+  Button,
+  ButtonGroup,
+  Grow,
+  Paper,
+  Popper,
+  MenuItem,
+  MenuList,
+  ClickAwayListener,
+} from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 const SplitButton = ({
-  fullWidth,
-  variant = 'contained',
-  color = 'primary',
-  disabled,
-  onClick,
   options,
   selected,
   setSelected,
-  sx,
-  ...props
+  onClick,
+  disabled,
+  variant = 'contained',
+  fullWidth = false,
+  sx = {},
 }) => {
-  const anchorRef = useRef();
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef(null);
+
+  const handleMenuItemClick = (key) => {
+    setSelected(key);
+    setOpen(false);
+  };
+
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleClose = (event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+      return;
+    }
+    setOpen(false);
+  };
 
   return (
     <>
       <ButtonGroup
-        fullWidth={fullWidth}
         variant={variant}
-        color={color}
+        disabled={disabled}
         ref={anchorRef}
+        fullWidth={fullWidth}
+        disableElevation
         sx={{
+          height: '100%',
           borderRadius: '10px',
-          boxShadow: 'none',
-          '& .MuiButtonGroup-grouped': {
-            borderColor: (theme) =>
-              variant === 'contained' ? 'rgba(255, 255, 255, 0.25)' : theme.palette.divider,
-          },
+          overflow: 'hidden', // Memotong sudut tombol anak agar sejajar & rata
+          display: 'flex',
+          alignItems: 'stretch',
           ...sx,
         }}
-        {...props}
       >
         <Button
-          disabled={disabled}
           onClick={() => onClick(selected)}
           sx={{
+            flexGrow: 1,
+            height: '100%',
+            borderRadius: 0,
             textTransform: 'none',
-            fontWeight: 600,
-            px: 2,
-            boxShadow: 'none',
           }}
         >
-          <Typography variant="button" noWrap sx={{ textTransform: 'none', fontWeight: 600 }}>
-            {options[selected]}
-          </Typography>
+          {options[selected]}
         </Button>
         <Button
-          fullWidth={false}
           size="small"
-          disabled={disabled}
-          onClick={() => setMenuAnchorEl(anchorRef.current)}
+          onClick={handleToggle}
           sx={{
-            px: 0.75,
-            minWidth: 36,
-            boxShadow: 'none',
+            height: '100%',
+            borderRadius: 0,
+            minWidth: '36px',
+            padding: 0,
           }}
         >
-          <ArrowDropDownIcon fontSize="small" />
+          <ArrowDropDownIcon sx={{ color: '#ffffff' }} />
         </Button>
       </ButtonGroup>
-
-      <Menu
-        open={!!menuAnchorEl}
-        anchorEl={menuAnchorEl}
-        onClose={() => setMenuAnchorEl(null)}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        slotProps={{
-          paper: {
-            elevation: 0,
-            sx: {
-              mt: 0.75,
-              borderRadius: '12px',
-              border: (theme) => `1px solid ${theme.palette.divider}`,
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-              minWidth: 160,
-              py: 0.5,
-            },
-          },
-        }}
+      <Popper
+        open={open}
+        anchorEl={anchorRef.current}
+        role={undefined}
+        transition
+        disablePortal
+        style={{ zIndex: 1300 }}
       >
-        {Object.entries(options).map(([key, value]) => (
-          <MenuItem
-            key={key}
-            selected={key === selected}
-            onClick={() => {
-              setSelected(key);
-              setMenuAnchorEl(null);
-            }}
-            sx={{
-              fontSize: '0.85rem',
-              py: 1,
-              px: 2,
-              '&.Mui-selected': {
-                fontWeight: 600,
-                backgroundColor: (theme) =>
-                  theme.palette.mode === 'dark'
-                    ? 'rgba(25, 118, 210, 0.18)'
-                    : 'rgba(25, 118, 210, 0.08)',
-              },
+        {({ TransitionProps, placement }) => (
+          <Grow
+            {...TransitionProps}
+            style={{
+              transformOrigin: placement === 'bottom' ? 'center top' : 'center bottom',
             }}
           >
-            {value}
-          </MenuItem>
-        ))}
-      </Menu>
+            <Paper sx={{ mt: 0.5, borderRadius: '8px', boxShadow: 3 }}>
+              <ClickAwayListener onClickAway={handleClose}>
+                <MenuList autoFocusItem>
+                  {Object.entries(options).map(([key, value]) => (
+                    <MenuItem
+                      key={key}
+                      selected={key === selected}
+                      onClick={() => handleMenuItemClick(key)}
+                    >
+                      {value}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
     </>
   );
 };

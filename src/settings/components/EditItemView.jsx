@@ -9,10 +9,11 @@ import {
   TextField,
   Box,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import { useCatch, useAsyncTask } from '../../reactHelper';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 import PageLayout from '../../common/components/PageLayout';
-import useSettingsStyles from '../common/useSettingsStyles';
 import fetchOrThrow from '../../common/util/fetchOrThrow';
 
 const EditItemView = ({
@@ -27,9 +28,9 @@ const EditItemView = ({
   breadcrumbs,
 }) => {
   const navigate = useNavigate();
-  const { classes } = useSettingsStyles();
   const t = useTranslation();
-
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { id } = useParams();
 
   useAsyncTask(
@@ -66,107 +67,114 @@ const EditItemView = ({
 
   const skeletonAccordionStyle = {
     borderRadius: '16px !important',
-    border: (theme) => `1px solid ${theme.palette.divider}`,
+    border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+    backgroundColor: isDark ? '#1e293b' : '#ffffff',
     overflow: 'hidden',
     mb: 2.5,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+    boxShadow: isDark
+      ? '0 10px 25px -5px rgba(0, 0, 0, 0.4)'
+      : '0 8px 24px -4px rgba(15, 23, 42, 0.04)',
     '&:before': { display: 'none' },
   };
 
   return (
     <PageLayout menu={menu} breadcrumbs={breadcrumbs}>
-      {/* Kontainer Utama Pengatur Lebar & Padding Halaman */}
-      <Box
-        sx={{
-          width: '100%',
-          p: { xs: 2, sm: 3, md: 4 },
-          boxSizing: 'border-box',
-          overflowY: 'auto',
-        }}
-      >
-        {/* Batas Konten 960px Simetris di Tengah */}
-        <Box sx={{ maxWidth: 960, width: '100%', mx: 'auto' }}>
-          {item ? (
-            children
-          ) : (
-            <Accordion
-              defaultExpanded
-              disableGutters
-              elevation={0}
-              sx={skeletonAccordionStyle}
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+        {item ? (
+          children
+        ) : (
+          <Accordion defaultExpanded disableGutters elevation={0} sx={skeletonAccordionStyle}>
+            <AccordionSummary sx={{ px: 3, py: 1 }}>
+              <Typography variant="subtitle1" fontWeight={700}>
+                <Skeleton width="10em" height={28} />
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails
+              sx={{
+                p: { xs: 2.5, sm: 3 },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2.5,
+                backgroundColor: isDark ? alpha('#0f172a', 0.4) : '#f8fafc',
+              }}
             >
-              <AccordionSummary>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  <Skeleton width="10em" height={28} />
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails
-                className={classes.details}
-                sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}
-              >
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={-i} width="100%" height={44} sx={{ borderRadius: '10px' }}>
-                    <TextField fullWidth size="small" />
-                  </Skeleton>
-                ))}
-              </AccordionDetails>
-            </Accordion>
-          )}
+              {[...Array(3)].map((_, i) => (
+                <Skeleton
+                  key={-i}
+                  variant="rounded"
+                  width="100%"
+                  height={44}
+                  sx={{ borderRadius: '12px' }}
+                >
+                  <TextField fullWidth size="small" />
+                </Skeleton>
+              ))}
+            </AccordionDetails>
+          </Accordion>
+        )}
 
-          <Box
-            className={classes.buttons}
+        {/* Footer Tombol Aksi Bawah */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            justify: 'flex-end',
+            pt: 1.5,
+            pb: 2,
+          }}
+        >
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            disabled={!item}
             sx={{
-              display: 'flex',
-              gap: 1.5,
-              justifyContent: 'flex-end',
-              mt: 3,
-              pt: 2,
-              borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.16)',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: '#1d4ed8',
+                color: '#1d4ed8',
+                backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+              },
             }}
           >
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => navigate(-1)}
-              disabled={!item}
-              sx={{
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3,
-                py: 1,
-                borderColor: 'divider',
-                color: 'text.secondary',
-                '&:hover': {
-                  borderColor: 'text.secondary',
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              {t('sharedCancel')}
-            </Button>
+            {t('sharedCancel')}
+          </Button>
 
-            <Button
-              type="button"
-              variant="contained"
-              color="primary"
-              onClick={handleSave}
-              disabled={!item || !validate()}
-              sx={{
-                borderRadius: '10px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 3.5,
-                py: 1,
-                boxShadow: 'none',
-                '&:hover': {
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                },
-              }}
-            >
-              {t('sharedSave')}
-            </Button>
-          </Box>
+          <Button
+            type="button"
+            variant="contained"
+            onClick={handleSave}
+            disabled={!item || (validate && !validate())}
+            startIcon={<SaveRoundedIcon sx={{ fontSize: 18 }} />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 3.5,
+              py: 1,
+              backgroundColor: '#1d4ed8',
+              color: '#ffffff',
+              boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                backgroundColor: '#1e40af',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+              },
+              '&.Mui-disabled': {
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+                color: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(15, 23, 42, 0.3)',
+              },
+            }}
+          >
+            {t('sharedSave')}
+          </Button>
         </Box>
       </Box>
     </PageLayout>

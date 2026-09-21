@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -95,6 +95,34 @@ const SummaryReportPage = () => {
     [daily],
   );
 
+  const formatValue = useCallback(
+    (item, key) => {
+      const value = item[key];
+      switch (key) {
+        case 'deviceId':
+          return devices[value]?.name || value;
+        case 'startTime':
+          return formatTime(value, 'date');
+        case 'startOdometer':
+        case 'endOdometer':
+        case 'distance':
+          return formatDistance(value, distanceUnit, t);
+        case 'averageSpeed':
+        case 'maxSpeed':
+          return value > 0 ? formatSpeed(value, speedUnit, t) : null;
+        case 'engineHours':
+        case 'startHours':
+        case 'endHours':
+          return value > 0 ? formatNumericHours(value, t) : null;
+        case 'spentFuel':
+          return value > 0 ? formatVolume(value, volumeUnit, t) : null;
+        default:
+          return value;
+      }
+    },
+    [devices, distanceUnit, speedUnit, volumeUnit, t],
+  );
+
   const onExport = useCatch(async () => {
     const rows = [];
     const deviceHeader = t('sharedDevice');
@@ -121,31 +149,6 @@ const SummaryReportPage = () => {
     await scheduleReport(deviceIds, groupIds, report);
     navigate('/reports/scheduled');
   });
-
-  const formatValue = (item, key) => {
-    const value = item[key];
-    switch (key) {
-      case 'deviceId':
-        return devices[value]?.name || value;
-      case 'startTime':
-        return formatTime(value, 'date');
-      case 'startOdometer':
-      case 'endOdometer':
-      case 'distance':
-        return formatDistance(value, distanceUnit, t);
-      case 'averageSpeed':
-      case 'maxSpeed':
-        return value > 0 ? formatSpeed(value, speedUnit, t) : null;
-      case 'engineHours':
-      case 'startHours':
-      case 'endHours':
-        return value > 0 ? formatNumericHours(value, t) : null;
-      case 'spentFuel':
-        return value > 0 ? formatVolume(value, volumeUnit, t) : null;
-      default:
-        return value;
-    }
-  };
 
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportSummary']}>
@@ -226,9 +229,9 @@ const SummaryReportPage = () => {
             <TableBody>
               {!loading ? (
                 items.length > 0 ? (
-                  items.map((item) => (
+                  items.map((item, idx) => (
                     <TableRow
-                      key={`${item.deviceId}_${Date.parse(item.startTime)}`}
+                      key={`${item.deviceId}_${item.startTime ? Date.parse(item.startTime) : idx}`}
                       hover
                       sx={{
                         transition: 'background-color 0.15s ease',
@@ -252,8 +255,19 @@ const SummaryReportPage = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 6, borderBottom: 'none' }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <TableCell
+                      colSpan={columns.length + 1}
+                      align="center"
+                      sx={{ py: 6, borderBottom: 'none' }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <AssessmentOutlinedIcon sx={{ fontSize: 44, color: 'text.disabled' }} />
                         <Typography variant="body2" color="text.secondary">
                           {t('sharedNoData')}

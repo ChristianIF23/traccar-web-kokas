@@ -5,7 +5,6 @@ import {
   OutlinedInput,
   FormControl,
   FormControlLabel,
-  Grid,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -15,6 +14,7 @@ import {
   AccordionDetails,
   Box,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -33,19 +33,18 @@ import {
   volumeUnitString,
 } from '../../common/util/converter';
 import useFeatures from '../../common/util/useFeatures';
-import useSettingsStyles from '../common/useSettingsStyles';
 
 const EditAttributesAccordion = ({
   attribute,
   attributes,
   setAttributes,
-  definitions,
+  definitions = {},
   focusAttribute,
 }) => {
-  const { classes } = useSettingsStyles();
   const t = useTranslation();
-
   const features = useFeatures();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const speedUnit = useAttributePreference('speedUnit');
   const distanceUnit = useAttributePreference('distanceUnit');
@@ -180,42 +179,48 @@ const EditAttributesAccordion = ({
     return null;
   }
 
+  const attributeList = convertToList(attributes);
+
   return (
     <Accordion
-      defaultExpanded={!!attribute}
+      defaultExpanded={Boolean(attribute)}
       disableGutters
       elevation={0}
       sx={{
-        borderRadius: '12px !important',
-        border: (theme) => `1px solid ${theme.palette.divider}`,
-        '&::before': { display: 'none' },
+        borderRadius: '16px !important',
+        border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        boxShadow: isDark
+          ? '0 10px 25px -5px rgba(0, 0, 0, 0.4)'
+          : '0 8px 24px -4px rgba(15, 23, 42, 0.04)',
         overflow: 'hidden',
-        mt: 1.5,
+        '&::before': { display: 'none' },
       }}
     >
       <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
+        expandIcon={<ExpandMoreIcon sx={{ color: 'text.secondary' }} />}
         sx={{
-          backgroundColor: (theme) =>
-            theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-          minHeight: 48,
-          '&.Mui-expanded': { minHeight: 48 },
+          px: 3,
+          py: 1,
+          '& .MuiAccordionSummary-content': { my: 1 },
         }}
       >
-        <Typography variant="subtitle2" fontWeight={600} color="text.primary">
+        <Typography variant="subtitle1" fontWeight={700} color="text.primary">
           {t('sharedAttributes')}
         </Typography>
       </AccordionSummary>
 
       <AccordionDetails
         sx={{
-          p: 2,
+          px: { xs: 2.5, sm: 3 },
+          pb: 3,
+          pt: 1,
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
         }}
       >
-        {convertToList(attributes).map(({ key, value, type, dataType }) => {
+        {attributeList.map(({ key, value, type, dataType }) => {
           if (type === 'boolean') {
             return (
               <Box
@@ -224,24 +229,27 @@ const EditAttributesAccordion = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  p: 1,
-                  px: 1.5,
-                  borderRadius: '10px',
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : '#f8fafc',
-                  border: (theme) => `1px solid ${theme.palette.divider}`,
+                  py: 1,
+                  px: 2,
+                  borderRadius: '12px',
+                  backgroundColor: isDark ? '#0f172a' : '#f8fafc',
+                  border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)'}`,
                 }}
               >
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={value}
+                      checked={Boolean(value)}
                       onChange={(e) => updateAttribute(key, e.target.checked)}
                       size="small"
+                      sx={{
+                        color: 'text.secondary',
+                        '&.Mui-checked': { color: '#1d4ed8' },
+                      }}
                     />
                   }
                   label={
-                    <Typography variant="body2" fontWeight={500}>
+                    <Typography variant="body2" fontWeight={500} color="text.primary">
                       {getAttributeName(key, dataType)}
                     </Typography>
                   }
@@ -250,9 +258,13 @@ const EditAttributesAccordion = ({
                 <IconButton
                   size="small"
                   onClick={() => deleteAttribute(key)}
+                  title="Remove"
                   sx={{
                     color: 'text.secondary',
-                    '&:hover': { color: 'error.main' },
+                    '&:hover': {
+                      color: 'error.main',
+                      backgroundColor: alpha(theme.palette.error.main, 0.1),
+                    },
                   }}
                 >
                   <CloseIcon fontSize="small" />
@@ -270,16 +282,20 @@ const EditAttributesAccordion = ({
                 value={getDisplayValue(value, dataType)}
                 onChange={(e) => updateAttribute(key, e.target.value, type, dataType)}
                 autoFocus={focusAttribute === key}
-                sx={{ borderRadius: '10px' }}
+                sx={{ borderRadius: '12px' }}
                 endAdornment={
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
                       edge="end"
                       onClick={() => deleteAttribute(key)}
+                      title="Remove"
                       sx={{
                         color: 'text.secondary',
-                        '&:hover': { color: 'error.main' },
+                        '&:hover': {
+                          color: 'error.main',
+                          backgroundColor: alpha(theme.palette.error.main, 0.1),
+                        },
                       }}
                     >
                       <CloseIcon fontSize="small" />
@@ -293,15 +309,21 @@ const EditAttributesAccordion = ({
 
         <Button
           variant="outlined"
-          color="primary"
           onClick={() => setAddDialogShown(true)}
           startIcon={<AddIcon />}
           sx={{
-            borderRadius: '10px',
+            borderRadius: '12px',
             textTransform: 'none',
             fontWeight: 600,
             alignSelf: 'flex-start',
-            px: 2,
+            px: 2.5,
+            py: 0.8,
+            borderColor: '#1d4ed8',
+            color: '#1d4ed8',
+            '&:hover': {
+              borderColor: '#1e40af',
+              backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.05),
+            },
           }}
         >
           {t('sharedAdd')}
