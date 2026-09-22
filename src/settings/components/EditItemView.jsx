@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded'; // Tambahkan Icon Logout
 import { useCatch, useAsyncTask } from '../../reactHelper';
 import { useTranslation } from '../../common/components/LocalizationProvider';
 import PageLayout from '../../common/components/PageLayout';
@@ -65,6 +66,12 @@ const EditItemView = ({
     navigate(-1);
   });
 
+  // Fungsi Logout Handler
+  const handleLogout = useCatch(async () => {
+    await fetchOrThrow('/api/session', { method: 'DELETE' });
+    navigate('/login');
+  });
+
   const skeletonAccordionStyle = {
     borderRadius: '16px !important',
     border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)'}`,
@@ -117,64 +124,91 @@ const EditItemView = ({
         <Box
           sx={{
             display: 'flex',
-            gap: 1.5,
-            justify: 'flex-end',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             pt: 1.5,
             pb: 2,
           }}
         >
+          {/* Tombol Logout langsung diletakkan di sini tanpa syarat IF */}
           <Button
             type="button"
             variant="outlined"
-            onClick={() => navigate(-1)}
-            disabled={!item}
+            color="error"
+            onClick={handleLogout}
+            startIcon={<LogoutRoundedIcon sx={{ fontSize: 18 }} />}
             sx={{
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 600,
-              px: 3,
+              px: 2.5,
               py: 1,
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.16)',
-              color: 'text.secondary',
+              borderColor: theme.palette.error.main,
+              color: theme.palette.error.main,
               '&:hover': {
-                borderColor: '#1d4ed8',
-                color: '#1d4ed8',
-                backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+                borderColor: theme.palette.error.dark,
+                backgroundColor: alpha(theme.palette.error.main, 0.08),
               },
             }}
           >
-            {t('sharedCancel')}
+            Logout
           </Button>
 
-          <Button
-            type="button"
-            variant="contained"
-            onClick={handleSave}
-            disabled={!item || (validate && !validate())}
-            startIcon={<SaveRoundedIcon sx={{ fontSize: 18 }} />}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 700,
-              px: 3.5,
-              py: 1,
-              backgroundColor: '#1d4ed8',
-              color: '#ffffff',
-              boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                backgroundColor: '#1e40af',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
-              },
-              '&.Mui-disabled': {
-                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
-                color: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(15, 23, 42, 0.3)',
-              },
-            }}
-          >
-            {t('sharedSave')}
-          </Button>
+          {/* Group Tombol Cancel & Save */}
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => navigate(-1)}
+              disabled={!item}
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(15, 23, 42, 0.16)',
+                color: 'text.secondary',
+                '&:hover': {
+                  borderColor: '#1d4ed8',
+                  color: '#1d4ed8',
+                  backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+                },
+              }}
+            >
+              {t('sharedCancel')}
+            </Button>
+
+            <Button
+              type="button"
+              variant="contained"
+              onClick={handleSave}
+              disabled={!item || (validate && !validate())}
+              startIcon={<SaveRoundedIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 700,
+                px: 3.5,
+                py: 1,
+                backgroundColor: '#1d4ed8',
+                color: '#ffffff',
+                boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: '#1e40af',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.12)',
+                  color: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(15, 23, 42, 0.3)',
+                },
+              }}
+            >
+              {t('sharedSave')}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </PageLayout>
