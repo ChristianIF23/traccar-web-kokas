@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Paper, Box, Avatar, Typography, Drawer, IconButton } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useTheme, alpha } from '@mui/material/styles';
@@ -6,6 +7,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useDispatch, useSelector } from 'react-redux';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 
 import DeviceList from './DeviceList';
 import BottomMenu from '../common/components/BottomMenu';
@@ -164,6 +166,7 @@ const useStyles = makeStyles()((theme) => {
 const MainPage = () => {
   const { classes, cx } = useStyles();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const theme = useTheme();
 
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -194,6 +197,16 @@ const MainPage = () => {
   const [accountOpen, setAccountOpen] = useState(false);
 
   const onEventsClick = useCallback(() => setEventsOpen(true), [setEventsOpen]);
+
+  // Fungsi Handler Logout
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/session', { method: 'DELETE' });
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   useEffect(() => {
     if (!desktop && mapOnSelect && selectedDeviceId) {
@@ -407,23 +420,47 @@ const MainPage = () => {
               </Typography>
             </Box>
           </Box>
-          <IconButton
-            size="small"
-            onClick={() => setAccountOpen(false)}
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '10px',
-              color: (th) => (th.palette.mode === 'dark' ? '#94a3b8' : '#64748b'),
-              '&:hover': {
-                backgroundColor: alpha('#ef4444', 0.1),
+
+          {/* Group Tombol Aksi Header Right */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* Tombol Logout */}
+            <IconButton
+              size="small"
+              onClick={handleLogout}
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '10px',
                 color: '#ef4444',
-              },
-            }}
-            title="Tutup"
-          >
-            <CloseRoundedIcon fontSize="small" />
-          </IconButton>
+                backgroundColor: alpha('#ef4444', 0.08),
+                '&:hover': {
+                  backgroundColor: alpha('#ef4444', 0.2),
+                },
+              }}
+              title="Logout / Keluar"
+            >
+              <LogoutRoundedIcon fontSize="small" />
+            </IconButton>
+
+            {/* Tombol Close Modal */}
+            <IconButton
+              size="small"
+              onClick={() => setAccountOpen(false)}
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '10px',
+                color: (th) => (th.palette.mode === 'dark' ? '#94a3b8' : '#64748b'),
+                '&:hover': {
+                  backgroundColor: alpha('#ef4444', 0.1),
+                  color: '#ef4444',
+                },
+              }}
+              title="Tutup"
+            >
+              <CloseRoundedIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
 
         {/* Form Akun Murni (Menggunakan UserPage Standalone) */}

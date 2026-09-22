@@ -928,4 +928,15 @@ const UserPage = ({ standalone = false, onClose }) => {
   );
 };
 
+const handleLogout = async () => {
+  try {
+    const response = await fetch('/api/session', { method: 'DELETE' });
+    if (response.ok) {
+      window.location.href = '/login'; // atau navigate('/login');
+    }
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
+
 export default UserPage;

@@ -45,7 +45,7 @@ const BottomMenu = () => {
     },
     {
       id: 'users',
-      label: 'Pengguna',
+      label: 'Users',
       icon: <GroupOutlinedIcon sx={{ fontSize: 18 }} />,
       action: () => navigate(manager ? '/settings/users' : `/settings/user/${user?.id}`),
       hide: readonly,
