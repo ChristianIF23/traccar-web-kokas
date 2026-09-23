@@ -1,7 +1,6 @@
 import { useMediaQuery } from '@mui/material';
 import { makeStyles } from 'tss-react/mui';
 import { useTheme } from '@mui/material/styles';
-import LogoImage from './LogoImage';
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -17,7 +16,6 @@ const useStyles = makeStyles()((theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     width: '40%',
-    // Warna Navy Solid Bersih & Elegan
     backgroundColor: '#162447',
     padding: theme.spacing(4),
     [theme.breakpoints.down('md')]: {
@@ -28,15 +26,15 @@ const useStyles = makeStyles()((theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    '& svg': {
-      width: 'auto',
-      maxHeight: 56,
-    },
-    '& img': {
-      width: 'auto',
-      maxHeight: 56,
-      objectFit: 'contain',
-    },
+    width: '100%',
+  },
+  kokasLogo: {
+    maxHeight: 260, // Ukuran logo diperbesar agar menonjol di tengah
+    width: 'auto',
+    maxWidth: '80%',
+    objectFit: 'contain',
+    backgroundColor: 'transparent',
+    filter: 'drop-shadow(0px 6px 16px rgba(0, 0, 0, 0.35))', // Bayangan halus mengikuti bentuk logo
   },
   contentArea: {
     flex: 1,
@@ -56,16 +54,16 @@ const LoginLayout = ({ children }) => {
 
   return (
     <main className={classes.root}>
-      {/* Kolom Kiri: Navy Elegan Polos dengan Logo Traccar */}
+      {/* Kolom Kiri: Hanya Logo KOKAS Besar */}
       {!isMobile && (
         <aside className={classes.sidebar}>
           <div className={classes.logoHolder}>
-            <LogoImage color="#ffffff" />
+            <img src="/kokas.png" alt="Logo KOKAS" className={classes.kokasLogo} />
           </div>
         </aside>
       )}
 
-      {/* Kolom Kanan: Card Login Bersih Presisi */}
+      {/* Kolom Kanan: Card Login */}
       <section className={classes.contentArea}>{children}</section>
     </main>
   );
