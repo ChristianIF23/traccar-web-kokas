@@ -5,6 +5,8 @@ import {
   MenuItem,
   FormControl,
   Button,
+  Checkbox,
+  FormControlLabel,
   TextField,
   Link,
   Snackbar,
@@ -66,8 +68,8 @@ const useStyles = makeStyles()((theme) => ({
     borderRadius: '10px',
     transition: 'all 0.2s ease',
     '&:hover': {
-      color: '#162447',
-      backgroundColor: alpha('#162447', 0.08),
+      color: theme.palette.primary.main,
+      backgroundColor: alpha(theme.palette.primary.main, 0.08),
     },
   },
   languageSelect: {
@@ -95,21 +97,25 @@ const useStyles = makeStyles()((theme) => ({
   },
   cardWrapper: {
     width: '100%',
-    maxWidth: 390,
+    maxWidth: 360,
     margin: '0 auto',
-    padding: theme.spacing(4.5, 4),
-    borderRadius: '28px',
-    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#ffffff',
-    border: `1px solid ${
-      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
-    }`,
+    padding: theme.spacing(2.5, 3.25),
+    borderRadius: '22px',
+    backgroundColor:
+      theme.palette.mode === 'dark' ? alpha(theme.palette.primary.dark, 0.82) : '#ffffff',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1)}`,
     boxShadow:
       theme.palette.mode === 'dark'
-        ? '0 20px 45px -10px rgba(0, 0, 0, 0.5)'
-        : '0 16px 40px -10px rgba(15, 23, 42, 0.07)',
+        ? '0 16px 34px -12px rgba(0, 0, 0, 0.5)'
+        : '0 12px 30px -12px rgba(15, 23, 42, 0.12)',
+    [theme.breakpoints.down('sm')]: {
+      padding: theme.spacing(2.5, 2.25),
+    },
   },
   headerBox: {
-    marginBottom: theme.spacing(3.5),
+    marginBottom: theme.spacing(1.5),
     textAlign: 'center',
   },
   title: {
@@ -128,13 +134,13 @@ const useStyles = makeStyles()((theme) => ({
   formContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(2.2),
+    gap: theme.spacing(1.35),
     width: '100%',
   },
   fieldGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(0.6),
+    gap: theme.spacing(0.4),
   },
   fieldLabel: {
     fontSize: '0.82rem',
@@ -144,41 +150,50 @@ const useStyles = makeStyles()((theme) => ({
   },
   inputField: {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
-      backgroundColor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+      borderRadius: '10px',
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? alpha(theme.palette.background.default, 0.7)
+          : alpha(theme.palette.geometry.main, 0.025),
       fontSize: '0.9rem',
       fontWeight: 500,
       '& fieldset': {
         borderColor:
-          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.16)',
+          theme.palette.mode === 'dark'
+            ? alpha(theme.palette.primary.light, 0.45)
+            : alpha(theme.palette.primary.main, 0.2),
       },
       '&:hover fieldset': {
-        borderColor: '#162447',
+        borderColor: theme.palette.primary.main,
       },
       '&.Mui-focused fieldset': {
-        borderColor: '#162447',
+        borderColor: theme.palette.geometry.main,
         borderWidth: '1.5px',
       },
       '&.Mui-focused': {
-        boxShadow: '0 0 0 3px rgba(22, 36, 71, 0.14)',
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.geometry.main, 0.16)}`,
       },
     },
   },
   submitButton: {
-    borderRadius: '12px',
-    paddingTop: theme.spacing(1.3),
-    paddingBottom: theme.spacing(1.3),
+    borderRadius: '10px',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     fontWeight: 600,
     textTransform: 'none',
     fontSize: '0.95rem',
-    backgroundColor: '#1d4ed8',
+    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : theme.palette.primary.main,
     color: '#ffffff',
-    boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+    border: `1px solid ${theme.palette.mode === 'dark' ? theme.palette.geometry.main : 'transparent'}`,
+    boxShadow:
+      theme.palette.mode === 'dark'
+        ? `0 4px 16px ${alpha(theme.palette.geometry.main, 0.2)}`
+        : `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
     transition: 'all 0.2s ease',
-    marginTop: theme.spacing(1),
+    marginTop: theme.spacing(0.5),
     '&:hover': {
-      backgroundColor: '#1e40af',
-      boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+      backgroundColor: theme.palette.mode === 'dark' ? '#334155' : theme.palette.primary.dark,
+      boxShadow: `0 6px 18px ${alpha(theme.palette.geometry.main, 0.3)}`,
       transform: 'translateY(-1px)',
     },
     '&:active': {
@@ -194,9 +209,9 @@ const useStyles = makeStyles()((theme) => ({
     },
   },
   openIdButton: {
-    borderRadius: '12px',
-    paddingTop: theme.spacing(1.2),
-    paddingBottom: theme.spacing(1.2),
+    borderRadius: '10px',
+    paddingTop: theme.spacing(0.9),
+    paddingBottom: theme.spacing(0.9),
     fontWeight: 600,
     textTransform: 'none',
     fontSize: '0.9rem',
@@ -204,27 +219,41 @@ const useStyles = makeStyles()((theme) => ({
       theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(15, 23, 42, 0.15)',
     color: theme.palette.text.primary,
     '&:hover': {
-      borderColor: '#162447',
-      backgroundColor: alpha('#162447', 0.04),
+      borderColor: theme.palette.primary.main,
+      backgroundColor: alpha(theme.palette.primary.main, 0.04),
     },
   },
   extraContainer: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: theme.spacing(1),
-    padding: theme.spacing(0, 0.5),
+    padding: theme.spacing(0, 0.25),
+  },
+  rememberControl: {
+    margin: 0,
+    '& .MuiFormControlLabel-label': {
+      color: theme.palette.text.secondary,
+      fontSize: '0.78rem',
+    },
+  },
+  rememberCheckbox: {
+    padding: theme.spacing(0.5),
+    color: theme.palette.text.secondary,
+    '&.Mui-checked': {
+      color: theme.palette.geometry.main,
+    },
   },
   link: {
     cursor: 'pointer',
     fontWeight: 600,
-    color: '#1d4ed8',
+    color: theme.palette.geometry.main,
     textDecoration: 'none',
     fontSize: '0.84rem',
     '&:hover': {
       textDecoration: 'underline',
-      color: '#1e40af',
+      color: theme.palette.primary.main,
     },
   },
   flag: {
@@ -255,6 +284,7 @@ const LoginPage = () => {
 
   const [email, setEmail] = usePersistedState('loginEmail', '');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [code, setCode] = useState('');
   const [showServerTooltip, setShowServerTooltip] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -474,6 +504,18 @@ const LoginPage = () => {
           {/* Bagian Bawah: Reset Password saja (Rata Kanan) */}
           {!openIdForced && emailEnabled && (
             <div className={classes.extraContainer}>
+              <FormControlLabel
+                className={classes.rememberControl}
+                control={
+                  <Checkbox
+                    className={classes.rememberCheckbox}
+                    size="small"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                  />
+                }
+                label="Remember me"
+              />
               <Link
                 onClick={() => navigate('/reset-password')}
                 className={classes.link}

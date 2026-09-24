@@ -23,21 +23,20 @@ import fetchOrThrow from '../common/util/fetchOrThrow';
 const useStyles = makeStyles()((theme) => ({
   cardWrapper: {
     width: '100%',
-    maxWidth: 390,
+    maxWidth: 360,
     margin: '0 auto',
-    padding: theme.spacing(4.5, 4),
-    borderRadius: '28px',
-    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#ffffff',
-    border: `1px solid ${
-      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
-    }`,
+    padding: theme.spacing(2.5, 3.25),
+    borderRadius: '22px',
+    backgroundColor:
+      theme.palette.mode === 'dark' ? alpha(theme.palette.primary.dark, 0.82) : '#ffffff',
+    border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1)}`,
     boxShadow:
       theme.palette.mode === 'dark'
-        ? '0 20px 45px -10px rgba(0, 0, 0, 0.5)'
-        : '0 16px 40px -10px rgba(15, 23, 42, 0.07)',
+        ? '0 16px 34px -12px rgba(0, 0, 0, 0.5)'
+        : '0 12px 30px -12px rgba(15, 23, 42, 0.12)',
   },
   headerBox: {
-    marginBottom: theme.spacing(3.5),
+    marginBottom: theme.spacing(1.5),
   },
   header: {
     display: 'flex',
@@ -56,9 +55,9 @@ const useStyles = makeStyles()((theme) => ({
     color: theme.palette.text.secondary,
     transition: 'all 0.2s ease',
     '&:hover': {
-      color: '#1d4ed8',
-      borderColor: '#1d4ed8',
-      backgroundColor: alpha('#1d4ed8', 0.08),
+      color: theme.palette.geometry.main,
+      borderColor: theme.palette.geometry.main,
+      backgroundColor: alpha(theme.palette.geometry.main, 0.08),
       transform: 'translateX(-2px)',
     },
   },
@@ -77,13 +76,13 @@ const useStyles = makeStyles()((theme) => ({
   formContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(2.2),
+    gap: theme.spacing(1.35),
     width: '100%',
   },
   fieldGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(0.6),
+    gap: theme.spacing(0.4),
   },
   fieldLabel: {
     fontSize: '0.82rem',
@@ -93,41 +92,46 @@ const useStyles = makeStyles()((theme) => ({
   },
   inputField: {
     '& .MuiOutlinedInput-root': {
-      borderRadius: '12px',
-      backgroundColor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+      borderRadius: '10px',
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? alpha(theme.palette.background.default, 0.7)
+          : alpha(theme.palette.geometry.main, 0.025),
       fontSize: '0.9rem',
       fontWeight: 500,
       '& fieldset': {
         borderColor:
-          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.16)',
+          theme.palette.mode === 'dark'
+            ? alpha(theme.palette.primary.light, 0.45)
+            : alpha(theme.palette.primary.main, 0.2),
       },
       '&:hover fieldset': {
-        borderColor: '#1d4ed8',
+        borderColor: theme.palette.geometry.main,
       },
       '&.Mui-focused fieldset': {
-        borderColor: '#1d4ed8',
+        borderColor: theme.palette.geometry.main,
         borderWidth: '1.5px',
       },
       '&.Mui-focused': {
-        boxShadow: '0 0 0 3px rgba(29, 78, 216, 0.14)',
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.geometry.main, 0.14)}`,
       },
     },
   },
   submitButton: {
-    borderRadius: '12px',
-    paddingTop: theme.spacing(1.3),
-    paddingBottom: theme.spacing(1.3),
+    borderRadius: '10px',
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
     fontWeight: 600,
     textTransform: 'none',
     fontSize: '0.95rem',
-    backgroundColor: '#1d4ed8',
+    backgroundColor: theme.palette.primary.main,
     color: '#ffffff',
-    boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+    boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
     transition: 'all 0.2s ease',
     marginTop: theme.spacing(1),
     '&:hover': {
-      backgroundColor: '#1e40af',
-      boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+      backgroundColor: theme.palette.primary.dark,
+      boxShadow: `0 6px 18px ${alpha(theme.palette.primary.main, 0.4)}`,
       transform: 'translateY(-1px)',
     },
     '&:active': {
