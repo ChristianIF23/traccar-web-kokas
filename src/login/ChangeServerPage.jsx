@@ -44,24 +44,26 @@ const useStyles = makeStyles()((theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f172a',
+    background:
+      theme.palette.mode === 'dark'
+        ? 'linear-gradient(135deg, #0b1120 0%, #162447 58%, #1e3a5f 100%)'
+        : 'linear-gradient(135deg, #eaf1f8 0%, #f8fafc 58%, #e5edf7 100%)',
     padding: theme.spacing(3),
   },
   card: {
     position: 'relative',
     zIndex: 5,
     width: '100%',
-    maxWidth: 420,
-    padding: theme.spacing(4.5, 4),
-    borderRadius: '28px',
-    backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#ffffff',
-    border: `1px solid ${
-      theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.06)'
-    }`,
+    maxWidth: 380,
+    padding: theme.spacing(3.5, 3.25),
+    borderRadius: '22px',
+    backgroundColor:
+      theme.palette.mode === 'dark' ? alpha(theme.palette.primary.dark, 0.82) : '#ffffff',
+    border: `1px solid ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.2 : 0.1)}`,
     boxShadow:
       theme.palette.mode === 'dark'
-        ? '0 20px 45px -10px rgba(0, 0, 0, 0.6)'
-        : '0 16px 40px -10px rgba(15, 23, 42, 0.08)',
+        ? '0 16px 34px -12px rgba(0, 0, 0, 0.6)'
+        : '0 12px 30px -12px rgba(15, 23, 42, 0.12)',
     textAlign: 'center',
   },
   iconWrapper: {
@@ -73,9 +75,9 @@ const useStyles = makeStyles()((theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: alpha('#162447', 0.08),
-    color: '#162447',
-    border: '1px solid rgba(22, 36, 71, 0.12)',
+    background: alpha(theme.palette.primary.main, 0.08),
+    color: theme.palette.primary.main,
+    border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
   },
   icon: {
     fontSize: '2rem',
@@ -98,29 +100,34 @@ const useStyles = makeStyles()((theme) => ({
     marginBottom: theme.spacing(3),
     '& .MuiOutlinedInput-root': {
       borderRadius: '12px',
-      backgroundColor: theme.palette.mode === 'dark' ? alpha('#0f172a', 0.6) : '#ffffff',
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? alpha(theme.palette.background.default, 0.7)
+          : alpha(theme.palette.geometry.main, 0.025),
       fontSize: '0.9rem',
       fontWeight: 500,
       '& fieldset': {
         borderColor:
-          theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.14)' : 'rgba(15, 23, 42, 0.16)',
+          theme.palette.mode === 'dark'
+            ? alpha(theme.palette.primary.light, 0.45)
+            : alpha(theme.palette.primary.main, 0.2),
       },
       '&:hover fieldset': {
-        borderColor: '#1d4ed8',
+        borderColor: theme.palette.geometry.main,
       },
       '&.Mui-focused fieldset': {
-        borderColor: '#1d4ed8',
+        borderColor: theme.palette.geometry.main,
         borderWidth: '1.5px',
       },
       '&.Mui-focused': {
-        boxShadow: '0 0 0 3px rgba(29, 78, 216, 0.14)',
+        boxShadow: `0 0 0 3px ${alpha(theme.palette.geometry.main, 0.14)}`,
       },
     },
     '& .MuiInputLabel-root': {
       fontSize: '0.86rem',
       color: theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
       '&.Mui-focused': {
-        color: '#1d4ed8',
+        color: theme.palette.geometry.main,
         fontWeight: 600,
       },
     },
@@ -133,7 +140,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   actionButton: {
     flex: 1,
-    borderRadius: '12px',
+    borderRadius: '10px',
     paddingTop: theme.spacing(1.2),
     paddingBottom: theme.spacing(1.2),
     fontWeight: 600,
@@ -152,22 +159,22 @@ const useStyles = makeStyles()((theme) => ({
     },
   },
   qrBtn: {
-    borderColor: 'rgba(22, 36, 71, 0.2)',
-    color: '#162447',
-    backgroundColor: alpha('#162447', 0.04),
+    borderColor: alpha(theme.palette.primary.main, 0.2),
+    color: theme.palette.primary.main,
+    backgroundColor: alpha(theme.palette.primary.main, 0.04),
     '&:hover': {
-      borderColor: '#162447',
-      backgroundColor: alpha('#162447', 0.08),
+      borderColor: theme.palette.primary.main,
+      backgroundColor: alpha(theme.palette.primary.main, 0.08),
     },
   },
   submitButton: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: theme.palette.primary.main,
     color: '#ffffff',
-    boxShadow: '0 4px 14px rgba(29, 78, 216, 0.3)',
+    boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
     transition: 'all 0.2s ease',
     '&:hover': {
-      backgroundColor: '#1e40af',
-      boxShadow: '0 6px 18px rgba(29, 78, 216, 0.4)',
+      backgroundColor: theme.palette.primary.dark,
+      boxShadow: `0 6px 18px ${alpha(theme.palette.primary.main, 0.4)}`,
       transform: 'translateY(-1px)',
     },
     '&:active': {
