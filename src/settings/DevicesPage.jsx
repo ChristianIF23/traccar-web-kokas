@@ -1,4 +1,4 @@
-import { useCallback, useReducer, useState } from 'react';
+import { useCallback, useReducer, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import LinkIcon from '@mui/icons-material/Link';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useAsyncTask, useScrollToLoad, pageSize } from '../reactHelper';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -54,6 +55,7 @@ const DevicesPage = () => {
   const [showAll, setShowAll] = usePersistedState('showAllDevices', false);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef();
 
   const loadItems = useCallback(
     async (offset, signal) => {
@@ -103,6 +105,85 @@ const DevicesPage = () => {
     const sheets = new Map();
     sheets.set(t('deviceTitle'), data);
     await exportExcel(t('deviceTitle'), 'devices.xlsx', sheets, theme);
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const { default: ExcelJS } = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(file);
+      const worksheet = workbook.worksheets[0];
+
+      if (!worksheet) return;
+
+      const headers = [];
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 2) {
+          row.eachCell((cell, colNumber) => {
+            headers[colNumber] = cell.value;
+          });
+        }
+      });
+
+      const data = [];
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 2) {
+          const item = {};
+          row.eachCell((cell, colNumber) => {
+            if (headers[colNumber]) {
+              item[headers[colNumber]] = cell.value;
+            }
+          });
+          data.push(item);
+        }
+      });
+
+      for (const item of data) {
+        const uniqueId = item[t('deviceIdentifier')]?.toString();
+        const name = item[t('sharedName')]?.toString();
+        if (uniqueId && name) {
+          const groupName = item[t('groupParent')];
+          let groupId = 0;
+          if (groupName) {
+            const group = Object.values(groups).find((g) => g.name === groupName);
+            if (group) {
+              groupId = group.id;
+            }
+          }
+
+          const device = {
+            name,
+            uniqueId,
+            phone: item[t('sharedPhone')]?.toString() || '',
+            model: item[t('deviceModel')]?.toString() || '',
+            contact: item[t('deviceContact')]?.toString() || '',
+            groupId: groupId || null,
+          };
+
+          try {
+            await fetchOrThrow('/api/devices', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(device),
+            });
+          } catch (e) {
+            console.error('Failed to import device:', e);
+          }
+        }
+      }
+      reload();
+    } catch (error) {
+      console.error('Import error:', error);
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const actionConnections = {
@@ -269,29 +350,62 @@ const DevicesPage = () => {
                   }}
                 >
                   <TableCell>
-                    <Button
-                      onClick={handleExport}
-                      variant="outlined"
-                      size="small"
-                      startIcon={<FileDownloadOutlinedIcon />}
-                      sx={{
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        fontSize: '0.82rem',
-                        color: 'text.secondary',
-                        borderColor: isDark
-                          ? 'rgba(255, 255, 255, 0.14)'
-                          : 'rgba(15, 23, 42, 0.14)',
-                        '&:hover': {
-                          borderColor: '#1d4ed8',
-                          backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
-                          color: '#1d4ed8',
-                        },
-                      }}
-                    >
-                      {t('reportExport')}
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        onClick={handleExport}
+                        variant="outlined"
+                        size="small"
+                        startIcon={<FileDownloadOutlinedIcon />}
+                        sx={{
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.82rem',
+                          color: 'text.secondary',
+                          borderColor: isDark
+                            ? 'rgba(255, 255, 255, 0.14)'
+                            : 'rgba(15, 23, 42, 0.14)',
+                          '&:hover': {
+                            borderColor: '#1d4ed8',
+                            backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+                            color: '#1d4ed8',
+                          },
+                        }}
+                      >
+                        {t('reportExport')}
+                      </Button>
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        variant="outlined"
+                        size="small"
+                        startIcon={<FileUploadOutlinedIcon />}
+                        disabled={loading}
+                        sx={{
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.82rem',
+                          color: 'text.secondary',
+                          borderColor: isDark
+                            ? 'rgba(255, 255, 255, 0.14)'
+                            : 'rgba(15, 23, 42, 0.14)',
+                          '&:hover': {
+                            borderColor: '#1d4ed8',
+                            backgroundColor: isDark ? alpha('#1d4ed8', 0.1) : alpha('#1d4ed8', 0.04),
+                            color: '#1d4ed8',
+                          },
+                        }}
+                      >
+                        Import
+                      </Button>
+                      <input
+                        type="file"
+                        accept=".xlsx"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        onChange={handleImport}
+                      />
+                    </Box>
                   </TableCell>
                   <TableCell colSpan={manager ? 9 : 8} align="right">
                     <FormControlLabel
