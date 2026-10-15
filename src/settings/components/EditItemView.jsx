@@ -69,7 +69,9 @@ const EditItemView = ({
   // Fungsi Logout Handler
   const handleLogout = useCatch(async () => {
     await fetchOrThrow('/api/session', { method: 'DELETE' });
-    navigate('/login');
+    // Memaksa refresh halaman penuh untuk membersihkan state map dan websocket 
+    // agar tidak terjadi error "Failed to execute 'removeChild'"
+    window.location.href = '/login';
   });
 
   const skeletonAccordionStyle = {

@@ -217,7 +217,7 @@ const MainPage = () => {
   const handleLogout = async () => {
     try {
       await fetch('/api/session', { method: 'DELETE' });
-      navigate('/login');
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
     }
