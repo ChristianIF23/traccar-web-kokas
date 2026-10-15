@@ -19,6 +19,7 @@ import useFilter from './useFilter';
 import MainToolbar from './MainToolbar';
 import { useAttributePreference } from '../common/util/preferences';
 import UserPage from '../settings/UserPage';
+import LiveVideoMonitoring from './LiveVideoMonitoring';
 
 const MainMap = lazy(() => import('./MainMap'));
 
@@ -195,8 +196,22 @@ const MainPage = () => {
   const [devicesOpen, setDevicesOpen] = useState(desktop);
   const [eventsOpen, setEventsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [isSingleModalOpen, setIsSingleModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [selectedVideoDevice, setSelectedVideoDevice] = useState(null);
 
   const onEventsClick = useCallback(() => setEventsOpen(true), [setEventsOpen]);
+  const openSingleVideo = useCallback((device) => {
+    setSelectedVideoDevice(device);
+    setIsGroupModalOpen(false);
+    setIsSingleModalOpen(true);
+  }, []);
+  const openGroupVideo = useCallback(() => {
+    setIsSingleModalOpen(false);
+    setIsGroupModalOpen(true);
+  }, []);
+  const closeSingleVideo = useCallback(() => setIsSingleModalOpen(false), []);
+  const closeGroupVideo = useCallback(() => setIsGroupModalOpen(false), []);
 
   // Fungsi Handler Logout
   const handleLogout = async () => {
@@ -281,7 +296,7 @@ const MainPage = () => {
               [classes.contentListHidden]: !devicesOpen,
             })}
           >
-            <DeviceList devices={filteredDevices} />
+            <DeviceList devices={filteredDevices} onOpenVideo={openSingleVideo} />
           </Paper>
         </div>
       </div>
@@ -324,8 +339,18 @@ const MainPage = () => {
 
       {/* Floating Pill Menu Bawah Tengah */}
       <div className={classes.bottomPillContainer}>
-        <BottomMenu />
+        <BottomMenu onOpenGroupVideo={openGroupVideo} />
       </div>
+
+      <LiveVideoMonitoring
+        isSingleModalOpen={isSingleModalOpen}
+        isGroupModalOpen={isGroupModalOpen}
+        selectedDevice={selectedVideoDevice}
+        devices={filteredDevices}
+        onCloseSingle={closeSingleVideo}
+        onCloseGroup={closeGroupVideo}
+        onOpenSingle={openSingleVideo}
+      />
 
       <EventsDrawer open={eventsOpen} onClose={() => setEventsOpen(false)} />
 
