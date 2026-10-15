@@ -8,12 +8,15 @@ import {
   Dialog,
   Grid,
   IconButton,
+  InputAdornment,
   MenuItem,
   Select,
+  TextField,
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 
 const DEMO_ROAD_FEED =
@@ -488,19 +491,45 @@ const GroupVehicleCard = ({ device, position, driverName, onSelect }) => {
 const GroupVehicleDialog = ({ open, devices, positions, groups, drivers, onClose, onOpenSingle }) => {
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [columns, setColumns] = useState(2);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const visibleDevices = useMemo(() => {
-    if (!selectedGroupId) return devices;
-    const inSelectedGroup = (device) => {
-      let groupId = device.groupId;
-      while (groupId) {
-        if (String(groupId) === selectedGroupId) return true;
-        groupId = groups[groupId]?.groupId;
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+
+    return devices.filter((device) => {
+      if (selectedGroupId) {
+        let groupId = device.groupId;
+        let belongsToGroup = false;
+        while (groupId) {
+          if (String(groupId) === selectedGroupId) {
+            belongsToGroup = true;
+            break;
+          }
+          groupId = groups[groupId]?.groupId;
+        }
+        if (!belongsToGroup) return false;
       }
-      return false;
-    };
-    return devices.filter(inSelectedGroup);
-  }, [devices, groups, selectedGroupId]);
+
+      if (!normalizedQuery) return true;
+
+      const position = positions[device.id];
+      const searchableValues = [
+        device.name,
+        device.uniqueId,
+        device.attributes?.plateNumber,
+        device.attributes?.registration,
+        device.attributes?.driverName,
+        position?.attributes?.driverName,
+        getDriverName(device, position, drivers),
+      ];
+
+      return searchableValues.some((value) =>
+        String(value || '')
+          .toLocaleLowerCase()
+          .includes(normalizedQuery),
+      );
+    });
+  }, [devices, drivers, groups, positions, searchQuery, selectedGroupId]);
 
   const groupOptions = Object.values(groups).filter((group) =>
     devices.some((device) => {
@@ -562,26 +591,79 @@ const GroupVehicleDialog = ({ open, devices, positions, groups, drivers, onClose
           borderColor: 'divider',
         }}
       >
-        <Select
-          size="small"
-          value={selectedGroupId}
-          onChange={(event) => setSelectedGroupId(event.target.value)}
-          aria-label="Filter grup armada"
+        <Box
           sx={{
-            minWidth: 190,
-            color: 'text.primary',
-            fontSize: '0.78rem',
-            '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
-            '.MuiSvgIcon-root': { color: 'text.secondary' },
+            display: 'flex',
+            flex: 1,
+            alignItems: 'center',
+            gap: 1.5,
+            flexWrap: 'wrap',
+            minWidth: 0,
           }}
         >
-          <MenuItem value="">Semua grup</MenuItem>
-          {groupOptions.map((group) => (
-            <MenuItem key={group.id} value={String(group.id)}>
-              {group.name}
-            </MenuItem>
-          ))}
-        </Select>
+          <Select
+            size="small"
+            value={selectedGroupId}
+            onChange={(event) => setSelectedGroupId(event.target.value)}
+            displayEmpty
+            renderValue={(value) =>
+              value ? groups[value]?.name || 'Grup tidak ditemukan' : 'Semua grup'
+            }
+            aria-label="Filter grup armada"
+            MenuProps={{
+              PaperProps: {
+                sx: { borderRadius: 2 },
+              },
+            }}
+            sx={{
+              width: { xs: '100%', sm: 190 },
+              flexShrink: 0,
+              height: 42,
+              color: 'text.primary',
+              fontSize: '0.78rem',
+              borderRadius: 2,
+              '.MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
+              '.MuiSvgIcon-root': { color: 'text.secondary' },
+            }}
+          >
+            <MenuItem value="">Semua grup</MenuItem>
+            {groupOptions.map((group) => (
+              <MenuItem key={group.id} value={String(group.id)}>
+                {group.name}
+              </MenuItem>
+            ))}
+          </Select>
+          <TextField
+            size="small"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Cari unit, plat, atau supir"
+            aria-label="Cari unit berdasarkan nama, plat, atau pengemudi"
+            sx={{
+              flex: 1,
+              minWidth: { xs: '100%', sm: 260 },
+              maxWidth: 420,
+              '& .MuiOutlinedInput-root': {
+                height: 42,
+                bgcolor: 'background.paper',
+                borderRadius: 2,
+              },
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderRadius: 2,
+              },
+              '& fieldset': { borderColor: 'divider' },
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" color="action" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Box>
         <ButtonGroup size="small" aria-label="Pilih layout grid">
           {[2, 3].map((count) => (
             <Button
@@ -626,7 +708,9 @@ const GroupVehicleDialog = ({ open, devices, positions, groups, drivers, onClose
           </Grid>
         ) : (
           <Typography sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
-            Tidak ada unit pada grup ini.
+            {searchQuery.trim()
+              ? `Tidak ada unit yang cocok dengan "${searchQuery.trim()}".`
+              : 'Tidak ada unit pada grup ini.'}
           </Typography>
         )}
       </Box>
