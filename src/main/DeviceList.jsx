@@ -58,7 +58,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-const DeviceList = ({ devices = [] }) => {
+const DeviceList = ({ devices = [], onOpenVideo }) => {
   const { classes } = useStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
@@ -122,7 +122,12 @@ const DeviceList = ({ devices = [] }) => {
       <Box className={classes.listContainer}>
         <List disablePadding>
           {devices.map((_, index) => (
-            <DeviceRow key={devices[index].id} devices={devices} index={index} />
+            <DeviceRow
+              key={devices[index].id}
+              devices={devices}
+              index={index}
+              onOpenVideo={onOpenVideo}
+            />
           ))}
         </List>
       </Box>
