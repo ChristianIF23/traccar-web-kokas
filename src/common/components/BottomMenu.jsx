@@ -1,15 +1,16 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Paper, Box, ButtonBase, Typography, Divider } from '@mui/material';
+import { Paper, ButtonBase, Typography, Divider } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
 import PlayCircleOutlineRoundedIcon from '@mui/icons-material/PlayCircleOutlineRounded';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 import { useSelector } from 'react-redux';
 import { useRestriction, useManager } from '../util/permissions';
 
-const BottomMenu = () => {
+const BottomMenu = ({ onOpenGroupVideo }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,6 +36,12 @@ const BottomMenu = () => {
       label: 'Live Peta',
       icon: <MapOutlinedIcon sx={{ fontSize: 18 }} />,
       action: () => navigate('/'),
+    },
+    {
+      id: 'live-video',
+      label: 'Live Video Grup',
+      icon: <VideocamOutlinedIcon sx={{ fontSize: 18 }} />,
+      action: onOpenGroupVideo,
     },
     {
       id: 'replay',
@@ -81,6 +88,9 @@ const BottomMenu = () => {
             : '0 12px 32px -4px rgba(22, 36, 71, 0.12)',
         gap: 0.5,
         userSelect: 'none',
+        maxWidth: 'calc(100vw - 16px)',
+        overflowX: 'auto',
+        '&::-webkit-scrollbar': { display: 'none' },
       }}
     >
       {menuItems
@@ -95,7 +105,7 @@ const BottomMenu = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                padding: '8px 16px',
+                padding: { xs: '8px 10px', sm: '8px 16px' },
                 borderRadius: '30px',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 backgroundColor: isActive ? '#1d4ed8' : 'transparent',

@@ -7,7 +7,10 @@ import {
   ListItemButton,
   Typography,
   Box,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 import { devicesActions } from '../store';
 import { mapIconKey, mapIcons } from '../map/core/preloadImages';
 import { useAdministrator } from '../common/util/permissions';
@@ -73,7 +76,7 @@ const useStyles = makeStyles()((theme) => {
   };
 });
 
-const DeviceRow = ({ devices, index, style }) => {
+const DeviceRow = ({ devices, index, style, onOpenVideo }) => {
   const { classes } = useStyles();
   const dispatch = useDispatch();
   const t = useTranslation();
@@ -137,6 +140,23 @@ const DeviceRow = ({ devices, index, style }) => {
           }
         />
 
+        <Tooltip title="Buka pemantauan kamera">
+          <IconButton
+            aria-label={`Buka pemantauan kamera ${item.name}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenVideo?.(item);
+            }}
+            size="small"
+            sx={{
+              ml: 0.5,
+              color: '#059669',
+              '&:hover': { bgcolor: 'rgba(16, 185, 129, 0.12)' },
+            }}
+          >
+            <VideocamOutlinedIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
         <div className={classes.statusDot} style={dotStyle} />
       </ListItemButton>
     </div>
