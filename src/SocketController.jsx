@@ -108,7 +108,7 @@ const SocketController = () => {
           dispatch(sessionActions.updatePositions(await positionsResponse.json()));
         }
         if (devicesResponse.status === 401 || positionsResponse.status === 401) {
-          navigate('/login');
+          window.location.href = '/login';
         }
       } catch {
         // ignore errors
