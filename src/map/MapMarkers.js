@@ -10,10 +10,11 @@ import { findFonts, toMapCoordinates } from './core/mapUtil';
 const onMouseEnter = () => (map.getCanvas().style.cursor = 'pointer');
 const onMouseLeave = () => (map.getCanvas().style.cursor = '');
 
-const MapMarkers = ({ markers, showTitles, cluster, direction, onClick, disabled }) => {
+const MapMarkers = ({ markers, showTitles, cluster, direction, onClick, disabled, isSelected }) => {
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up('md'));
-  const iconScale = useAttributePreference('iconScale', desktop ? 0.75 : 1);
+  const baseScale = useAttributePreference('iconScale', desktop ? 0.75 : 1);
+  const iconScale = isSelected ? baseScale * 1.55 : baseScale;
 
   const disabledRef = useRef(disabled);
   disabledRef.current = disabled;
@@ -46,21 +47,35 @@ const MapMarkers = ({ markers, showTitles, cluster, direction, onClick, disabled
             'icon-image': '{image}',
             'icon-size': iconScale,
             'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
             'text-field': '{title}',
             'text-allow-overlap': true,
+            'text-ignore-placement': true,
             'text-anchor': 'bottom',
-            'text-offset': [0, -2 * iconScale],
+            'text-offset': [0, isSelected ? -2.3 * iconScale : -2 * iconScale],
             'text-font': findFonts(map),
-            'text-size': 12,
-            'symbol-sort-key': ['get', 'id'],
+            'text-size': isSelected ? 15 : 12,
+            'symbol-sort-key': isSelected ? 999999 : ['get', 'id'],
           }
         : {
             'icon-image': '{image}',
             'icon-size': iconScale,
             'icon-allow-overlap': true,
-            'symbol-sort-key': ['get', 'id'],
+            'icon-ignore-placement': true,
+            'symbol-sort-key': isSelected ? 999999 : ['get', 'id'],
           },
-      ...(showTitles ? { paint: { 'text-halo-color': 'white', 'text-halo-width': 1 } } : {}),
+      ...(showTitles
+        ? {
+            paint: isSelected
+              ? {
+                  'text-color': '#0f172a',
+                  'text-halo-color': '#ffffff',
+                  'text-halo-width': 3,
+                  'text-halo-blur': 0.5,
+                }
+              : { 'text-halo-color': 'white', 'text-halo-width': 1 },
+          }
+        : {}),
       ...(onClick
         ? { on: { mouseenter: onMouseEnter, mouseleave: onMouseLeave, click: onMarkerClick } }
         : {}),

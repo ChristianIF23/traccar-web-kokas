@@ -37,10 +37,27 @@ export default (
           (positions[device.id]?.geofenceIds || []).some((id) => filter.geofences.includes(id)),
       )
       .filter((device) => {
-        const lowerCaseKeyword = keyword.toLowerCase();
-        return [device.name, device.uniqueId, device.phone, device.model, device.contact].some(
-          (s) => s && s.toLowerCase().includes(lowerCaseKeyword),
-        );
+        if (!keyword) return true;
+        const lowerCaseKeyword = keyword.toLowerCase().trim();
+        const compactKeyword = lowerCaseKeyword.replace(/\s+/g, '');
+        const searchTargets = [
+          device.name,
+          device.uniqueId,
+          device.phone,
+          device.model,
+          device.contact,
+          device.attributes?.plateNumber,
+          device.attributes?.registration,
+        ].filter(Boolean);
+
+        return searchTargets.some((target) => {
+          const lowerTarget = String(target).toLowerCase();
+          const compactTarget = lowerTarget.replace(/\s+/g, '');
+          return (
+            lowerTarget.includes(lowerCaseKeyword) ||
+            (compactKeyword && compactTarget.includes(compactKeyword))
+          );
+        });
       });
     switch (filterSort) {
       case 'name':

@@ -88,6 +88,7 @@ const MapPositionMarkers = ({
         markers={markers.filter((it) => it.deviceId === selectedDeviceId)}
         showTitles
         direction
+        isSelected
         onClick={onClick}
         disabled={disabled}
       />

@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import Hls from 'hls.js';
+import fetchOrThrow from '../common/util/fetchOrThrow';
 import {
   Box,
   Button,
   ButtonGroup,
   Card,
+  CircularProgress,
   Dialog,
   Grid,
   IconButton,
@@ -62,10 +65,144 @@ const VideoFeed = ({
   infrared = false,
   compact = false,
 }) => {
-  const feedUrl =
+  const videoRef = useRef(null);
+  const [streamActive, setStreamActive] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [streamError, setStreamError] = useState(false);
+
+  // JC181 / JT1078 standard channel index:
+  // Channel 1: Front / Road Camera
+  // Channel 2: Cabin / In-Vehicle DMS Camera
+  const channel = camera === 'cabin' ? 2 : 1;
+  const deviceId = device?.id;
+
+  const fallbackFeedUrl =
     camera === 'cabin'
       ? device?.attributes?.cabinCameraUrl || DEMO_CABIN_FEED
       : device?.attributes?.roadCameraUrl || DEMO_ROAD_FEED;
+
+  useEffect(() => {
+    let hlsInstance = null;
+    let isCancelled = false;
+
+    if (!deviceId) return undefined;
+
+    setConnecting(true);
+    setStreamError(false);
+    setStreamActive(false);
+
+    // Kirim perintah videoStart ke perangkat GPS dashcam via Traccar backend
+    fetchOrThrow('/api/commands/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceId,
+        type: 'videoStart',
+        attributes: { index: channel },
+      }),
+    }).catch(() => {
+      // Abaikan jika device sedang offline / belum ada channel aktif
+    });
+
+    const streamUrl = `/api/stream/${deviceId}/${channel}/live.m3u8`;
+
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+    }
+
+    if (Hls.isSupported()) {
+      hlsInstance = new Hls({
+        liveSyncDurationCount: 1,
+        liveMaxLatencyDurationCount: 3,
+        enableWorker: true,
+        manifestLoadingMaxRetry: 10,
+        manifestLoadingRetryDelay: 1000,
+        fragLoadingMaxRetry: 5,
+        fragLoadingRetryDelay: 1000,
+      });
+
+      hlsInstance.loadSource(streamUrl);
+      if (videoRef.current) {
+        hlsInstance.attachMedia(videoRef.current);
+      }
+
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (!isCancelled) {
+          setConnecting(false);
+          setStreamActive(true);
+          setStreamError(false);
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            videoRef.current.play().catch(() => {});
+          }
+        }
+      });
+
+      hlsInstance.on(Hls.Events.FRAG_LOADED, () => {
+        if (!isCancelled && videoRef.current) {
+          setConnecting(false);
+          setStreamActive(true);
+          if (videoRef.current.paused) {
+            videoRef.current.muted = true;
+            videoRef.current.play().catch(() => {});
+          }
+        }
+      });
+
+      hlsInstance.on(Hls.Events.ERROR, (_, data) => {
+        if (!isCancelled) {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hlsInstance.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hlsInstance.recoverMediaError();
+                break;
+              default:
+                setConnecting(false);
+                setStreamError(true);
+                break;
+            }
+          }
+        }
+      });
+    } else if (videoRef.current?.canPlayType('application/vnd.apple.mpegurl')) {
+      // Safari / iOS Native HLS
+      videoRef.current.src = streamUrl;
+      videoRef.current.muted = true;
+      videoRef.current.addEventListener('loadedmetadata', () => {
+        if (!isCancelled) {
+          setConnecting(false);
+          setStreamActive(true);
+          videoRef.current?.play().catch(() => {});
+        }
+      });
+      videoRef.current.addEventListener('error', () => {
+        if (!isCancelled) {
+          setConnecting(false);
+          setStreamError(true);
+        }
+      });
+    }
+
+    return () => {
+      isCancelled = true;
+      if (hlsInstance) {
+        hlsInstance.destroy();
+      }
+      // Hentikan transmisi video saat modal ditutup untuk menghemat bandwidth 4G
+      fetchOrThrow('/api/commands/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviceId,
+          type: 'videoStop',
+          attributes: { index: channel },
+        }),
+      }).catch(() => {});
+    };
+  }, [deviceId, channel]);
 
   return (
     <Box
@@ -74,14 +211,14 @@ const VideoFeed = ({
         width: '100%',
         aspectRatio: '16 / 9',
         overflow: 'hidden',
-        bgcolor: '#111827',
+        bgcolor: '#0f172a',
       }}
     >
+      {/* Video Player Utama - KUNCI STABIL: Tanpa re-mounting key */}
       <video
-        key={feedUrl}
+        ref={videoRef}
         autoPlay
         muted
-        loop
         playsInline
         aria-label={label}
         style={{
@@ -90,26 +227,55 @@ const VideoFeed = ({
           objectFit: 'cover',
           filter: infrared ? 'grayscale(1) contrast(1.3) brightness(0.8)' : 'none',
         }}
-      >
-        <source src={feedUrl} type="video/mp4" />
-      </video>
+      />
+
+      {/* Overlay Status Badge */}
       <Box
         sx={{
           position: 'absolute',
           top: 10,
           left: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.75,
           px: 1,
           py: 0.5,
           borderRadius: 1,
-          bgcolor: 'rgba(15, 23, 42, 0.78)',
-          color: '#f8fafc',
+          bgcolor: streamActive ? 'rgba(220, 38, 38, 0.88)' : 'rgba(15, 23, 42, 0.82)',
+          color: '#ffffff',
           fontSize: compact ? '0.62rem' : '0.7rem',
-          fontWeight: 700,
+          fontWeight: 800,
           letterSpacing: '0.04em',
         }}
       >
-        UI SIMULASI · {label}
+        {connecting ? (
+          <>
+            <CircularProgress size={10} color="inherit" />
+            <span>MENGHUBUNGKAN...</span>
+          </>
+        ) : streamActive ? (
+          <>
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                bgcolor: '#fff',
+                animation: 'pulse 1.2s infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': { opacity: 1 },
+                  '50%': { opacity: 0.4 },
+                },
+              }}
+            />
+            <span>LIVE CH 0{channel}</span>
+          </>
+        ) : (
+          <span>SIAP KONEK · {label}</span>
+        )}
       </Box>
+
+      {/* Indikator Driver / Face DMS */}
       {camera === 'cabin' && !compact && (
         <Box
           sx={{
@@ -128,9 +294,11 @@ const VideoFeed = ({
             textShadow: '0 1px 3px rgba(15, 23, 42, 0.9)',
           }}
         >
-          FACE OK
+          FACE DETECT OK
         </Box>
       )}
+
+      {/* Indikator ADAS / Road Cam */}
       {camera === 'road' && !compact && (
         <Box
           sx={{
@@ -146,44 +314,27 @@ const VideoFeed = ({
             fontWeight: 700,
           }}
         >
-          Jarak aman: 24 m · Kecepatan: {speed}
+          Kecepatan: {speed}
         </Box>
       )}
+
       {camera === 'cabin' && !compact && (
-        <>
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 10,
-              right: 10,
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-              bgcolor: 'rgba(245, 158, 11, 0.92)',
-              color: '#111827',
-              fontSize: '0.65rem',
-              fontWeight: 900,
-            }}
-          >
-            ⚠ DETEKSI SIMULASI: Pengemudi Menguap
-          </Box>
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 10,
-              bottom: 10,
-              px: 1.25,
-              py: 0.75,
-              borderRadius: 1,
-              bgcolor: 'rgba(6, 78, 59, 0.9)',
-              color: '#a7f3d0',
-              fontSize: '0.7rem',
-              fontWeight: 800,
-            }}
-          >
-            STATUS PENGEMUDI: WASPADA · SIMULASI
-          </Box>
-        </>
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 10,
+            bottom: 10,
+            px: 1.25,
+            py: 0.75,
+            borderRadius: 1,
+            bgcolor: 'rgba(6, 78, 59, 0.9)',
+            color: '#a7f3d0',
+            fontSize: '0.7rem',
+            fontWeight: 800,
+          }}
+        >
+          STATUS PENGEMUDI: AKTIF
+        </Box>
       )}
     </Box>
   );
@@ -338,7 +489,7 @@ const SingleVehicleDialog = ({ open, device, position, drivers, onClose }) => {
             fontWeight: 800,
           }}
         >
-          ● 4G STABLE · SIMULASI UI
+          ● 4G DASHCAM READY · JC181
         </Box>
       </Box>
       <Grid
@@ -351,7 +502,7 @@ const SingleVehicleDialog = ({ open, device, position, drivers, onClose }) => {
             device={device}
             title="CAM 01 · ROAD-FACING (DASHCAM DEPAN)"
             camera="road"
-            status="1080P HD · DEMO"
+            status="1080P HD · CHANNEL 1"
             speed={speed}
           />
         </Grid>
@@ -361,7 +512,7 @@ const SingleVehicleDialog = ({ open, device, position, drivers, onClose }) => {
             title="CAM 02 · IN-CABIN (DMS)"
             camera="cabin"
             infrared
-            status="INFRARED · DEMO"
+            status="INFRARED · CHANNEL 2"
           />
         </Grid>
       </Grid>
